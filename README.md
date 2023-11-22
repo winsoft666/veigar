@@ -77,9 +77,9 @@ In the above example, it is necessary to specify the channel name of the current
 sample.exe myself other
 ```
 
-Each instance is bound to a function named `echo`, which simply returns the msg parameter string as is.
+Each instance bind a function named `echo`, which simply returns the msg parameter string as is.
 
-By specifying the `syncCall` function with 'target channel name', 'function name', 'function parameters', and' timeout milliseconds', the target function can be synchronously called and the call result obtained.
+By specifying the `syncCall` function with 'target channel name', 'function name', 'function parameters', and 'timeout milliseconds', the target function can be synchronously called and the call result obtained.
 
 ## 2.2 Reject exceptions
 
