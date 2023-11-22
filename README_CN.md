@@ -26,6 +26,8 @@ Veigar仅支持编译为静态库。
 
 下面是一个同步调用的示例：
 
+> 本示例为了使代码更加简洁，没有对函数返回值进行校验，请在实际使用中不要这样做！
+
 ```cpp
 #include <iostream>
 #include "veigar/veigar.h"

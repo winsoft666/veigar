@@ -1,4 +1,4 @@
-[ >>> 中文版](README_CN.md)
+[ >>> 简体中文版](README_CN.md)
 
 # Veigar
 The term 'Veigar' comes from the game 'The Tiny Master of Evil' in League of Legends.
@@ -31,6 +31,8 @@ When using Veigar, simply include the include directory in the project and intro
 ## 2.1 Synchronous Call
 
 Here is an example of synchronous call:
+
+> In order to make the code more concise, this example did not verify the return value of the function. Please do not do this in practical use!
 
 ```cpp
 #include <iostream>
