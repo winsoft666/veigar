@@ -83,7 +83,7 @@ By specifying the `syncCall` function with 'target channel name', 'function name
 
 ## 2.2 Reject exceptions
 
-I don't like exceptions, so Veigar doesn't throw errors in the form of exceptions. Veigar actively catches all C++ standard libraries, msgpack, and boost exceptions, and returns them to the caller as return values. When the call fails (`! Ret. isSuccess() `), the error information stored in the `errorMessage` may be the exception information captured by Veigar.
+I don't like exceptions, so Veigar doesn't throw errors in the form of exceptions. Veigar actively catches all C++ standard libraries, msgpack, and boost exceptions, and returns them to the caller as return values. When the call fails (`!ret.isSuccess()`), the error information stored in the `errorMessage` may be the exception information captured by Veigar.
 
 ## 2.3 Asynchronous Call
 
