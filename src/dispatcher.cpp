@@ -40,14 +40,20 @@ bool Dispatcher::init() noexcept {
             for (;;) {
                 std::shared_ptr<veigar_msgpack::object_handle> obj;
 
+                do
                 {
                     std::unique_lock<std::mutex> lock(this->queueMutex_);
-                    this->condition_.wait(lock, [this] { return this->stop_ || !this->objs_.empty(); });
-                    if (this->stop_ && this->objs_.empty())
+                    this->condition_.wait(lock, [this] {
+                        return this->stop_ || !this->objs_.empty();
+                    });
+
+                    if (this->stop_ && this->objs_.empty()) {
                         return;
+                    }
+
                     obj = std::move(this->objs_.front());
                     this->objs_.pop();
-                }
+                } while (false);
 
                 if (!obj) {
                     continue;
@@ -63,13 +69,13 @@ bool Dispatcher::init() noexcept {
 
                 veigar_msgpack::sbuffer respBuf = resp.getData();
                 if (respBuf.size() == 0) {
-                    veigar::log("Veigar: the size of response data is zero.\n");
+                    veigar::log("Veigar: The size of response data is zero.\n");
                     continue;
                 }
 
                 exceptionMsg.clear();
                 if (!parent_->sendMessage(callerChannelName, (const uint8_t*)respBuf.data(), respBuf.size(), 100, exceptionMsg)) {
-                    veigar::log("Veigar: send response to caller failed, caller: %s, exception: %s.\n",
+                    veigar::log("Veigar: Send response to caller failed, caller: %s, exception: %s.\n",
                                 callerChannelName.c_str(), exceptionMsg.c_str());
                 }
             }
@@ -127,10 +133,10 @@ Response Dispatcher::dispatchCall(veigar_msgpack::object const& msg, std::string
     try {
         msg.convert(the_call);
     } catch (std::exception& e) {
-        veigar::log("Veigar: parse response exception: %s.\n", e.what());
+        veigar::log("Veigar: An exception occurred during parsing response message: %s.\n", e.what());
         return Response::MakeEmptyResponse();
     } catch (...) {
-        veigar::log("Veigar: parse response exception.\n");
+        veigar::log("Veigar: An exception occurred during parsing response message.\n");
         return Response::MakeEmptyResponse();
     }
 
@@ -141,7 +147,7 @@ Response Dispatcher::dispatchCall(veigar_msgpack::object const& msg, std::string
     auto&& callId = std::get<1>(the_call);
 
     if (type != 0) {
-        return Response::MakeResponseWithError(callId, std::string("invalid message flag"));
+        return Response::MakeResponseWithError(callId, std::string("Invalid message flag."));
     }
 
     callerChannelName = std::get<2>(the_call);
@@ -153,7 +159,7 @@ Response Dispatcher::dispatchCall(veigar_msgpack::object const& msg, std::string
     if (it_func == end(funcs_)) {
         return Response::MakeResponseWithError(
             callId,
-            StringHelper::StringPrintf("could not find function '%s' with argument count %d.", funcName.c_str(), args.via.array.size));
+            StringHelper::StringPrintf("Could not find function '%s' with argument count %d.", funcName.c_str(), args.via.array.size));
     }
 
     try {
@@ -162,13 +168,13 @@ Response Dispatcher::dispatchCall(veigar_msgpack::object const& msg, std::string
     } catch (std::exception& e) {
         return Response::MakeResponseWithError(
             callId,
-            StringHelper::StringPrintf("function '%s' (called with %d arg(s)) threw an exception. "
+            StringHelper::StringPrintf("Function '%s' (called with %d arg(s)) threw an exception. "
                                        "The exception contained this information: %s.",
                                        funcName.c_str(), args.via.array.size, e.what()));
     } catch (...) {
         return Response::MakeResponseWithError(
             callId,
-            StringHelper::StringPrintf("function '%s' (called with %d arg(s)) threw an exception. "
+            StringHelper::StringPrintf("Function '%s' (called with %d arg(s)) threw an exception. "
                                        "The exception is not derived from std::exception. No further information available.",
                                        funcName.c_str(), args.via.array.size));
     }

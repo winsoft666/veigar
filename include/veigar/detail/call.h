@@ -1,7 +1,6 @@
+#ifndef VEIGAR_DETAIL_CALL_H_
+#define VEIGAR_DETAIL_CALL_H_
 #pragma once
-
-#ifndef CALL_H_ZXFACADH
-#define CALL_H_ZXFACADH
 
 #include <tuple>
 #include "veigar/detail/func_tools.h"
@@ -74,4 +73,4 @@ auto call(Functor f, std::tuple<ArgsT...>& args_t)
 }  // namespace detail
 }  // namespace veigar
 
-#endif
+#endif  // !VEIGAR_DETAIL_CALL_H_

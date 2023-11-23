@@ -1,5 +1,5 @@
-#ifndef MAKE_UNIQUE_H_FOOBAR
-#define MAKE_UNIQUE_H_FOOBAR
+#ifndef VEIGAR_DETAIL_MAKE_UNIQUE_H_
+#define VEIGAR_DETAIL_MAKE_UNIQUE_H_
 #pragma once
 
 #include <memory>
@@ -24,4 +24,4 @@ std::unique_ptr<T> make_unique(Ts&&... params) {
 }  // namespace detail
 }  // namespace veigar
 
-#endif
+#endif  // !VEIGAR_DETAIL_MAKE_UNIQUE_H_

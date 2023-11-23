@@ -39,7 +39,14 @@ class Veigar {
 
     Veigar& operator=(Veigar&& other) noexcept;
 
-    bool init(const std::string& channelName, unsigned int defaultBufferSize = 1048576) noexcept;
+    // channelName: 
+    //       Channel name must be unique within the current computer scope.
+    //       This uniqueness is guaranteed by the user and Veigar will not check it.
+    // bufferSize: 
+    //       The size of shared memory used to store message queues.
+    //       If the buffer of the message queue is insufficient, Veigar will automatically discard front message 
+    //           until the buffer is sufficient.
+    bool init(const std::string& channelName, unsigned int bufferSize = 1048576) noexcept;
 
     bool isInit() const noexcept;
 
@@ -60,7 +67,9 @@ class Veigar {
         const std::string& funcName,
         Args... args) noexcept;
 
-    // After obtaining the results, must call releaseCall to release resources
+    // Release resources.
+    // If using 'asyncCall' function, the caller must call the this function to release resources 
+    //     when obtaining the 'CallResult' or when the call result is no longer related.
     void releaseCall(const std::string& callId);
 
     template <typename... Args>
@@ -79,10 +88,18 @@ class Veigar {
         unsigned int timeoutMS,
         std::string& errMsg) noexcept;
 
+    // Set the timeout for reading and writing shared memory.
+    // This timeout is different from the timeout in 'syncCall' function and it same as
+    //    the timeout in 'sendMessage' function.
+    // 
+    // Default is 100ms.
+    void setReadWriteTimeout(unsigned int timeoutMS) noexcept;
+    unsigned int readWriteTimeout() const noexcept;
+
    private:
     std::string getNextCallId(const std::string& funcName) const noexcept;
 
-    // std::promise will not set_exception forever
+    // std::promise will not set_exception forever.
     template <typename... Args>
     std::shared_ptr<AsyncCallResult> doAsyncCall(
         const std::string& targetChannel,

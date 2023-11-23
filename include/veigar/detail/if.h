@@ -1,7 +1,6 @@
+#ifndef VEIGAR_DETAIL_IF_H_
+#define VEIGAR_DETAIL_IF_H_
 #pragma once
-
-#ifndef IF_H_1OW9DR7G
-#define IF_H_1OW9DR7G
 
 #include "veigar/detail/invoke.h"
 
@@ -11,6 +10,6 @@ namespace detail {
 template <typename C, typename T, typename F>
 using if_ = invoke<std::conditional<C::value, T, F>>;
 }
-}
+}  // namespace veigar
 
-#endif /* end of include guard: IF_H_1OW9DR7G */
+#endif // !VEIGAR_DETAIL_IF_H_

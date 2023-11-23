@@ -26,7 +26,9 @@ namespace veigar {
 namespace detail {
 
 Response::Response() :
-    callId_(), error_(), result_() {}
+    callId_(),
+    error_(),
+    result_() {}
 
 veigar_msgpack::sbuffer Response::getData() const {
     veigar_msgpack::sbuffer data;
@@ -63,7 +65,7 @@ bool Response::MakeResponseWithMsgpackObject(veigar_msgpack::object_handle o, Re
         // check protocol
         uint32_t msgFlag = std::get<0>(r);
         if (msgFlag != 1) {
-            exceptionMsg = "invalid response message flag";
+            exceptionMsg = "Invalid response message flag.";
             return false;
         }
 
@@ -83,14 +85,14 @@ bool Response::MakeResponseWithMsgpackObject(veigar_msgpack::object_handle o, Re
         resp.error_.reset();
         resp.result_.reset();
 
-        exceptionMsg = StringHelper::StringPrintf("parse response message exception: %s", e.what());
+        exceptionMsg = StringHelper::StringPrintf("An exception occurred during parsing response message: %s.", e.what());
         return false;
     } catch (...) {
         resp.callId_.clear();
         resp.error_.reset();
         resp.result_.reset();
 
-        exceptionMsg = "parse response message exception";
+        exceptionMsg = "An exception occurred during parsing response message.";
         return false;
     }
 }

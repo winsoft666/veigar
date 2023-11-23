@@ -46,7 +46,7 @@ bool MessageQueue::isInit() const noexcept {
     return isInit_;
 }
 
-bool MessageQueue::init(const std::string& segmentName, bool create, unsigned int defaultBufferSize) noexcept {
+bool MessageQueue::init(const std::string& segmentName, bool create, unsigned int bufferSize) noexcept {
     if (isInit_) {
         return false;
     }
@@ -60,7 +60,7 @@ bool MessageQueue::init(const std::string& segmentName, bool create, unsigned in
     try {
         if (create) {
             itp::shared_memory_object::remove(segmentName_.c_str());
-            msm_ = managed_shared_memory(itp::create_only, segmentName_.c_str(), defaultBufferSize);
+            msm_ = managed_shared_memory(itp::create_only, segmentName_.c_str(), bufferSize);
         }
         else {
             msm_ = managed_shared_memory(itp::open_only, segmentName_.c_str());
@@ -70,16 +70,18 @@ bool MessageQueue::init(const std::string& segmentName, bool create, unsigned in
         messages_ = msm_.find_or_construct<MessageDeque>("MessageDeque")(MessageAllocator(msm_.get_segment_manager()));
 
         if (!messages_) {
-            veigar::log("Veigar: find/construct MessageDeque failed on segment %s.\n", segmentName_.c_str());
+            veigar::log("Veigar: Find/Construct MessageDeque failed on segment %s.\n", segmentName_.c_str());
             return false;
         }
 
-        veigar::log("Veigar: create message queue(%s) success: %d.\n", segmentName_.c_str(), messages_->size());
+        veigar::log("Veigar: Create message queue(%s) success: %d.\n", segmentName_.c_str(), messages_->size());
     } catch (itp::interprocess_exception& exc) {
-        veigar::log("Veigar: interprocess exception on init message queue(%s): %s.\n", segmentName_.c_str(), exc.what());
+        veigar::log("Veigar: An interprocess exception occurred during initializing shared memory(%s): %s.\n",
+                    segmentName_.c_str(), exc.what());
         return false;
     } catch (std::exception& exc) {
-        veigar::log("Veigar: std exception on init message queue(%s): %s.\n", segmentName_.c_str(), exc.what());
+        veigar::log("Veigar: An std exception occurred during initializing shared memory(%s): %s.\n",
+                    segmentName_.c_str(), exc.what());
         return false;
     }
 
@@ -104,38 +106,64 @@ bool MessageQueue::pushBack(const std::vector<uint8_t>& buf, unsigned int timeou
             return false;
         }
 
+        size_t needSize = buf.size() * 4;
+        size_t freeMemSize = msm_.get_free_memory();
+        while (freeMemSize < needSize) {
+            if (messages_->size() == 0) {
+                break;
+            }
+            messages_->pop_front();
+            veigar::log("Veigar: Insufficient buffer size(%ld < %ld), discard front message.\n", freeMemSize, needSize);
+
+            freeMemSize = msm_.get_free_memory();
+        }
+
         Message msg(&msm_);
         msg.setArg(buf);
 
         messages_->push_back(msg);
-
         unlock();
+
         return true;
     } catch (itp::interprocess_exception& exc) {
-        veigar::log("Veigar: interprocess exception on push message to queue(%s): %s.\n", segmentName_.c_str(), exc.what());
-
+        veigar::log("Veigar: An interprocess exception occurred during pushing message to queue(%s): %s.\n",
+                    segmentName_.c_str(), exc.what());
     } catch (std::exception& exc) {
-        veigar::log("Veigar: std exception on push message to queue(%s): %s.\n", segmentName_.c_str(), exc.what());
+        veigar::log("Veigar: An std exception occurred during pushing message to queue(%s): %s.\n",
+                    segmentName_.c_str(), exc.what());
     }
+
     unlock();
     return false;
 }
 
 bool MessageQueue::popFront(Message* msg, unsigned int timeout) {
-    if (!lock(timeout)) {
-        return false;
-    }
+    try {
+        if (!lock(timeout)) {
+            unlock();
+            return false;
+        }
 
-    if (!messages_ || messages_->size() == 0) {
+        if (!messages_ || messages_->size() == 0) {
+            unlock();
+            return false;
+        }
+
+        *msg = messages_->front();
+        messages_->pop_front();
+
         unlock();
-        return false;
+        return true;
+    } catch (itp::interprocess_exception& exc) {
+        veigar::log("Veigar: An interprocess exception occurred during pop message from queue(%s): %s.\n",
+                    segmentName_.c_str(), exc.what());
+    } catch (std::exception& exc) {
+        veigar::log("Veigar: An std exception occurred during pop message from queue(%s): %s.\n",
+                    segmentName_.c_str(), exc.what());
     }
-
-    *msg = messages_->front();
-    messages_->pop_front();
 
     unlock();
-    return true;
+    return false;
 }
 
 Message MessageQueue::createMessage() {
@@ -144,22 +172,30 @@ Message MessageQueue::createMessage() {
 
 bool MessageQueue::lock(unsigned int timeout) {
     bool result = false;
-    if (mutex_) {
-        if (timeout > 0) {
-            std::chrono::steady_clock::time_point deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(timeout);
-            result = mutex_->timed_lock(deadline);
+    try {
+        if (mutex_) {
+            if (timeout > 0) {
+                std::chrono::steady_clock::time_point deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(timeout);
+                result = mutex_->timed_lock(deadline);
+            }
+            else {
+                mutex_->lock();
+                result = true;
+            }
         }
-        else {
-            mutex_->lock();
-            result = true;
-        }
+    } catch (std::exception& e) {
+        veigar::log("Veigar: An std exception occurred during lock queue: %s.\n", e.what());
     }
     return result;
 }
 
 void MessageQueue::unlock() {
-    if (mutex_) {
-        mutex_->unlock();
+    try {
+        if (mutex_) {
+            mutex_->unlock();
+        }
+    } catch (std::exception& e) {
+        veigar::log("Veigar: An std exception occurred during unlock queue: %s.\n", e.what());
     }
 }
 

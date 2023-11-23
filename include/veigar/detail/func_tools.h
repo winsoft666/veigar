@@ -1,7 +1,6 @@
+#ifndef VEIGAR_DETAIL_FUNC_TOOLS_H_
+#define VEIGAR_DETAIL_FUNC_TOOLS_H_
 #pragma once
-
-#ifndef FUNC_TOOLS_H_9FNRD4G2
-#define FUNC_TOOLS_H_9FNRD4G2
 
 #include "veigar/detail/invoke.h"
 #include "veigar/detail/all.h"
@@ -21,4 +20,4 @@ using disable_if = invoke<std::enable_if<!any<C...>::value, enabled>>;
 }  // namespace detail
 }  // namespace veigar
 
-#endif
+#endif  // !VEIGAR_DETAIL_FUNC_TOOLS_H_

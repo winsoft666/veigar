@@ -31,7 +31,7 @@ CallResult Veigar::syncCall(const std::string& targetChannel, unsigned int timeo
 
             CallResult callRet;
             callRet.errCode = ErrorCode::TIMEOUT;
-            callRet.errorMessage = "Timeout";
+            callRet.errorMessage = "Timeout.";
             return callRet;
         }
     }

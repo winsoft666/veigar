@@ -67,7 +67,7 @@ class MessageQueue {
    public:
     bool isInit() const noexcept;
 
-    bool init(const std::string& segmentName, bool create, unsigned int defaultBufferSize) noexcept;
+    bool init(const std::string& segmentName, bool create, unsigned int bufferSize) noexcept;
     void uninit() noexcept;
 
     bool pushBack(const std::vector<uint8_t>& buf, unsigned int timeout);

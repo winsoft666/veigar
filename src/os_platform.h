@@ -18,6 +18,7 @@
 ******************************************************************************/
 #ifndef VEIGAR_PLATFORM_H_
 #define VEIGAR_PLATFORM_H_
+#pragma once
 
 // detect platform
 
