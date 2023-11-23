@@ -121,3 +121,63 @@ vg.releaseCall(acr->first);
 ```
 
 Unlike synchronous calls, the `asyncCall` function return `std::shared_ptr<veigar::AsyncCallResult>`, and the caller needs to call the `releaseCall` function to release resources when obtaining the `CallResult` or when the call result is no longer related.
+
+# 3. Performance
+Veigar is implemented based on shared memory and has the advantages of high throughput and ultra-low latency.
+
+Use the `examples\echo` program for testing.
+
+## 3.1 Single thread
+Single thread calls 1 million times, with each call passing ~1050 bytes of parameters. The test results are as follows:
+
+```txt
+Target Channel Name:
+a2
+Async Method(0/1):
+0
+Thread Number:
+1
+Call times each of thread:
+1000000
+Calling...
+Total 1000000, Success 1000000, Error 0, Used: 29138ms.
+```
+
+Total used 29138ms，Average 34319 calls per second.
+
+
+## 3.2 Multi-threading
+
+Six threads running simultaneously, with each thread calling 1 million times, and each call passed ~1050 bytes of parameters. The test results are as follows:
+
+```txt
+Target Channel Name:
+a2
+Async Method(0/1):
+0
+Thread Number:
+6
+Call times each of thread:
+1000000
+Calling...
+Calling...
+Calling...
+Calling...
+Calling...
+Calling...
+Total 1000000, Success 1000000, Error 0, Used: 45275ms.
+
+Total 1000000, Success 1000000, Error 0, Used: 45277ms.
+
+Total 1000000, Success 1000000, Error 0, Used: 45295ms.
+
+Total 1000000, Success 1000000, Error 0, Used: 45297ms.
+
+Total 1000000, Success 1000000, Error 0, Used: 45300ms.
+
+Total 1000000, Success 1000000, Error 0, Used: 45313ms.
+```
+
+Total used 45275ms，Average 132459 calls per second.
+
+> The above test results may vary on computers with different configurations.

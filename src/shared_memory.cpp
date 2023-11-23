@@ -74,7 +74,8 @@ bool MessageQueue::init(const std::string& segmentName, bool create, unsigned in
             return false;
         }
 
-        veigar::log("Veigar: Create message queue(%s) success: %d.\n", segmentName_.c_str(), messages_->size());
+        veigar::log("Veigar: %s message queue(%s) success: %d.\n",
+                    create ? "Create" : "Get", segmentName_.c_str(), messages_->size());
     } catch (itp::interprocess_exception& exc) {
         veigar::log("Veigar: An interprocess exception occurred during initializing shared memory(%s): %s.\n",
                     segmentName_.c_str(), exc.what());

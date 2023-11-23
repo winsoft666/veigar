@@ -114,3 +114,61 @@ vg.releaseCall(acr->first);
 
 与同步调用不同，`asyncCall`函数返回的是`std::shared_ptr<veigar::AsyncCallResult>`，而且调用者在获取到`CallResult`或不再关系调用结果时，需要调用`releaseCall`函数释放资源。
 
+# 3. 性能
+Veigar基于共享内存实现，具有高吞吐量、超低延迟的优势。
+
+使用`examples\echo`程序进行测试。
+
+## 3.1 单线程
+单线程调用100万次，每次调用传参约1050字节，测试结果如下：
+
+```txt
+Target Channel Name:
+a2
+Async Method(0/1):
+0
+Thread Number:
+1
+Call times each of thread:
+1000000
+Calling...
+Total 1000000, Success 1000000, Error 0, Used: 29138ms.
+```
+
+总共花费29138毫秒，平均34319次/秒。
+
+
+## 3.2 多线程
+
+6个线程同时调用，每个线程调用100万次，每次调用传参约1050字节，测试结果如下：
+```txt
+Target Channel Name:
+a2
+Async Method(0/1):
+0
+Thread Number:
+6
+Call times each of thread:
+1000000
+Calling...
+Calling...
+Calling...
+Calling...
+Calling...
+Calling...
+Total 1000000, Success 1000000, Error 0, Used: 45275ms.
+
+Total 1000000, Success 1000000, Error 0, Used: 45277ms.
+
+Total 1000000, Success 1000000, Error 0, Used: 45295ms.
+
+Total 1000000, Success 1000000, Error 0, Used: 45297ms.
+
+Total 1000000, Success 1000000, Error 0, Used: 45300ms.
+
+Total 1000000, Success 1000000, Error 0, Used: 45313ms.
+```
+
+总共花费45275毫秒，平均132459次/秒。
+
+> 上述测试结果，在不同配置的计算机上测试结果可能存在差异。
