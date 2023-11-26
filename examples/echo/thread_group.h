@@ -10,9 +10,9 @@ class ThreadGroup {
     ThreadGroup() {}
     ThreadGroup(ThreadGroup const&) = delete;
 
-    void createThreads(std::size_t thread_count, std::function<void(std::size_t)> func) {
+    void createThreads(std::size_t thread_count, std::string targetName, std::function<void(std::size_t, std::string)> func) {
         for (std::size_t i = 0; i < thread_count; ++i) {
-            threads_.push_back(std::thread(func, i));
+            threads_.push_back(std::thread(func, i, targetName));
         }
     }
 

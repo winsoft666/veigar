@@ -40,6 +40,25 @@ gVsPnzU5oqkOD3aNUCEs74gxRWQGR0iv9A17Fsnwgd44UBxOnAIlFXaNLZyn3reVSQJQnWpag8Wa
 
 const unsigned int warnDelayMS = 200;
 
+std::vector<std::string> StringSplit(const std::string& src, const std::string& delimiter, bool includeEmptyStr) {
+    std::vector<std::string> fields;
+    typename std::string::size_type offset = 0;
+    typename std::string::size_type pos = src.find(delimiter, 0);
+
+    while (pos != std::string::npos) {
+        std::string t = src.substr(offset, pos - offset);
+        if ((t.length() > 0) || (t.length() == 0 && includeEmptyStr))
+            fields.push_back(t);
+        offset = pos + delimiter.length();
+        pos = src.find(delimiter, offset);
+    }
+
+    const std::string t = src.substr(offset);
+    if ((t.length() > 0) || (t.length() == 0 && includeEmptyStr))
+        fields.push_back(t);
+    return fields;
+}
+
 std::string genRandomString(const uint32_t len) {
     srand((unsigned int)time(nullptr) + len);
     static const char alphanum[] =
@@ -83,11 +102,11 @@ int main(int argc, char** argv) {
 
             std::cout << "Init success.\n";
 
-            if (!vg.bind("echo", [&outputRecv](const std::string& msg) {
+            if (!vg.bind("echo", [&outputRecv](const std::string& msg, int id) {
                     if (outputRecv != 0) {
                         std::cout << "RECV:" << msg << std::endl;
                     }
-                    return msg;
+                    return msg + "_" + std::to_string(id);
                 })) {
                 printf("Bind echo function failed.\n");
                 continue;
@@ -102,42 +121,44 @@ int main(int argc, char** argv) {
             int asyncMethod = 0;
             int threadNum = 0;
             int callTimesEachThread = 0;
-            std::string targetChannel;
+            std::string targetChannels;
+            std::vector<std::string> targetChannelList;
 
-            std::cout << "Target Channel Name:\n";
-            std::cin >> targetChannel;
+            std::cout << "Target channel names (Split by comma):\n";
+            std::cin >> targetChannels;
 
-            if (targetChannel == "quit")
+            if (targetChannels == "quit")
                 break;
 
-            if (targetChannel.empty())
+            targetChannelList = StringSplit(targetChannels, ",", false);
+            if (targetChannelList.empty())
                 continue;
 
-            std::cout << "Async Method(0/1): \n";
+            std::cout << "Async method(0/1): \n";
             std::cin >> asyncMethod;
 
-            std::cout << "Thread Number: \n";
+            std::cout << "Thread number for each target: \n";
             std::cin >> threadNum;
 
             std::cout << "Call times each of thread: \n";
             std::cin >> callTimesEachThread;
 
-            auto fn = [&vg, channelName, asyncMethod, targetChannel, callTimesEachThread](std::size_t threadId) {
+            auto fn = [&vg, channelName, asyncMethod, callTimesEachThread](std::size_t threadId, std::string targetChannel) {
                 int error = 0;
                 int success = 0;
 
-                printf("Calling...\n");
+                printf("[Thread %lld, Target %s] Calling...\n", threadId, targetChannel.c_str());
                 veigar::detail::TimeMeter threadTM;
                 for (int i = 0; i < callTimesEachThread; i++) {
-                    std::string msg = str1046 + channelName + "_" + targetChannel + std::to_string(i) + "_" + std::to_string(threadId);
+                    std::string msg = str1046 + channelName + "_" + targetChannel + "_" + std::to_string(i) + "_" + std::to_string(threadId);
                     veigar::detail::TimeMeter tm;
                     veigar::CallResult ret;
 
                     if (asyncMethod == 0) {
-                        ret = vg.syncCall(targetChannel, warnDelayMS * 2, "echo", msg);
+                        ret = vg.syncCall(targetChannel, warnDelayMS * 2, "echo", msg, i);
                     }
                     else {
-                        std::shared_ptr<veigar::AsyncCallResult> acr = vg.asyncCall(targetChannel, "echo", msg);
+                        std::shared_ptr<veigar::AsyncCallResult> acr = vg.asyncCall(targetChannel, "echo", msg, i);
                         if (acr->second.valid()) {
                             auto waitResult = acr->second.wait_for(std::chrono::milliseconds(warnDelayMS * 2));
                             if (waitResult == std::future_status::timeout) {
@@ -153,10 +174,13 @@ int main(int argc, char** argv) {
 
                     long used = tm.Elapsed();
                     if (used >= warnDelayMS) {
-                        printf("Warn: take long time: %d >= %dms\n", tm.Elapsed(), warnDelayMS);
+                        printf("[Thread %lld, Target %s] Warn: call %d take long time: %dms >= %dms\n",
+                               threadId, targetChannel.c_str(), i, tm.Elapsed(), warnDelayMS);
                     }
 
-                    if (ret.isSuccess() && ret.obj.get().as<std::string>() == msg) {
+                    std::string expectResultStr = msg + "_" + std::to_string(i);
+
+                    if (ret.isSuccess() && ret.obj.get().as<std::string>() == expectResultStr) {
                         success++;
                     }
                     else {
@@ -164,13 +188,23 @@ int main(int argc, char** argv) {
                         std::cout << ret.errorMessage << std::endl;
                     }
                 }
-                printf("Total %d, Success %d, Error %d, Used: %dms.\n\n", callTimesEachThread, success, error, threadTM.Elapsed());
+                printf("[Thread %lld, Target %s] Total %d, Success %d, Error %d, Used: %dms.\n\n",
+                       threadId, targetChannel.c_str(),
+                       callTimesEachThread, success, error, threadTM.Elapsed());
             };
 
-            ThreadGroup tg;
-            tg.createThreads(threadNum, fn);
+            std::vector<std::shared_ptr<ThreadGroup>> threadGroups;
 
-            tg.joinAll();
+            for (auto targetChannel : targetChannelList) {
+                auto tg = std::make_shared<ThreadGroup>();
+                tg->createThreads(threadNum, targetChannel, fn);
+                threadGroups.push_back(tg);
+            }
+
+            for (auto tg : threadGroups) {
+                tg->joinAll();
+            }
+            threadGroups.clear();
         }
     }
 
