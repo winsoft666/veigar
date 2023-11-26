@@ -134,12 +134,12 @@ int main(int argc, char** argv) {
                     veigar::CallResult ret;
 
                     if (asyncMethod == 0) {
-                        ret = vg.syncCall(targetChannel, 150, "echo", msg);
+                        ret = vg.syncCall(targetChannel, warnDelayMS * 2, "echo", msg);
                     }
                     else {
                         std::shared_ptr<veigar::AsyncCallResult> acr = vg.asyncCall(targetChannel, "echo", msg);
                         if (acr->second.valid()) {
-                            auto waitResult = acr->second.wait_for(std::chrono::milliseconds(150));
+                            auto waitResult = acr->second.wait_for(std::chrono::milliseconds(warnDelayMS * 2));
                             if (waitResult == std::future_status::timeout) {
                                 ret.errCode = veigar::ErrorCode::TIMEOUT;
                                 ret.errorMessage = "Timeout";

@@ -83,11 +83,7 @@ class Dispatcher {
     bool bind(std::string const& name, F func, detail::tags::nonvoid_result const&, detail::tags::nonzero_arg const&) noexcept;
 
     // Unbind a functor with a given name from callable functors.
-    void unbind(std::string const& name) noexcept {
-        if (funcs_.find(name) != funcs_.end()) {
-            funcs_.erase(name);
-        }
-    }
+    void unbind(std::string const& name) noexcept;
 
     // returns a list of all names which functors are binded to
     std::vector<std::string> names() const noexcept {
@@ -115,11 +111,12 @@ class Dispatcher {
    private:
     Veigar* parent_ = nullptr;
     bool init_ = false;
+    std::mutex funcMutex_;
     std::unordered_map<std::string, AdaptorType> funcs_;
 
     std::vector<std::thread> workers_;
     std::queue<std::shared_ptr<veigar_msgpack::object_handle>> objs_;
-    std::mutex queueMutex_;
+    std::mutex objsMutex_;
     std::condition_variable condition_;
     bool stop_ = false;
 };

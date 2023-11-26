@@ -27,10 +27,8 @@ void Message::clear() {
 
 std::vector<uint8_t> Message::getArg() const {
     std::vector<uint8_t> ret;
-
-    for (size_t i = 0; i < arg_.size(); i++) {
-        ret.push_back(arg_[i]);
-    }
+    ret.resize(arg_.size());
+    memcpy(ret.data(), arg_.data(), arg_.size());
 
     return ret;
 }
@@ -46,7 +44,7 @@ bool MessageQueue::isInit() const noexcept {
     return isInit_;
 }
 
-bool MessageQueue::init(const std::string& segmentName, bool create, unsigned int bufferSize) noexcept {
+bool MessageQueue::init(const std::string& segmentName, bool clearQueue, bool openOnly, unsigned int bufferSize) noexcept {
     if (isInit_) {
         return false;
     }
@@ -58,35 +56,65 @@ bool MessageQueue::init(const std::string& segmentName, bool create, unsigned in
     segmentName_ = segmentName;
 
     try {
-        if (create) {
-            itp::shared_memory_object::remove(segmentName_.c_str());
-            msm_ = managed_shared_memory(itp::create_only, segmentName_.c_str(), bufferSize);
-        }
-        else {
-            msm_ = managed_shared_memory(itp::open_only, segmentName_.c_str());
-        }
+        do {
+            if (openOnly) {
+                msm_ = managed_shared_memory(itp::open_only, segmentName_.c_str());
+            }
+            else {
+                if (bufferSize < 0) {
+                    veigar::log("Veigar: Buffer size can not be zero on segment %s.\n", segmentName_.c_str());
+                    break;
+                }
+                msm_ = managed_shared_memory(itp::open_or_create, segmentName_.c_str(), bufferSize);
+            }
 
-        mutex_ = msm_.find_or_construct<Mutex>("MessageDequeMutex")();
-        messages_ = msm_.find_or_construct<MessageDeque>("MessageDeque")(MessageAllocator(msm_.get_segment_manager()));
+            mutex_ = msm_.find_or_construct<Mutex>("MessageDequeMutex")();
+            messages_ = msm_.find_or_construct<MessageDeque>("MessageDeque")(MessageAllocator(msm_.get_segment_manager()));
 
-        if (!messages_) {
-            veigar::log("Veigar: Find/Construct MessageDeque failed on segment %s.\n", segmentName_.c_str());
-            return false;
-        }
+            if (!mutex_) {
+                veigar::log("Veigar: Find/Construct MessageDeque mutex failed on segment %s.\n", segmentName_.c_str());
+                break;
+            }
 
-        veigar::log("Veigar: %s message queue(%s) success: %d.\n",
-                    create ? "Create" : "Get", segmentName_.c_str(), messages_->size());
+            if (!messages_) {
+                veigar::log("Veigar: Find/Construct MessageDeque failed on segment %s.\n", segmentName_.c_str());
+                break;
+            }
+
+            if (clearQueue) {
+                if (!clear(80)) {
+                    veigar::log("Veigar: Clear message queue failed.\n");
+                    break;
+                }
+            }
+
+            veigar::log("Veigar: Init message queue(%s) success.\n", segmentName_.c_str());
+            isInit_ = true;
+        } while (false);
     } catch (itp::interprocess_exception& exc) {
-        veigar::log("Veigar: An interprocess exception occurred during initializing shared memory(%s): %s.\n",
+        veigar::log("Veigar: An interprocess exception occurred during initializing message queue(%s): %s.\n",
                     segmentName_.c_str(), exc.what());
-        return false;
+        isInit_ = false;
     } catch (std::exception& exc) {
-        veigar::log("Veigar: An std exception occurred during initializing shared memory(%s): %s.\n",
+        veigar::log("Veigar: An std exception occurred during initializing message queue(%s): %s.\n",
                     segmentName_.c_str(), exc.what());
-        return false;
+        isInit_ = false;
     }
 
-    return true;
+    //if (!isInit_) {
+    //    try {
+    //        veigar::log("Veigar: Init message queue(%s) failed, try to remove it.\n", segmentName_.c_str());
+    //        shared_memory_object::remove(segmentName_.c_str());
+    //    } catch (itp::interprocess_exception& exc) {
+    //        veigar::log("Veigar: An interprocess exception occurred during removing message queue(%s): %s.\n",
+    //                    segmentName_.c_str(), exc.what());
+    //    } catch (std::exception& exc) {
+    //        veigar::log("Veigar: An std exception occurred during removing message queue(%s): %s.\n",
+    //                    segmentName_.c_str(), exc.what());
+    //    }
+    //}
+
+    return isInit_;
 }
 
 void MessageQueue::uninit() noexcept {
@@ -96,7 +124,7 @@ void MessageQueue::uninit() noexcept {
     messages_ = nullptr;
 }
 
-bool MessageQueue::pushBack(const std::vector<uint8_t>& buf, unsigned int timeout) {
+bool MessageQueue::pushBack(const std::vector<uint8_t>& buf, unsigned int timeout) noexcept {
     try {
         if (!lock(timeout)) {
             return false;
@@ -138,7 +166,7 @@ bool MessageQueue::pushBack(const std::vector<uint8_t>& buf, unsigned int timeou
     return false;
 }
 
-bool MessageQueue::popFront(Message* msg, unsigned int timeout) {
+bool MessageQueue::popFront(std::vector<uint8_t>& buf, unsigned int timeout) noexcept {
     try {
         if (!lock(timeout)) {
             unlock();
@@ -150,7 +178,9 @@ bool MessageQueue::popFront(Message* msg, unsigned int timeout) {
             return false;
         }
 
-        *msg = messages_->front();
+        Message msg = messages_->front();
+        buf = msg.getArg();
+        
         messages_->pop_front();
 
         unlock();
@@ -164,6 +194,17 @@ bool MessageQueue::popFront(Message* msg, unsigned int timeout) {
     }
 
     unlock();
+    return false;
+}
+
+bool MessageQueue::clear(unsigned int timeout) noexcept {
+    if (lock(timeout)) {
+        if (messages_) {
+            messages_->clear();
+        }
+        unlock();
+        return true;
+    }
     return false;
 }
 

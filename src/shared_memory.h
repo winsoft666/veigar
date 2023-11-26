@@ -67,12 +67,14 @@ class MessageQueue {
    public:
     bool isInit() const noexcept;
 
-    bool init(const std::string& segmentName, bool create, unsigned int bufferSize) noexcept;
+    bool init(const std::string& segmentName, bool clearQueue, bool openOnly, unsigned int bufferSize) noexcept;
     void uninit() noexcept;
 
-    bool pushBack(const std::vector<uint8_t>& buf, unsigned int timeout);
+    bool pushBack(const std::vector<uint8_t>& buf, unsigned int timeout) noexcept;
 
-    bool popFront(Message* msg, unsigned int timeout);
+    bool popFront(std::vector<uint8_t>& buf, unsigned int timeout) noexcept;
+
+    bool clear(unsigned int timeout) noexcept;
 
     Message createMessage();
 

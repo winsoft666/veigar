@@ -128,7 +128,7 @@ Veigar is implemented based on shared memory and has the advantages of high thro
 Use the `examples\echo` program for testing.
 
 ## 3.1 Single thread
-Single thread calls 1 million times, with each call passing ~1050 bytes of parameters. The test results are as follows:
+Single thread calls 1 million times (include call function and wait the result), with each call passing ~1050 bytes of parameters. The test results are as follows:
 
 ```txt
 Target Channel Name:
@@ -140,15 +140,15 @@ Thread Number:
 Call times each of thread:
 1000000
 Calling...
-Total 1000000, Success 1000000, Error 0, Used: 29138ms.
+Total 1000000, Success 1000000, Error 0, Used: 23414ms.
 ```
 
-Total used 29138ms，Average 34319 calls per second.
+Total used 23414ms，Average 42709 calls per second.
 
 
 ## 3.2 Multi-threading
 
-Six threads running simultaneously, with each thread calling 1 million times, and each call passed ~1050 bytes of parameters. The test results are as follows:
+Six threads running simultaneously, with each thread calling 1 million times (include call function and wait the result), and each call passed ~1050 bytes of parameters. The test results are as follows:
 
 ```txt
 Target Channel Name:
@@ -181,3 +181,5 @@ Total 1000000, Success 1000000, Error 0, Used: 45313ms.
 Total used 45275ms，Average 132459 calls per second.
 
 > The above test results may vary on computers with different configurations.
+>
+> If some multi-threaded mutexes are removed, the performance can be higher, but this requires constraints on the usage of the library, such as having to first `bind` and then `init`. Taking all factors into consideration, Veigar has not removed this part of the mutex, as this performance can already meet the vast majority of usage scenarios.

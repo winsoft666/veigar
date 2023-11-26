@@ -20,6 +20,7 @@
 #include "string_helper.h"
 #include "log.h"
 #include "veigar/veigar.h"
+#include "time_util.h"
 
 namespace veigar {
 namespace detail {
@@ -40,9 +41,8 @@ bool Dispatcher::init() noexcept {
             for (;;) {
                 std::shared_ptr<veigar_msgpack::object_handle> obj;
 
-                do
-                {
-                    std::unique_lock<std::mutex> lock(this->queueMutex_);
+                do {
+                    std::unique_lock<std::mutex> lock(this->objsMutex_);
                     this->condition_.wait(lock, [this] {
                         return this->stop_ || !this->objs_.empty();
                     });
@@ -96,19 +96,29 @@ void Dispatcher::uninit() noexcept {
         return;
     }
     {
-        std::unique_lock<std::mutex> lock(queueMutex_);
+        std::unique_lock<std::mutex> lock(objsMutex_);
         stop_ = true;
     }
     condition_.notify_all();
     for (std::thread& worker : workers_)
         worker.join();
 
+    funcs_.clear();
+
     init_ = false;
+}
+
+void Dispatcher::unbind(std::string const& name) noexcept {
+    std::lock_guard<std::mutex> lg(funcMutex_);
+    auto it = funcs_.find(name);
+    if (it != funcs_.end()) {
+        funcs_.erase(it);
+    }
 }
 
 void Dispatcher::pushCall(std::shared_ptr<veigar_msgpack::object_handle> result) noexcept {
     {
-        std::unique_lock<std::mutex> lock(queueMutex_);
+        std::unique_lock<std::mutex> lock(objsMutex_);
 
         // don't allow enqueueing after stopping the pool
         if (!stop_) {
@@ -154,16 +164,21 @@ Response Dispatcher::dispatchCall(veigar_msgpack::object const& msg, std::string
     auto&& funcName = std::get<3>(the_call);
     auto&& args = std::get<4>(the_call);
 
-    auto it_func = funcs_.find(funcName);
+    std::unordered_map<std::string, AdaptorType>::const_iterator itFunc;
 
-    if (it_func == end(funcs_)) {
+    funcMutex_.lock();
+    itFunc = funcs_.find(funcName);
+
+    if (itFunc == funcs_.cend()) {
+        funcMutex_.unlock();
         return Response::MakeResponseWithError(
             callId,
             StringHelper::StringPrintf("Could not find function '%s' with argument count %d.", funcName.c_str(), args.via.array.size));
     }
+    funcMutex_.unlock();
 
     try {
-        auto result = (it_func->second)(args);
+        auto result = (itFunc->second)(args);
         return Response::MakeResponseWithResult(callId, std::move(result));
     } catch (std::exception& e) {
         return Response::MakeResponseWithError(
@@ -181,6 +196,7 @@ Response Dispatcher::dispatchCall(veigar_msgpack::object const& msg, std::string
 }
 
 bool Dispatcher::isFuncNameExist(std::string const& func) noexcept {
+    std::lock_guard<std::mutex> lg(funcMutex_);
     auto pos = funcs_.find(func);
     if (pos != end(funcs_)) {
         return true;

@@ -20,6 +20,7 @@
 #include "uuid.h"
 #include "log.h"
 #include "shared_memory.h"
+#include "time_util.h"
 
 namespace veigar {
 
@@ -41,14 +42,14 @@ class Veigar::Impl {
         return channelName + "_SMH_543AF6DB8E074C379771FF8C03D1C0E1";
     }
 
-    std::shared_ptr<itp::named_semaphore> getOrCreateMsgQueueSemaphore(const std::string& channelName, bool create) {
+    std::shared_ptr<itp::named_semaphore> getOrCreateMsgQueueSemaphore(const std::string& channelName, bool openOnly) {
         assert(!channelName.empty());
         std::string semName;
         try {
             semName = GetMessageQueueSemaphoreName(channelName);
             std::shared_ptr<itp::named_semaphore> smh;
 
-            if (!create) {
+            if (openOnly) {
                 smh = std::make_shared<itp::named_semaphore>(
                     itp::open_only,
                     semName.c_str());
@@ -62,24 +63,16 @@ class Veigar::Impl {
             }
             return smh;
         } catch (std::exception& e) {
-            veigar::log("Veigar: An exception occurred during creating semaphore(%s): %s.\n", semName.c_str(), e.what());
+            veigar::log("Veigar: An exception occurred during creating message queue semaphore(%s): %s.\n",
+                        semName.c_str(), e.what());
             return nullptr;
         }
     }
 
     void removeMsgQueueSemaphore() {
         assert(!channelName_.empty());
-        std::string semName;
-        try {
-            semName = GetMessageQueueSemaphoreName(channelName_);
-            if (msgQueueSmh_) {
-                msgQueueSmh_->remove(semName.c_str());
-                msgQueueSmh_.reset();
-            }
-        } catch (std::exception& e) {
-            veigar::log("Veigar: An exception occurred during removing semaphore(%s): %s.\n", semName.c_str(), e.what());
-            msgQueueSmh_.reset();
-        }
+        std::string semName = GetMessageQueueSemaphoreName(channelName_);
+        itp::named_semaphore::remove(semName.c_str());
     }
 
     bool init(const std::string& channelName, unsigned int bufferSize) {
@@ -96,7 +89,7 @@ class Veigar::Impl {
             }
 
             channelName_ = channelName;
-            msgQueueSmh_ = getOrCreateMsgQueueSemaphore(channelName_, true);
+            msgQueueSmh_ = getOrCreateMsgQueueSemaphore(channelName_, false);
             if (!msgQueueSmh_) {
                 veigar::log("Veigar: Create the semaphore of message queue failed.\n");
                 break;
@@ -117,7 +110,7 @@ class Veigar::Impl {
             msgQueue_ = std::make_shared<MessageQueue>();
 
             std::string recvQueueName = GetDataSegmentName(channelName_);
-            if (!msgQueue_->init(recvQueueName, true, bufferSize)) {
+            if (!msgQueue_->init(recvQueueName, true, false, bufferSize)) {
                 veigar::log("Veigar: Init message queue(%s) failed.\n", recvQueueName.c_str());
                 break;
             }
@@ -202,6 +195,26 @@ class Veigar::Impl {
                 msgQueue_.reset();
             }
 
+            ongoingCallsMutex_.lock();
+            ongoingCalls_.clear();
+            ongoingCallsMutex_.unlock();
+
+            channelMsgQueueMutex_.lock();
+            for (auto& it = channelMsgQueue_.begin(); it != channelMsgQueue_.end(); ++it) {
+                auto& mq = it->second;
+                if (mq) {
+                    if (mq->isInit()) {
+                        mq->uninit();
+                    }
+                }
+            }
+            channelMsgQueue_.clear();
+            channelMsgQueueMutex_.unlock();
+
+            channelMsgQueueSmhMutex_.lock();
+            channelMsgQueueSmh_.clear();
+            channelMsgQueueSmhMutex_.unlock();
+
             removeMsgQueueSemaphore();
 
             if (parent_->disp_) {
@@ -227,12 +240,13 @@ class Veigar::Impl {
     std::shared_ptr<MessageQueue> getMessageQueue(const std::string& channelName) {
         std::lock_guard<std::mutex> lg(channelMsgQueueMutex_);
         std::shared_ptr<MessageQueue> queue = nullptr;
-        if (channelMsgQueue_.find(channelName) != channelMsgQueue_.end()) {
-            return channelMsgQueue_[channelName];
+        auto& it = channelMsgQueue_.find(channelName);
+        if (it != channelMsgQueue_.cend()) {
+            return it->second;
         }
 
         queue = std::make_shared<MessageQueue>();
-        if (!queue->init(GetDataSegmentName(channelName), false, 0)) {
+        if (!queue->init(GetDataSegmentName(channelName), false, true, 0)) {
             return nullptr;
         }
 
@@ -242,11 +256,12 @@ class Veigar::Impl {
 
     std::shared_ptr<itp::named_semaphore> getMessageQueueShm(const std::string& channelName) {
         std::lock_guard<std::mutex> lg(channelMsgQueueSmhMutex_);
-        if (channelMsgQueueSmh_.find(channelName) != channelMsgQueueSmh_.end()) {
-            return channelMsgQueueSmh_[channelName];
+        auto& it = channelMsgQueueSmh_.find(channelName);
+        if (it != channelMsgQueueSmh_.cend()) {
+            return it->second;
         }
 
-        std::shared_ptr<itp::named_semaphore> smh = getOrCreateMsgQueueSemaphore(channelName, false);
+        std::shared_ptr<itp::named_semaphore> smh = getOrCreateMsgQueueSemaphore(channelName, true);
         if (!smh) {
             return nullptr;
         }
@@ -269,6 +284,7 @@ class Veigar::Impl {
             else {
                 mq = getMessageQueue(channelName);
             }
+
             if (!mq) {
                 errMsg = "Unable to get target message queue. It seems that the channel not started.";
                 return false;
@@ -294,9 +310,7 @@ class Veigar::Impl {
                 return false;
             }
 
-            if (shm) {
-                shm->post();
-            }
+            shm->post();
 
             return true;
         } catch (std::exception& e) {
@@ -311,34 +325,24 @@ class Veigar::Impl {
         if (!msgQueueSmh_) {
             return;
         }
+        std::vector<uint8_t> recvBuf;
 
         while (!quit_.load()) {
-            bool got = false;
             try {
                 if (msgQueueSmh_) {
-                    std::chrono::steady_clock::time_point deadline =
-                        std::chrono::steady_clock::now() + std::chrono::milliseconds(30);
-                    got = msgQueueSmh_->timed_wait(deadline);
+                    msgQueueSmh_->wait();
                 }
             } catch (std::exception& e) {
                 veigar::log("Veigar: An exception occurred during waiting the semaphore of message queue: %s.\n", e.what());
-            }
-
-            if (!got) {
-                continue;
+                break;
             }
 
             try {
-                Message msg = msgQueue_->createMessage();
-                if (!msgQueue_->popFront(&msg, rwTimeout_.load())) {
-                    break;
-                }
-
-                if (msg.isEmpty()) {
+                recvBuf.clear();
+                if (!msgQueue_->popFront(recvBuf, rwTimeout_.load())) {
                     continue;
                 }
 
-                std::vector<uint8_t> recvBuf = msg.getArg();
                 if (recvBuf.size() > 0) {
                     handleMessage(recvBuf);
                 }
@@ -457,7 +461,7 @@ class Veigar::Impl {
     std::atomic_bool quit_ = false;
     bool isInit_ = false;
 
-    std::atomic<unsigned int> rwTimeout_ = 100; // ms
+    std::atomic<unsigned int> rwTimeout_ = 100;  // ms
 
     std::atomic<uint32_t> callIndex_ = 0;
     std::string channelName_;
@@ -598,8 +602,9 @@ bool Veigar::sendCall(const std::string& channelName,
 
 void Veigar::releaseCall(const std::string& callId) {
     std::lock_guard<std::mutex> lg(impl_->ongoingCallsMutex_);
-    if (impl_->ongoingCalls_.find(callId) != impl_->ongoingCalls_.cend()) {
-        impl_->ongoingCalls_.erase(callId);
+    auto& it = impl_->ongoingCalls_.find(callId);
+    if (it != impl_->ongoingCalls_.cend()) {
+        impl_->ongoingCalls_.erase(it);
     }
 }
 
