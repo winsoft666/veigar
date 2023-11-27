@@ -74,6 +74,8 @@ TEST_CASE("bind-unbind") {
     auto func8 = []() { return std::string("test"); };
 
     veigar::Veigar vg;
+    REQUIRE(vg.init("test"));
+
     REQUIRE(vg.bind("func1", func1));
     REQUIRE(!vg.bind("func1", func1));
     vg.unbind("func1");
@@ -113,4 +115,7 @@ TEST_CASE("bind-unbind") {
     REQUIRE(!vg.bind("func8", func8));
     vg.unbind("func8");
     REQUIRE(vg.bind("func8", func8));
+
+    REQUIRE(vg.isInit());
+    vg.uninit();
 }

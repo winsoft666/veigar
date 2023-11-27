@@ -33,7 +33,7 @@ int64_t TimeUtil::GetCurrentTimestamp() {
     return lNowMicroMS;
 #else
     struct timeval tv;
-    gettimeofday(&tv, NULL);
+    gettimeofday(&tv, 0);
     int64_t lNowMicroMS = tv.tv_sec * 1000000 + tv.tv_usec;
     return lNowMicroMS;
 #endif

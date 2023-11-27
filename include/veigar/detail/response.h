@@ -90,7 +90,7 @@ class Response {
 
 template <typename T>
 inline Response Response::MakeResponseWithResult(const std::string& callId, T&& result) {
-    auto z = rpc::detail::make_unique<veigar_msgpack::zone>();
+    auto z = veigar::detail::make_unique<veigar_msgpack::zone>();
     veigar_msgpack::object o(std::forward<T>(result), *z);
     Response inst;
     inst.callId_ = callId;

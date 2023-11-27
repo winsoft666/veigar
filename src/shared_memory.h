@@ -21,6 +21,7 @@
 #pragma once
 
 #include "boost_itp.h"
+#include <vector>
 
 namespace veigar {
 typedef itp::managed_shared_memory managed_shared_memory;

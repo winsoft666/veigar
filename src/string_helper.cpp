@@ -24,6 +24,7 @@
 #include <iterator>
 #include <sstream>
 #include <cassert>
+#include <cstring>
 #ifdef VEIGAR_OS_WINDOWS
 #ifndef _INC_WINDOWS
 #ifndef WIN32_LEAN_AND_MEAN
@@ -114,7 +115,7 @@ bool StringHelper::StringPrintfV(const char* format, va_list argList, std::strin
             msgBufSize *= 2;
         } while (true);
 
-        if (result && msgBuf) {
+        if (ret && msgBuf) {
             output.assign(msgBuf);
         }
 
@@ -199,7 +200,7 @@ bool StringHelper::StringPrintfV(const wchar_t* format, va_list argList, std::ws
             msgBufSize *= 2;
         } while (true);
 
-        if (result && msgBuf) {
+        if (ret && msgBuf) {
             output.assign(msgBuf);
         }
 

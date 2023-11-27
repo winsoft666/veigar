@@ -200,8 +200,8 @@ class Veigar::Impl {
             ongoingCallsMutex_.unlock();
 
             channelMsgQueueMutex_.lock();
-            for (auto& it = channelMsgQueue_.begin(); it != channelMsgQueue_.end(); ++it) {
-                auto& mq = it->second;
+            for (auto it = channelMsgQueue_.begin(); it != channelMsgQueue_.end(); ++it) {
+                auto mq = it->second;
                 if (mq) {
                     if (mq->isInit()) {
                         mq->uninit();
@@ -240,7 +240,7 @@ class Veigar::Impl {
     std::shared_ptr<MessageQueue> getMessageQueue(const std::string& channelName) {
         std::lock_guard<std::mutex> lg(channelMsgQueueMutex_);
         std::shared_ptr<MessageQueue> queue = nullptr;
-        auto& it = channelMsgQueue_.find(channelName);
+        auto it = channelMsgQueue_.find(channelName);
         if (it != channelMsgQueue_.cend()) {
             return it->second;
         }
@@ -256,7 +256,7 @@ class Veigar::Impl {
 
     std::shared_ptr<itp::named_semaphore> getMessageQueueShm(const std::string& channelName) {
         std::lock_guard<std::mutex> lg(channelMsgQueueSmhMutex_);
-        auto& it = channelMsgQueueSmh_.find(channelName);
+        auto it = channelMsgQueueSmh_.find(channelName);
         if (it != channelMsgQueueSmh_.cend()) {
             return it->second;
         }
@@ -458,12 +458,12 @@ class Veigar::Impl {
 
     Veigar* parent_ = nullptr;
     std::shared_ptr<itp::named_semaphore> msgQueueSmh_;
-    std::atomic_bool quit_ = false;
+    std::atomic_bool quit_ = { false };
     bool isInit_ = false;
 
-    std::atomic<unsigned int> rwTimeout_ = 100;  // ms
+    std::atomic<unsigned int> rwTimeout_ = { 100 };  // ms
 
-    std::atomic<uint32_t> callIndex_ = 0;
+    std::atomic<uint32_t> callIndex_ = { 0 };
     std::string channelName_;
     std::string uuid_;
     std::mutex ongoingCallsMutex_;
@@ -602,7 +602,7 @@ bool Veigar::sendCall(const std::string& channelName,
 
 void Veigar::releaseCall(const std::string& callId) {
     std::lock_guard<std::mutex> lg(impl_->ongoingCallsMutex_);
-    auto& it = impl_->ongoingCalls_.find(callId);
+    auto it = impl_->ongoingCalls_.find(callId);
     if (it != impl_->ongoingCalls_.cend()) {
         impl_->ongoingCalls_.erase(it);
     }
