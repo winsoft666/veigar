@@ -28,6 +28,20 @@ source_group("test" FILES ${TEST_SOURCE_FILES})
 
 include_directories(../include)
 
+if (MSVC AND VEIGAR_USE_STATIC_CRT)
+    set(CompilerFlags
+        CMAKE_CXX_FLAGS
+        CMAKE_CXX_FLAGS_DEBUG
+        CMAKE_CXX_FLAGS_RELEASE
+        CMAKE_C_FLAGS
+        CMAKE_C_FLAGS_DEBUG
+        CMAKE_C_FLAGS_RELEASE
+        )
+    foreach(CompilerFlag ${CompilerFlags})
+        string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
+    endforeach()
+endif()
+
 add_executable(
 	${EXE_NAME}
 	${TEST_SOURCE_FILES})

@@ -18,9 +18,9 @@
 ############################################################################
 
 cmake_minimum_required(VERSION 3.4 FATAL_ERROR)
-set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake;${CMAKE_MODULE_PATH};")
-
 project(veigar CXX)
+
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake;${CMAKE_MODULE_PATH};")
 
 option(VEIGAR_BUILD_EXAMPLES "Build examples project" ON)
 option(VEIGAR_BUILD_TESTS "Build tests project" ON)

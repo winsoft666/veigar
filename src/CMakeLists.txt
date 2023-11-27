@@ -24,14 +24,11 @@ if (MSVC)
 	)
 endif()
 
-include(msvc_support)
-
 file(GLOB HEADER_FILES                 ../include/veigar/*.h ../include/veigar/*.hpp ../include/veigar/*.inl)
 file(GLOB DETAIL_HEADER_FILES         ../include/veigar/detail/*.h ../include/veigar/detail/*.hpp ../include/veigar/detail/*.inl)
 
 file(GLOB SOURCE_FILES                 ./*.cpp ./*.h ./*.hpp)
 file(GLOB_RECURSE MSGPACK_FILES      ../include/veigar/msgpack/*.hpp ../include/veigar/msgpack/*.h)
-
 
 
 source_group("Header Files" FILES ${HEADER_FILES})
@@ -47,6 +44,20 @@ add_definitions(
 	-DBOOST_DATE_TIME_NO_LIB
 )
 
+if (MSVC AND VEIGAR_USE_STATIC_CRT)
+    set(CompilerFlags
+        CMAKE_CXX_FLAGS
+        CMAKE_CXX_FLAGS_DEBUG
+        CMAKE_CXX_FLAGS_RELEASE
+        CMAKE_C_FLAGS
+        CMAKE_C_FLAGS_DEBUG
+        CMAKE_C_FLAGS_RELEASE
+        )
+    foreach(CompilerFlag ${CompilerFlags})
+        string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
+    endforeach()
+endif()
+
 add_library(
 	${PROJECT_NAME}
 	STATIC
@@ -61,7 +72,6 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
   OUTPUT_NAME ${PROJECT_NAME}
   DEBUG_OUTPUT_NAME ${PROJECT_NAME}${DEBUG_LIBNAME_SUFFIX})
 
-veigar_msvc_support()
 
 install(TARGETS ${PROJECT_NAME}
 	EXPORT veigar-targets
