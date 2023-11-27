@@ -39,7 +39,7 @@ for Windows Store development.
  
 #if MSGPACK_PLAT_WINDOWS_STORE
 #   define MSGPACK_PLAT_WINDOWS_STORE_AVAILABLE
-#   include <msgpack/predef/detail/platform_detected.h>
+#   include <veigar/msgpack/predef/detail/platform_detected.h>
 #endif
 
 #define MSGPACK_PLAT_WINDOWS_STORE_NAME "Windows Store"

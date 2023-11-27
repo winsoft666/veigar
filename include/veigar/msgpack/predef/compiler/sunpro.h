@@ -60,7 +60,7 @@ Version number available as major, minor, and patch.
 #       define MSGPACK_COMP_SUNPRO MSGPACK_COMP_SUNPRO_DETECTION
 #   endif
 #   define MSGPACK_COMP_SUNPRO_AVAILABLE
-#   include <msgpack/predef/detail/comp_detected.h>
+#   include <veigar/msgpack/predef/detail/comp_detected.h>
 #endif
 
 #define MSGPACK_COMP_SUNPRO_NAME "Oracle Solaris Studio"

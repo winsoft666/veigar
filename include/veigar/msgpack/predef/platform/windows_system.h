@@ -36,7 +36,7 @@ for Windows System development.
  
 #if MSGPACK_PLAT_WINDOWS_SYSTEM
 #   define MSGPACK_PLAT_WINDOWS_SYSTEM_AVAILABLE
-#   include <msgpack/predef/detail/platform_detected.h>
+#   include <veigar/msgpack/predef/detail/platform_detected.h>
 #endif
 
 #define MSGPACK_PLAT_WINDOWS_SYSTEM_NAME "Windows Drivers and Tools"

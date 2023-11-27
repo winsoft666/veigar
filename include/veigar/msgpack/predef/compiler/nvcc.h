@@ -44,7 +44,7 @@ Version number available as major, minor, and patch beginning with version 7.5.
 #       define MSGPACK_COMP_NVCC MSGPACK_COMP_NVCC_DETECTION
 #   endif
 #   define MSGPACK_COMP_NVCC_AVAILABLE
-#   include <msgpack/predef/detail/comp_detected.h>
+#   include <veigar/msgpack/predef/detail/comp_detected.h>
 #endif
 
 #define MSGPACK_COMP_NVCC_NAME "NVCC"

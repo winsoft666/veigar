@@ -33,7 +33,7 @@ is undefine this expand to test the given `symbol` version value with the
 #ifdef MSGPACK_STRICT_CONFIG
 #   define MSGPACK_PREDEF_WORKAROUND(symbol, comp, major, minor, patch) (0)
 #else
-#   include <msgpack/predef/version_number.h>
+#   include <veigar/msgpack/predef/version_number.h>
 #   define MSGPACK_PREDEF_WORKAROUND(symbol, comp, major, minor, patch) \
         ( (symbol) != (0) ) && \
         ( (symbol) comp (MSGPACK_VERSION_NUMBER( (major) , (minor) , (patch) )) )

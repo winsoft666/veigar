@@ -32,7 +32,7 @@
 
 #if MSGPACK_PLAT_CLOUDABI
 #   define MSGPACK_PLAT_CLOUDABI_AVAILABLE
-#   include <msgpack/predef/detail/platform_detected.h>
+#   include <veigar/msgpack/predef/detail/platform_detected.h>
 #endif
 
 #define MSGPACK_PLAT_CLOUDABI_NAME "CloudABI"

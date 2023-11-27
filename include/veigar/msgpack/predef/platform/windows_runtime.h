@@ -42,7 +42,7 @@ UWP and is deprecated.  Use one of the other `MSGPACK_PLAT_WINDOWS_*`definitions
  
 #if MSGPACK_PLAT_WINDOWS_RUNTIME
 #   define MSGPACK_PLAT_WINDOWS_RUNTIME_AVAILABLE
-#   include <msgpack/predef/detail/platform_detected.h>
+#   include <veigar/msgpack/predef/detail/platform_detected.h>
 #endif
 
 #define MSGPACK_PLAT_WINDOWS_RUNTIME_NAME "Windows Runtime"

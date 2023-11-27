@@ -162,7 +162,7 @@ information and acquired knowledge:
 #if !MSGPACK_ENDIAN_BIG_BYTE && !MSGPACK_ENDIAN_BIG_WORD && \
     !MSGPACK_ENDIAN_LITTLE_BYTE && !MSGPACK_ENDIAN_LITTLE_WORD
 #   if MSGPACK_ARCH_ARM
-#       include <msgpack/predef/os/windows.h>
+#       include <veigar/msgpack/predef/os/windows.h>
 #       if MSGPACK_OS_WINDOWS
 #           undef MSGPACK_ENDIAN_LITTLE_BYTE
 #           define MSGPACK_ENDIAN_LITTLE_BYTE MSGPACK_VERSION_NUMBER_AVAILABLE

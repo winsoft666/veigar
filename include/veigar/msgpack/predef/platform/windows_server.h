@@ -36,7 +36,7 @@ for Windows Server development.
  
 #if MSGPACK_PLAT_WINDOWS_SERVER
 #   define MSGPACK_PLAT_WINDOWS_SERVER_AVAILABLE
-#   include <msgpack/predef/detail/platform_detected.h>
+#   include <veigar/msgpack/predef/detail/platform_detected.h>
 #endif
 
 #define MSGPACK_PLAT_WINDOWS_SERVER_NAME "Windows Server"

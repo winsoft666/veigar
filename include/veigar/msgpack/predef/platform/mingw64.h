@@ -47,7 +47,7 @@ Version number available as major, minor, and patch.
 #       undef MSGPACK_PLAT_MINGW64
 #       define MSGPACK_PLAT_MINGW64 MSGPACK_PLAT_MINGW64_DETECTION
 #   endif
-#   include <msgpack/predef/detail/platform_detected.h>
+#   include <veigar/msgpack/predef/detail/platform_detected.h>
 #endif
 
 #define MSGPACK_PLAT_MINGW64_NAME "MinGW-w64"

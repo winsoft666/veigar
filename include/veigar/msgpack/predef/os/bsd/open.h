@@ -240,7 +240,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 #if MSGPACK_OS_BSD_OPEN
 #   define MSGPACK_OS_BSD_OPEN_AVAILABLE
-#   include <msgpack/predef/detail/os_detected.h>
+#   include <veigar/msgpack/predef/detail/os_detected.h>
 #endif
 
 #define MSGPACK_OS_BSD_OPEN_NAME "OpenBSD"

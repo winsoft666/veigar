@@ -89,7 +89,7 @@ compiler version number directly, i.e. the _MSC_VER number.]
 #       define MSGPACK_COMP_MSVC MSGPACK_COMP_MSVC_DETECTION
 #   endif
 #   define MSGPACK_COMP_MSVC_AVAILABLE
-#   include <msgpack/predef/detail/comp_detected.h>
+#   include <veigar/msgpack/predef/detail/comp_detected.h>
 #endif
 
 #define MSGPACK_COMP_MSVC_NAME "Microsoft Visual C/C++"

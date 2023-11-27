@@ -56,7 +56,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 #if MSGPACK_OS_BSD_FREE
 #   define MSGPACK_OS_BSD_FREE_AVAILABLE
-#   include <msgpack/predef/detail/os_detected.h>
+#   include <veigar/msgpack/predef/detail/os_detected.h>
 #endif
 
 #define MSGPACK_OS_BSD_FREE_NAME "Free BSD"

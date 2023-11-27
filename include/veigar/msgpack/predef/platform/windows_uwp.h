@@ -48,7 +48,7 @@ UWP development.
 
 #if MSGPACK_PLAT_WINDOWS_UWP
 #   define MSGPACK_PLAT_WINDOWS_UWP_AVAILABLE
-#   include <msgpack/predef/detail/platform_detected.h>
+#   include <veigar/msgpack/predef/detail/platform_detected.h>
 #   include <winapifamily.h>    // Windows SDK
 #endif
 

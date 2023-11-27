@@ -12,7 +12,7 @@
 # include <veigar/msgpack/preprocessor/config/config.hpp>
 #
 # if MSGPACK_PP_CONFIG_FLAGS() & MSGPACK_PP_CONFIG_DMC()
-#     include <msgpack/preprocessor/detail/dmc/auto_rec.hpp>
+#     include <veigar/msgpack/preprocessor/detail/dmc/auto_rec.hpp>
 # else
 #
 # ifndef MSGPACK_PREPROCESSOR_DETAIL_AUTO_REC_HPP
