@@ -147,7 +147,7 @@ int main(int argc, char** argv) {
                 int error = 0;
                 int success = 0;
 
-                printf("[Thread %lld, Target %s] Calling...\n", threadId, targetChannel.c_str());
+                printf("[Thread %lld, Target %s] Calling...\n", (int64_t)threadId, targetChannel.c_str());
                 veigar::detail::TimeMeter threadTM;
                 for (int i = 0; i < callTimesEachThread; i++) {
                     std::string msg = str1046 + channelName + "_" + targetChannel + "_" + std::to_string(i) + "_" + std::to_string(threadId);
@@ -175,7 +175,7 @@ int main(int argc, char** argv) {
                     long used = tm.Elapsed();
                     if (used >= warnDelayMS) {
                         printf("[Thread %lld, Target %s] Warn: call %d take long time: %dms >= %dms\n",
-                               threadId, targetChannel.c_str(), i, tm.Elapsed(), warnDelayMS);
+                               (int64_t)threadId, targetChannel.c_str(), i, tm.Elapsed(), warnDelayMS);
                     }
 
                     std::string expectResultStr = msg + "_" + std::to_string(i);
@@ -189,7 +189,7 @@ int main(int argc, char** argv) {
                     }
                 }
                 printf("[Thread %lld, Target %s] Total %d, Success %d, Error %d, Used: %dms.\n\n",
-                       threadId, targetChannel.c_str(),
+                       (int64_t)threadId, targetChannel.c_str(),
                        callTimesEachThread, success, error, threadTM.Elapsed());
             };
 

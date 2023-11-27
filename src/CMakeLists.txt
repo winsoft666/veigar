@@ -42,6 +42,7 @@ include_directories(../include ./boost_1_83_0)
 add_definitions(
 	# Avoid Boost trying to automatically link the Boost.DateTime.
 	-DBOOST_DATE_TIME_NO_LIB
+	-DBOOST_USE_WINDOWS_H
 )
 
 if (MSVC AND VEIGAR_USE_STATIC_CRT)
