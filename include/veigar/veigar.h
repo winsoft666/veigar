@@ -85,7 +85,6 @@ class Veigar {
         const std::string& targetChannel,
         const uint8_t* buf,
         size_t bufSize,
-        unsigned int timeoutMS,
         std::string& errMsg) noexcept;
 
     // Set the timeout for reading and writing shared memory.

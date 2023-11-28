@@ -68,10 +68,10 @@ bool MessageQueue::init(const std::string& segmentName, bool clearQueue, bool op
                 msm_ = managed_shared_memory(itp::open_or_create, segmentName_.c_str(), bufferSize);
             }
 
-            mutex_ = msm_.find_or_construct<Mutex>("MessageDequeMutex")();
+            processMutex_ = msm_.find_or_construct<Mutex>("MessageDequeMutex")();
             messages_ = msm_.find_or_construct<MessageDeque>("MessageDeque")(MessageAllocator(msm_.get_segment_manager()));
 
-            if (!mutex_) {
+            if (!processMutex_) {
                 veigar::log("Veigar: Find/Construct MessageDeque mutex failed on segment %s.\n", segmentName_.c_str());
                 break;
             }
@@ -169,7 +169,6 @@ bool MessageQueue::pushBack(const std::vector<uint8_t>& buf, unsigned int timeou
 bool MessageQueue::popFront(std::vector<uint8_t>& buf, unsigned int timeout) noexcept {
     try {
         if (!lock(timeout)) {
-            unlock();
             return false;
         }
 
@@ -180,7 +179,7 @@ bool MessageQueue::popFront(std::vector<uint8_t>& buf, unsigned int timeout) noe
 
         Message msg = messages_->front();
         buf = msg.getArg();
-        
+
         messages_->pop_front();
 
         unlock();
@@ -214,30 +213,32 @@ Message MessageQueue::createMessage() {
 
 bool MessageQueue::lock(unsigned int timeout) {
     bool result = false;
+
     try {
-        if (mutex_) {
+        if (processMutex_) {
             if (timeout > 0) {
                 std::chrono::steady_clock::time_point deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(timeout);
-                result = mutex_->timed_lock(deadline);
+                result = processMutex_->timed_lock(deadline);
             }
             else {
-                mutex_->lock();
+                processMutex_->lock();
                 result = true;
             }
         }
     } catch (std::exception& e) {
-        veigar::log("Veigar: An std exception occurred during lock queue: %s.\n", e.what());
+        veigar::log("Veigar: An std exception occurred during process lock queue: %s.\n", e.what());
     }
+
     return result;
 }
 
 void MessageQueue::unlock() {
     try {
-        if (mutex_) {
-            mutex_->unlock();
+        if (processMutex_) {
+            processMutex_->unlock();
         }
     } catch (std::exception& e) {
-        veigar::log("Veigar: An std exception occurred during unlock queue: %s.\n", e.what());
+        veigar::log("Veigar: An std exception occurred during process unlock queue: %s.\n", e.what());
     }
 }
 

@@ -20,26 +20,29 @@
 #define VEIGAR_DETAIL_METER_H_
 #pragma once
 
-#include <ctime>
-#include <limits>
+#include <chrono>
 
 namespace veigar {
 namespace detail {
 class TimeMeter {
    public:
-    TimeMeter() { lStartTime_ = std::clock(); }
+    inline TimeMeter() {
+        restart();
+    }
 
-    void Restart() { lStartTime_ = std::clock(); }
+    inline void restart() {
+        lStartTime_ = std::chrono::high_resolution_clock::now();
+    }
 
-    // ms
-    long Elapsed() const { return std::clock() - lStartTime_; }
-
-    long ElapsedMax() const { return (std::numeric_limits<std::clock_t>::max)() - lStartTime_; }
-
-    long ElapsedMin() const { return 1L; }
+    // microseconds
+    inline int64_t elapsed() const {
+        auto now = std::chrono::high_resolution_clock::now();
+        int64_t duration = std::chrono::duration_cast<std::chrono::microseconds>(now - lStartTime_).count();
+        return duration;
+    }
 
    private:
-    std::clock_t lStartTime_;
+    std::chrono::high_resolution_clock::time_point lStartTime_;
 };
 }  // namespace detail
 }  // namespace veigar

@@ -273,7 +273,6 @@ class Veigar::Impl {
     bool sendMessage(const std::string& channelName,
                      const uint8_t* buf,
                      size_t bufSize,
-                     unsigned int timeout,
                      std::string& errMsg) noexcept {
         try {
             std::shared_ptr<MessageQueue> mq = nullptr;
@@ -306,7 +305,8 @@ class Veigar::Impl {
             data.resize(bufSize);
             memcpy(&data[0], buf, bufSize);
 
-            if (!mq->pushBack(data, timeout)) {
+            if (!mq->pushBack(data, rwTimeout_.load())) {
+                errMsg = "Unable to push message to queue.";
                 return false;
             }
 
@@ -420,7 +420,7 @@ class Veigar::Impl {
             else if (msgFlag == 1) {  // recv response
                 CallPromise callPromise;
                 if (!getCallPromise(callId, callPromise)) {
-                    veigar::log("Veigar: Can not find on going call (call id: %s).\n", callId.c_str());
+                    veigar::log("Veigar: Can not find on going call (%s).\n", callId.c_str());
                     continue;
                 }
 
@@ -559,10 +559,9 @@ void Veigar::waitAllResponse() noexcept {
 bool Veigar::sendMessage(const std::string& targetChannel,
                          const uint8_t* buf,
                          size_t bufSize,
-                         unsigned int timeoutMS,
                          std::string& errMsg) noexcept {
     assert(impl_);
-    return impl_->sendMessage(targetChannel, buf, bufSize, timeoutMS, errMsg);
+    return impl_->sendMessage(targetChannel, buf, bufSize, errMsg);
 }
 
 void Veigar::setReadWriteTimeout(unsigned int timeoutMS) noexcept {
@@ -596,7 +595,6 @@ bool Veigar::sendCall(const std::string& channelName,
     return impl_->sendMessage(channelName,
                               (const uint8_t*)buffer->data(),
                               buffer->size(),
-                              impl_->rwTimeout_.load(),
                               exceptionMsg);
 }
 

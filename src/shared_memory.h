@@ -86,7 +86,7 @@ class MessageQueue {
     bool isInit_ = false;
     std::string segmentName_;
     MessageDeque* messages_ = nullptr;
-    Mutex* mutex_ = nullptr;
+    Mutex* processMutex_ = nullptr;
     managed_shared_memory msm_;
 };
 }  // namespace veigar

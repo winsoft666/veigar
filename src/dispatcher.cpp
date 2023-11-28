@@ -37,7 +37,7 @@ bool Dispatcher::init() noexcept {
 
     for (size_t i = 0; i < 10; ++i) {
         workers_.emplace_back([this] {
-            std::string exceptionMsg;
+            std::string errMsg;
             for (;;) {
                 std::shared_ptr<veigar_msgpack::object_handle> obj;
 
@@ -73,10 +73,10 @@ bool Dispatcher::init() noexcept {
                     continue;
                 }
 
-                exceptionMsg.clear();
-                if (!parent_->sendMessage(callerChannelName, (const uint8_t*)respBuf.data(), respBuf.size(), 100, exceptionMsg)) {
-                    veigar::log("Veigar: Send response to caller failed, caller: %s, exception: %s.\n",
-                                callerChannelName.c_str(), exceptionMsg.c_str());
+                errMsg.clear();
+                if (!parent_->sendMessage(callerChannelName, (const uint8_t*)respBuf.data(), respBuf.size(), errMsg)) {
+                    veigar::log("Veigar: Send response to caller failed, caller: %s, error: %s.\n",
+                                callerChannelName.c_str(), errMsg.c_str());
                 }
             }
         });

@@ -38,7 +38,7 @@ X7RHvEcSqriLCNS4etwZawJaQWiyVud9PZL4Ixxg7HuRBMwJtlYn7bx2Yx96RmItUU8DjtGZVUrbnTcL
 gVsPnzU5oqkOD3aNUCEs74gxRWQGR0iv9A17Fsnwgd44UBxOnAIlFXaNLZyn3reVSQJQnWpag8Wa
 )";
 
-const unsigned int warnDelayMS = 200;
+const unsigned int warnDelayMicroseconds = 200000;
 
 std::vector<std::string> StringSplit(const std::string& src, const std::string& delimiter, bool includeEmptyStr) {
     std::vector<std::string> fields;
@@ -76,11 +76,14 @@ std::string genRandomString(const uint32_t len) {
 }
 
 int main(int argc, char** argv) {
+    setlocale(LC_ALL, "");
     printf("Veigar: Cross platform RPC library using shared memory.\n\n");
 
     std::string channelName;
-    veigar::Veigar vg;
     int outputRecv = 0;
+
+    veigar::Veigar vg;
+    vg.setReadWriteTimeout(100);
 
     while (true) {
         if (channelName.empty()) {
@@ -155,12 +158,12 @@ int main(int argc, char** argv) {
                     veigar::CallResult ret;
 
                     if (asyncMethod == 0) {
-                        ret = vg.syncCall(targetChannel, warnDelayMS * 2, "echo", msg, i);
+                        ret = vg.syncCall(targetChannel, warnDelayMicroseconds / 1000 * 2, "echo", msg, i);
                     }
                     else {
                         std::shared_ptr<veigar::AsyncCallResult> acr = vg.asyncCall(targetChannel, "echo", msg, i);
                         if (acr->second.valid()) {
-                            auto waitResult = acr->second.wait_for(std::chrono::milliseconds(warnDelayMS * 2));
+                            auto waitResult = acr->second.wait_for(std::chrono::microseconds(warnDelayMicroseconds * 2));
                             if (waitResult == std::future_status::timeout) {
                                 ret.errCode = veigar::ErrorCode::TIMEOUT;
                                 ret.errorMessage = "Timeout";
@@ -172,10 +175,10 @@ int main(int argc, char** argv) {
                         vg.releaseCall(acr->first);
                     }
 
-                    long used = tm.Elapsed();
-                    if (used >= warnDelayMS) {
-                        printf("[Thread %lld, Target %s] Warn: call %d take long time: %dms >= %dms\n",
-                               (int64_t)threadId, targetChannel.c_str(), i, tm.Elapsed(), warnDelayMS);
+                    int64_t used = tm.elapsed();
+                    if (used >= warnDelayMicroseconds) {
+                        printf("[Thread %lld, Target %s] Warn: call %d take long time: %lldus >= %dus\n",
+                               (int64_t)threadId, targetChannel.c_str(), i, tm.elapsed(), warnDelayMicroseconds);
                     }
 
                     std::string expectResultStr = msg + "_" + std::to_string(i);
@@ -188,9 +191,11 @@ int main(int argc, char** argv) {
                         std::cout << ret.errorMessage << std::endl;
                     }
                 }
-                printf("[Thread %lld, Target %s] Total %d, Success %d, Error %d, Used: %dms.\n\n",
+                int64_t totalUsed = threadTM.elapsed();
+                printf("[Thread %lld, Target %s] Total %d, Success %d, Error %d, Used: %lldus, Average: %lldus/call.\n\n",
                        (int64_t)threadId, targetChannel.c_str(),
-                       callTimesEachThread, success, error, threadTM.Elapsed());
+                       callTimesEachThread, success, error, totalUsed,
+                       (int64_t)((double)totalUsed / (double)callTimesEachThread));
             };
 
             std::vector<std::shared_ptr<ThreadGroup>> threadGroups;
