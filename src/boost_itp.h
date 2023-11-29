@@ -1,3 +1,5 @@
+#ifndef VEIGAT_BOOST_ITP_H_
+#define VEIGAT_BOOST_ITP_H_
 #pragma once
 #include <boost/interprocess/creation_tags.hpp>
 #include <boost/interprocess/managed_shared_memory.hpp>
@@ -15,3 +17,4 @@
 namespace veigar {
 namespace itp = boost::interprocess;
 }
+#endif  // !VEIGAT_BOOST_ITP_H_

@@ -66,9 +66,11 @@ typedef itp::deque<class Message, MessageAllocator> MessageDeque;
 
 class MessageQueue {
    public:
+    MessageQueue() = default;
+
     bool isInit() const noexcept;
 
-    bool init(const std::string& segmentName, bool clearQueue, bool openOnly, unsigned int bufferSize) noexcept;
+    bool init(const std::string& segmentName, bool openOnly, unsigned int bufferSize) noexcept;
     void uninit() noexcept;
 
     bool pushBack(const std::vector<uint8_t>& buf, unsigned int timeout) noexcept;
@@ -88,6 +90,10 @@ class MessageQueue {
     MessageDeque* messages_ = nullptr;
     Mutex* processMutex_ = nullptr;
     managed_shared_memory msm_;
+
+   private:
+    MessageQueue(const MessageQueue&) = delete;
+    MessageQueue& operator=(const MessageQueue& other) = delete;
 };
 }  // namespace veigar
 #endif

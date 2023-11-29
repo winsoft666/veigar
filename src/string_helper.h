@@ -17,8 +17,8 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ******************************************************************************/
 
-#ifndef ASHE_STRING_HELPER_HPP__
-#define ASHE_STRING_HELPER_HPP__
+#ifndef VEIGAR_STRING_HELPER_HPP__
+#define VEIGAR_STRING_HELPER_HPP__
 #include "os_platform.h"
 #include <string>
 #include <vector>
@@ -37,4 +37,4 @@ class StringHelper {
     static std::wstring StringPrintfV(const wchar_t* format, va_list argList) noexcept;
 };
 }  // namespace veigar
-#endif  // !ASHE_STRING_HELPER_HPP__
+#endif  // !VEIGAR_STRING_HELPER_HPP__

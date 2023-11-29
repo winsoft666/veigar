@@ -47,32 +47,25 @@ class Veigar::Impl {
         std::string semName;
         try {
             semName = GetMessageQueueSemaphoreName(channelName);
-            std::shared_ptr<itp::named_semaphore> smh;
-
+            std::shared_ptr<itp::named_semaphore> smh = nullptr;
             if (openOnly) {
                 smh = std::make_shared<itp::named_semaphore>(
                     itp::open_only,
                     semName.c_str());
             }
             else {
-                itp::named_semaphore::remove(semName.c_str());
                 smh = std::make_shared<itp::named_semaphore>(
-                    itp::create_only,
+                    itp::open_or_create,
                     semName.c_str(),
                     0);
             }
+
             return smh;
         } catch (std::exception& e) {
-            veigar::log("Veigar: An exception occurred during creating message queue semaphore(%s): %s.\n",
+            veigar::log("Veigar: An exception occurred during opening/creating message queue semaphore(%s): %s.\n",
                         semName.c_str(), e.what());
             return nullptr;
         }
-    }
-
-    void removeMsgQueueSemaphore() {
-        assert(!channelName_.empty());
-        std::string semName = GetMessageQueueSemaphoreName(channelName_);
-        itp::named_semaphore::remove(semName.c_str());
     }
 
     bool init(const std::string& channelName, unsigned int bufferSize) {
@@ -110,8 +103,13 @@ class Veigar::Impl {
             msgQueue_ = std::make_shared<MessageQueue>();
 
             std::string recvQueueName = GetDataSegmentName(channelName_);
-            if (!msgQueue_->init(recvQueueName, true, false, bufferSize)) {
+            if (!msgQueue_->init(recvQueueName, false, bufferSize)) {
                 veigar::log("Veigar: Init message queue(%s) failed.\n", recvQueueName.c_str());
+                break;
+            }
+
+            if (!msgQueue_->clear(80)) {
+                veigar::log("Veigar: Clear message queue(%s) failed.\n", recvQueueName.c_str());
                 break;
             }
 
@@ -138,19 +136,14 @@ class Veigar::Impl {
                 msgQueueSmh_->post();
             }
 
-            if (msgQueue_) {
-                if (msgQueue_->isInit()) {
-                    msgQueue_->uninit();
-                }
-            }
-
             if (recvThread_.valid()) {
                 recvThread_.wait();
             }
 
-            removeMsgQueueSemaphore();
-
             if (msgQueue_) {
+                if (msgQueue_->isInit()) {
+                    msgQueue_->uninit();
+                }
                 msgQueue_.reset();
             }
 
@@ -172,60 +165,60 @@ class Veigar::Impl {
     }
 
     void uninit() {
-        if (isInit_) {
-            quit_.store(true);
+        if (!isInit_) {
+            return;
+        }
 
-            assert(msgQueueSmh_);
-            if (msgQueueSmh_) {
-                msgQueueSmh_->post();
+        quit_.store(true);
+
+        assert(msgQueueSmh_);
+        if (msgQueueSmh_) {
+            msgQueueSmh_->post();
+        }
+
+        if (recvThread_.valid()) {
+            recvThread_.wait();
+        }
+
+        assert(msgQueue_);
+        if (msgQueue_) {
+            if (msgQueue_->isInit()) {
+                msgQueue_->uninit();
             }
+            msgQueue_.reset();
+        }
 
-            assert(msgQueue_);
-            if (msgQueue_) {
-                if (msgQueue_->isInit()) {
-                    msgQueue_->uninit();
+        ongoingCallsMutex_.lock();
+        ongoingCalls_.clear();
+        ongoingCallsMutex_.unlock();
+
+        targetMQsMutex_.lock();
+        for (auto it = targetMsgQueues_.begin(); it != targetMsgQueues_.end(); ++it) {
+            auto mq = it->second;
+            if (mq) {
+                if (mq->isInit()) {
+                    mq->uninit();
                 }
             }
+        }
+        targetMsgQueues_.clear();
+        targetMQsMutex_.unlock();
 
-            if (recvThread_.valid()) {
-                recvThread_.wait();
-            }
+        channelMsgQueueSmhMutex_.lock();
+        channelMsgQueueSmh_.clear();
+        channelMsgQueueSmhMutex_.unlock();
 
-            if (msgQueue_) {
-                msgQueue_.reset();
-            }
-
-            ongoingCallsMutex_.lock();
-            ongoingCalls_.clear();
-            ongoingCallsMutex_.unlock();
-
-            channelMsgQueueMutex_.lock();
-            for (auto it = channelMsgQueue_.begin(); it != channelMsgQueue_.end(); ++it) {
-                auto mq = it->second;
-                if (mq) {
-                    if (mq->isInit()) {
-                        mq->uninit();
-                    }
-                }
-            }
-            channelMsgQueue_.clear();
-            channelMsgQueueMutex_.unlock();
-
-            channelMsgQueueSmhMutex_.lock();
-            channelMsgQueueSmh_.clear();
-            channelMsgQueueSmhMutex_.unlock();
-
-            removeMsgQueueSemaphore();
-
+        assert(parent_);
+        if (parent_) {
             if (parent_->disp_) {
                 if (parent_->disp_->isInit()) {
                     parent_->disp_->uninit();
                 }
                 parent_->disp_.reset();
             }
-
-            isInit_ = false;
         }
+
+        isInit_ = false;
     }
 
     bool getCallPromise(const std::string& callId, CallPromise& cp) {
@@ -237,24 +230,24 @@ class Veigar::Impl {
         return false;
     }
 
-    std::shared_ptr<MessageQueue> getMessageQueue(const std::string& channelName) {
-        std::lock_guard<std::mutex> lg(channelMsgQueueMutex_);
+    std::shared_ptr<MessageQueue> getTargetMessageQueue(const std::string& channelName) {
+        std::lock_guard<std::mutex> lg(targetMQsMutex_);
         std::shared_ptr<MessageQueue> queue = nullptr;
-        auto it = channelMsgQueue_.find(channelName);
-        if (it != channelMsgQueue_.cend()) {
+        auto it = targetMsgQueues_.find(channelName);
+        if (it != targetMsgQueues_.cend()) {
             return it->second;
         }
 
         queue = std::make_shared<MessageQueue>();
-        if (!queue->init(GetDataSegmentName(channelName), false, true, 0)) {
+        if (!queue->init(GetDataSegmentName(channelName), true, 0)) {
             return nullptr;
         }
 
-        channelMsgQueue_[channelName] = queue;
+        targetMsgQueues_[channelName] = queue;
         return queue;
     }
 
-    std::shared_ptr<itp::named_semaphore> getMessageQueueShm(const std::string& channelName) {
+    std::shared_ptr<itp::named_semaphore> getTargetMQShm(const std::string& channelName) {
         std::lock_guard<std::mutex> lg(channelMsgQueueSmhMutex_);
         auto it = channelMsgQueueSmh_.find(channelName);
         if (it != channelMsgQueueSmh_.cend()) {
@@ -281,7 +274,7 @@ class Veigar::Impl {
                 mq = msgQueue_;
             }
             else {
-                mq = getMessageQueue(channelName);
+                mq = getTargetMessageQueue(channelName);
             }
 
             if (!mq) {
@@ -293,7 +286,7 @@ class Veigar::Impl {
                 shm = msgQueueSmh_;
             }
             else {
-                shm = getMessageQueueShm(channelName);
+                shm = getTargetMQShm(channelName);
             }
 
             if (!shm) {
@@ -458,12 +451,12 @@ class Veigar::Impl {
 
     Veigar* parent_ = nullptr;
     std::shared_ptr<itp::named_semaphore> msgQueueSmh_;
-    std::atomic_bool quit_ = { false };
+    std::atomic_bool quit_ = {false};
     bool isInit_ = false;
 
-    std::atomic<unsigned int> rwTimeout_ = { 100 };  // ms
+    std::atomic<unsigned int> rwTimeout_ = {100};  // ms
 
-    std::atomic<uint32_t> callIndex_ = { 0 };
+    std::atomic<uint32_t> callIndex_ = {0};
     std::string channelName_;
     std::string uuid_;
     std::mutex ongoingCallsMutex_;
@@ -471,8 +464,8 @@ class Veigar::Impl {
 
     std::shared_ptr<MessageQueue> msgQueue_;
 
-    std::mutex channelMsgQueueMutex_;
-    std::unordered_map<std::string, std::shared_ptr<MessageQueue>> channelMsgQueue_;
+    std::mutex targetMQsMutex_;
+    std::unordered_map<std::string, std::shared_ptr<MessageQueue>> targetMsgQueues_;
 
     std::mutex channelMsgQueueSmhMutex_;
     std::unordered_map<std::string, std::shared_ptr<itp::named_semaphore>> channelMsgQueueSmh_;
@@ -564,9 +557,9 @@ bool Veigar::sendMessage(const std::string& targetChannel,
     return impl_->sendMessage(targetChannel, buf, bufSize, errMsg);
 }
 
-void Veigar::setReadWriteTimeout(unsigned int timeoutMS) noexcept {
+void Veigar::setReadWriteTimeout(unsigned int ms) noexcept {
     assert(impl_);
-    impl_->rwTimeout_.store(timeoutMS);
+    impl_->rwTimeout_.store(ms);
 }
 
 unsigned int Veigar::readWriteTimeout() const noexcept {

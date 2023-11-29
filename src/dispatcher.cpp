@@ -39,20 +39,21 @@ bool Dispatcher::init() noexcept {
         workers_.emplace_back([this] {
             std::string errMsg;
             for (;;) {
-                std::shared_ptr<veigar_msgpack::object_handle> obj;
+                std::shared_ptr<veigar_msgpack::object_handle> obj = nullptr;
 
                 do {
-                    std::unique_lock<std::mutex> lock(this->objsMutex_);
-                    this->condition_.wait(lock, [this] {
-                        return this->stop_ || !this->objs_.empty();
+                    std::unique_lock<std::mutex> lock(objsMutex_);
+                    condition_.wait(lock, [this] {
+                        return stop_ || !objs_.empty();
                     });
 
-                    if (this->stop_ && this->objs_.empty()) {
+                    if (stop_)
                         return;
-                    }
 
-                    obj = std::move(this->objs_.front());
-                    this->objs_.pop();
+                    if (!objs_.empty()) {
+                        obj = std::move(objs_.front());
+                        objs_.pop();
+                    }
                 } while (false);
 
                 if (!obj) {

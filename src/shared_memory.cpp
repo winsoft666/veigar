@@ -44,7 +44,7 @@ bool MessageQueue::isInit() const noexcept {
     return isInit_;
 }
 
-bool MessageQueue::init(const std::string& segmentName, bool clearQueue, bool openOnly, unsigned int bufferSize) noexcept {
+bool MessageQueue::init(const std::string& segmentName, bool openOnly, unsigned int bufferSize) noexcept {
     if (isInit_) {
         return false;
     }
@@ -65,6 +65,7 @@ bool MessageQueue::init(const std::string& segmentName, bool clearQueue, bool op
                     veigar::log("Veigar: Buffer size can not be zero on segment %s.\n", segmentName_.c_str());
                     break;
                 }
+
                 msm_ = managed_shared_memory(itp::open_or_create, segmentName_.c_str(), bufferSize);
             }
 
@@ -76,16 +77,14 @@ bool MessageQueue::init(const std::string& segmentName, bool clearQueue, bool op
                 break;
             }
 
+            if (!openOnly) {
+                // Attempt to unlock first to prevent previous processes from not releasing locks due to abnormal exits.
+                unlock();
+            }
+
             if (!messages_) {
                 veigar::log("Veigar: Find/Construct MessageDeque failed on segment %s.\n", segmentName_.c_str());
                 break;
-            }
-
-            if (clearQueue) {
-                if (!clear(80)) {
-                    veigar::log("Veigar: Clear message queue failed.\n");
-                    break;
-                }
             }
 
             veigar::log("Veigar: Init message queue(%s) success.\n", segmentName_.c_str());
@@ -101,19 +100,6 @@ bool MessageQueue::init(const std::string& segmentName, bool clearQueue, bool op
         isInit_ = false;
     }
 
-    //if (!isInit_) {
-    //    try {
-    //        veigar::log("Veigar: Init message queue(%s) failed, try to remove it.\n", segmentName_.c_str());
-    //        shared_memory_object::remove(segmentName_.c_str());
-    //    } catch (itp::interprocess_exception& exc) {
-    //        veigar::log("Veigar: An interprocess exception occurred during removing message queue(%s): %s.\n",
-    //                    segmentName_.c_str(), exc.what());
-    //    } catch (std::exception& exc) {
-    //        veigar::log("Veigar: An std exception occurred during removing message queue(%s): %s.\n",
-    //                    segmentName_.c_str(), exc.what());
-    //    }
-    //}
-
     return isInit_;
 }
 
@@ -122,9 +108,12 @@ void MessageQueue::uninit() noexcept {
         return;
     }
     messages_ = nullptr;
+    isInit_ = false;
 }
 
 bool MessageQueue::pushBack(const std::vector<uint8_t>& buf, unsigned int timeout) noexcept {
+    if (!isInit_)
+        return false;
     try {
         if (!lock(timeout)) {
             return false;
@@ -167,6 +156,9 @@ bool MessageQueue::pushBack(const std::vector<uint8_t>& buf, unsigned int timeou
 }
 
 bool MessageQueue::popFront(std::vector<uint8_t>& buf, unsigned int timeout) noexcept {
+    if (!isInit_)
+        return false;
+
     try {
         if (!lock(timeout)) {
             return false;
@@ -197,6 +189,9 @@ bool MessageQueue::popFront(std::vector<uint8_t>& buf, unsigned int timeout) noe
 }
 
 bool MessageQueue::clear(unsigned int timeout) noexcept {
+    if (!isInit_)
+        return false;
+
     if (lock(timeout)) {
         if (messages_) {
             messages_->clear();
@@ -241,5 +236,4 @@ void MessageQueue::unlock() {
         veigar::log("Veigar: An std exception occurred during process unlock queue: %s.\n", e.what());
     }
 }
-
 }  // namespace veigar

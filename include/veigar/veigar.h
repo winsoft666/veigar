@@ -92,7 +92,7 @@ class Veigar {
     //    the timeout in 'sendMessage' function.
     // 
     // Default is 100ms.
-    void setReadWriteTimeout(unsigned int timeoutMS) noexcept;
+    void setReadWriteTimeout(unsigned int ms) noexcept;
     unsigned int readWriteTimeout() const noexcept;
 
    private:
