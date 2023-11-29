@@ -26,7 +26,7 @@ option(VEIGAR_BUILD_EXAMPLES "Build examples project" ON)
 option(VEIGAR_BUILD_TESTS "Build tests project" ON)
 option(VEIGAR_USE_STATIC_CRT "Set to ON to build with static CRT on Windows (/MT)." OFF)
 
-set(VEIGAR_CXX_STANDARD 11 CACHE STRING "C++ version used to build veigar (Currently: Only 11 and 14 supported)")
+set(VEIGAR_CXX_STANDARD 11 CACHE STRING "C++ version used to build veigar (Currently: Only 11+ supported)")
 
 if(NOT ${VEIGAR_CXX_STANDARD} EQUAL 14 AND NOT ${VEIGAR_CXX_STANDARD} EQUAL 11)
   message(fatal_error "Unsupported C++ standard: ${VEIGAR_CXX_STANDARD}")
