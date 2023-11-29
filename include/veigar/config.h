@@ -23,8 +23,7 @@
 namespace veigar {
 
 static constexpr unsigned VERSION_MAJOR = 1;
-static constexpr unsigned VERSION_MINOR = 0;
-static constexpr unsigned VERSION_PATCH = 1;
+static constexpr unsigned VERSION_MINOR = 1;
 
 }  // namespace veigar
 

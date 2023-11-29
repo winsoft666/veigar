@@ -77,7 +77,8 @@ std::string genRandomString(const uint32_t len) {
 
 int main(int argc, char** argv) {
     setlocale(LC_ALL, "");
-    printf("Veigar: Cross platform RPC library using shared memory.\n\n");
+    printf("Veigar: Cross platform RPC library using shared memory.\n");
+    printf("Version: %d.%d\n\n", veigar::VERSION_MAJOR, veigar::VERSION_MINOR);
 
     std::string channelName;
     int outputRecv = 0;
@@ -100,6 +101,7 @@ int main(int argc, char** argv) {
 
             if (!vg.init(channelName)) {
                 printf("Init failed.\n");
+                channelName.clear();
                 continue;
             }
 
