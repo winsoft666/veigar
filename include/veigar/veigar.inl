@@ -13,7 +13,7 @@ std::shared_ptr<AsyncCallResult> Veigar::asyncCall(const std::string& targetChan
 }
 
 template <typename... Args>
-CallResult Veigar::syncCall(const std::string& targetChannel, unsigned int timeoutMS, const std::string& funcName, Args... args) noexcept {
+CallResult Veigar::syncCall(const std::string& targetChannel, uint32_t timeoutMS, const std::string& funcName, Args... args) noexcept {
     std::shared_ptr<AsyncCallResult> acr = doAsyncCall(targetChannel, funcName, std::forward<Args>(args)...);
     if (!acr || !acr->second.valid()) {
         releaseCall(acr->first);

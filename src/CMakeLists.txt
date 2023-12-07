@@ -37,13 +37,7 @@ source_group("Header Files/detail" FILES ${DETAIL_HEADER_FILES})
 source_group("Source Files" FILES ${SOURCE_FILES})
 source_group("MsgPack" FILES ${MSGPACK_FILES})
 
-include_directories(../include ./boost_1_83_0)
-
-add_definitions(
-	# Avoid Boost trying to automatically link the Boost.DateTime.
-	-DBOOST_DATE_TIME_NO_LIB
-	-DBOOST_USE_WINDOWS_H
-)
+include_directories(../include)
 
 if (MSVC AND VEIGAR_USE_STATIC_CRT)
     set(CompilerFlags

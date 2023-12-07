@@ -1,239 +1,196 @@
 #include "shared_memory.h"
 #include "log.h"
-#include <chrono>
+#ifdef VEIGAR_OS_WINDOWS
+#include <io.h>  // CreateFileMappingA, OpenFileMappingA, etc.
+#include <assert.h>
+#else                  // !VEIGAR_OS_WINDOWS
+#include <fcntl.h>     // for O_* constants
+#include <sys/mman.h>  // mmap, munmap
+#include <sys/stat.h>  // for mode constants
+#include <unistd.h>    // unlink
+
+#ifdef VEIGAR_OS_MACOS
+#include <errno.h>
+#endif  // VEIGAR_OS_MACOS
+
+#include <stdexcept>
+#endif  // VEIGAR_OS_WINDOWS
 
 namespace veigar {
-Message::Message(managed_shared_memory* msm) :
-    arg_(ByteAllocator(msm->get_segment_manager())),
-    msm_(msm) {
+#ifdef VEIGAR_OS_WINDOWS
+SharedMemory::SharedMemory(const std::string& path, int64_t size, bool create) noexcept :
+    path_(path),
+    size_(size),
+    create_(create) {
 }
 
-Message::~Message() {
-}
-
-Message& Message::copy(const Message& other) {
-    arg_ = other.arg_;
-
-    return *this;
-}
-
-bool Message::isEmpty() const {
-    return arg_.size() == 0;
-}
-
-void Message::clear() {
-    arg_.clear();
-}
-
-std::vector<uint8_t> Message::getArg() const {
-    std::vector<uint8_t> ret;
-    ret.resize(arg_.size());
-    memcpy(ret.data(), arg_.data(), arg_.size());
-
-    return ret;
-}
-
-void Message::setArg(const std::vector<uint8_t>& argument) {
-    arg_.resize(argument.size());
-    for (size_t i = 0; i < argument.size(); i++) {
-        arg_[i] = argument[i];
-    }
-}
-
-bool MessageQueue::isInit() const noexcept {
-    return isInit_;
-}
-
-bool MessageQueue::init(const std::string& segmentName, bool openOnly, unsigned int bufferSize) noexcept {
-    if (isInit_) {
+bool SharedMemory::createOrOpen() noexcept {
+    if (path_.empty()) {
         return false;
     }
 
-    if (segmentName.empty()) {
-        return false;
-    }
+    if (create_) {
+        DWORD sizeLowOrder = static_cast<DWORD>(size_);
+        handle_ = CreateFileMappingA(INVALID_HANDLE_VALUE,
+                                     NULL,
+                                     PAGE_READWRITE,
+                                     0,
+                                     sizeLowOrder,
+                                     path_.c_str());
 
-    segmentName_ = segmentName;
-
-    try {
-        do {
-            if (openOnly) {
-                msm_ = managed_shared_memory(itp::open_only, segmentName_.c_str());
-            }
-            else {
-                if (bufferSize < 0) {
-                    veigar::log("Veigar: Buffer size can not be zero on segment %s.\n", segmentName_.c_str());
-                    break;
-                }
-
-                msm_ = managed_shared_memory(itp::open_or_create, segmentName_.c_str(), bufferSize);
-            }
-
-            processMutex_ = msm_.find_or_construct<Mutex>("MessageDequeMutex")();
-            messages_ = msm_.find_or_construct<MessageDeque>("MessageDeque")(MessageAllocator(msm_.get_segment_manager()));
-
-            if (!processMutex_) {
-                veigar::log("Veigar: Find/Construct MessageDeque mutex failed on segment %s.\n", segmentName_.c_str());
-                break;
-            }
-
-            if (!openOnly) {
-                // Attempt to unlock first to prevent previous processes from not releasing locks due to abnormal exits.
-                unlock();
-            }
-
-            if (!messages_) {
-                veigar::log("Veigar: Find/Construct MessageDeque failed on segment %s.\n", segmentName_.c_str());
-                break;
-            }
-
-            veigar::log("Veigar: Init message queue(%s) success.\n", segmentName_.c_str());
-            isInit_ = true;
-        } while (false);
-    } catch (itp::interprocess_exception& exc) {
-        veigar::log("Veigar: An interprocess exception occurred during initializing message queue(%s): %s.\n",
-                    segmentName_.c_str(), exc.what());
-        isInit_ = false;
-    } catch (std::exception& exc) {
-        veigar::log("Veigar: An std exception occurred during initializing message queue(%s): %s.\n",
-                    segmentName_.c_str(), exc.what());
-        isInit_ = false;
-    }
-
-    return isInit_;
-}
-
-void MessageQueue::uninit() noexcept {
-    if (!isInit_) {
-        return;
-    }
-    messages_ = nullptr;
-    isInit_ = false;
-}
-
-bool MessageQueue::pushBack(const std::vector<uint8_t>& buf, unsigned int timeout) noexcept {
-    if (!isInit_)
-        return false;
-    try {
-        if (!lock(timeout)) {
+        if (!handle_) {
+            veigar::log("Veigar: Create file mapping failed, name: %s, size: %d, gle: %d\n",
+                        path_.c_str(), sizeLowOrder, GetLastError());
             return false;
         }
+    }
+    else {
+        handle_ = OpenFileMappingA(FILE_MAP_READ | FILE_MAP_WRITE,
+                                   FALSE,
+                                   path_.c_str());
 
-        if (!messages_) {
-            unlock();
+        if (!handle_) {
+            veigar::log("Veigar: Open file mapping failed, name: %s, gle: %d\n", path_.c_str(), GetLastError());
             return false;
         }
-
-        size_t needSize = buf.size() * 4;
-        size_t freeMemSize = msm_.get_free_memory();
-        while (freeMemSize < needSize) {
-            if (messages_->size() == 0) {
-                break;
-            }
-            messages_->pop_front();
-            veigar::log("Veigar: Insufficient buffer size(%ld < %ld), discard front message.\n", freeMemSize, needSize);
-
-            freeMemSize = msm_.get_free_memory();
-        }
-
-        Message msg(&msm_);
-        msg.setArg(buf);
-
-        messages_->push_back(msg);
-        unlock();
-
-        return true;
-    } catch (itp::interprocess_exception& exc) {
-        veigar::log("Veigar: An interprocess exception occurred during pushing message to queue(%s): %s.\n",
-                    segmentName_.c_str(), exc.what());
-    } catch (std::exception& exc) {
-        veigar::log("Veigar: An std exception occurred during pushing message to queue(%s): %s.\n",
-                    segmentName_.c_str(), exc.what());
     }
 
-    unlock();
-    return false;
-}
+    DWORD access = create_ ? FILE_MAP_ALL_ACCESS : FILE_MAP_READ | FILE_MAP_WRITE;
 
-bool MessageQueue::popFront(std::vector<uint8_t>& buf, unsigned int timeout) noexcept {
-    if (!isInit_)
+    data_ = static_cast<uint8_t*>(MapViewOfFile(handle_, access, 0, 0, 0));
+
+    if (!data_) {
+        veigar::log("Veigar: Map file view failed, name: %s, gle: %d\n", path_.c_str(), GetLastError());
+        if (handle_) {
+            CloseHandle(handle_);
+            handle_ = NULL;
+        }
         return false;
-
-    try {
-        if (!lock(timeout)) {
-            return false;
-        }
-
-        if (!messages_ || messages_->size() == 0) {
-            unlock();
-            return false;
-        }
-
-        Message msg = messages_->front();
-        buf = msg.getArg();
-
-        messages_->pop_front();
-
-        unlock();
-        return true;
-    } catch (itp::interprocess_exception& exc) {
-        veigar::log("Veigar: An interprocess exception occurred during pop message from queue(%s): %s.\n",
-                    segmentName_.c_str(), exc.what());
-    } catch (std::exception& exc) {
-        veigar::log("Veigar: An std exception occurred during pop message from queue(%s): %s.\n",
-                    segmentName_.c_str(), exc.what());
     }
 
-    unlock();
-    return false;
+    return true;
 }
 
-bool MessageQueue::clear(unsigned int timeout) noexcept {
-    if (!isInit_)
+bool SharedMemory::valid() const noexcept {
+    return !!handle_;
+}
+
+void SharedMemory::close() noexcept {
+    if (data_) {
+        UnmapViewOfFile(data_);
+        data_ = nullptr;
+    }
+
+    if (handle_) {
+        CloseHandle(handle_);
+        handle_ = NULL;
+    }
+}
+
+SharedMemory::~SharedMemory() {
+    close();
+}
+#else  // !VEIGAR_OS_WINDOWS
+
+SharedMemory::SharedMemory(const std::string& path, int64_t size, bool create) noexcept :
+    size_(size),
+    create_(create) {
+    // For portable use, a shared memory object should be identified by a name of the form / somename;
+    path_ = "/" + path;
+}
+
+bool SharedMemory::createOrOpen() noexcept {
+    if (path_.empty()) {
         return false;
-
-    if (lock(timeout)) {
-        if (messages_) {
-            messages_->clear();
-        }
-        unlock();
-        return true;
     }
-    return false;
-}
 
-Message MessageQueue::createMessage() {
-    return Message(&msm_);
-}
+    int flags = create_ ? (O_CREAT | O_RDWR) : O_RDWR;
 
-bool MessageQueue::lock(unsigned int timeout) {
-    bool result = false;
+    fd_ = shm_open(path_.c_str(), flags, 0666);
+    if (fd_ < 0) {
+        int err = errno;
+        veigar::log("Veigar: %s shm failed, err: %d.\n", create_ ? "Create" : "Open", err);
+        return false;
+    }
 
-    try {
-        if (processMutex_) {
-            if (timeout > 0) {
-                std::chrono::steady_clock::time_point deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(timeout);
-                result = processMutex_->timed_lock(deadline);
+    if (create_) {
+        // this is the only way to specify the size of a newly-created POSIX shared memory object
+        int ret = ftruncate(fd_, size_);
+        if (ret != 0) {
+            int err = errno;
+            veigar::log("Veigar: ftruncate shm failed, size: %" PRId64 ", err: %d.\n", size_, err);
+            ::close(fd_);
+            fd_ = -1;
+            if (create_) {
+                shm_unlink(path_.c_str());
             }
-            else {
-                processMutex_->lock();
-                result = true;
+            return false;
+        }
+    }
+
+    void* memory = mmap(nullptr,                 // addr
+                        size_,                   // length
+                        PROT_READ | PROT_WRITE,  // prot
+                        MAP_SHARED,              // flags
+                        fd_,                     // fd
+                        0                        // offset
+    );
+
+    if (memory == MAP_FAILED) {
+        int err = errno;
+        veigar::log("Veigar: mmap shm failed, size: %" PRId64 ", err: %d.\n", size_, err);
+
+        ::close(fd_);
+        fd_ = -1;
+        if (create_) {
+            shm_unlink(path_.c_str());
+        }
+        return false;
+    }
+
+    data_ = static_cast<uint8_t*>(memory);
+
+    if (!data_) {
+        ::close(fd_);
+        fd_ = -1;
+        if (create_) {
+            shm_unlink(path_.c_str());
+        }
+        return false;
+    }
+
+    veigar::log("Veigar: %s shm fd: %d.\n", create_ ? "Create" : "Open", fd_);
+    return true;
+}
+
+bool SharedMemory::valid() const noexcept {
+    return fd_ != -1;
+}
+
+void SharedMemory::close() noexcept {
+    if (fd_ != -1) {
+        veigar::log("Veigar: Close fd: %d.\n", fd_);
+        if (data_) {
+            munmap(data_, size_);
+            data_ = nullptr;
+        }
+
+        if (fd_ >= 0) {
+            ::close(fd_);
+            fd_ = -1;
+        }
+
+        if (create_) {
+            if (!path_.empty()) {
+                shm_unlink(path_.c_str());
             }
         }
-    } catch (std::exception& e) {
-        veigar::log("Veigar: An std exception occurred during process lock queue: %s.\n", e.what());
-    }
-
-    return result;
-}
-
-void MessageQueue::unlock() {
-    try {
-        if (processMutex_) {
-            processMutex_->unlock();
-        }
-    } catch (std::exception& e) {
-        veigar::log("Veigar: An std exception occurred during process unlock queue: %s.\n", e.what());
     }
 }
+
+SharedMemory::~SharedMemory() {
+    close();
+}
+
+#endif  //VEIGAR_OS_WINDOWS
 }  // namespace veigar

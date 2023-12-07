@@ -23,6 +23,7 @@
 #include <string>
 #include <vector>
 #include <future>
+#include <inttypes.h>
 #include "veigar/config.h"
 #include "veigar/call_result.h"
 #include "veigar/dispatcher.h"
@@ -42,11 +43,8 @@ class Veigar {
     // channelName: 
     //       Channel name must be unique within the current computer scope.
     //       This uniqueness is guaranteed by the user and Veigar will not check it.
-    // bufferSize: 
-    //       The size of shared memory used to store message queues.
-    //       If the buffer of the message queue is insufficient, Veigar will automatically discard front message 
-    //           until the buffer is sufficient.
-    bool init(const std::string& channelName, unsigned int bufferSize = 1048576) noexcept;
+    //
+    bool init(const std::string& channelName) noexcept;
 
     bool isInit() const noexcept;
 
@@ -75,7 +73,7 @@ class Veigar {
     template <typename... Args>
     CallResult syncCall(
         const std::string& targetChannel,
-        unsigned int timeoutMS,
+        uint32_t timeoutMS,
         const std::string& funcName,
         Args... args) noexcept;
 
@@ -92,8 +90,8 @@ class Veigar {
     //    the timeout in 'sendMessage' function.
     // 
     // Default is 100ms.
-    void setReadWriteTimeout(unsigned int ms) noexcept;
-    unsigned int readWriteTimeout() const noexcept;
+    void setReadWriteTimeout(uint32_t ms) noexcept;
+    uint32_t readWriteTimeout() const noexcept;
 
    private:
     std::string getNextCallId(const std::string& funcName) const noexcept;

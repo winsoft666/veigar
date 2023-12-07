@@ -25,9 +25,11 @@
 #if defined(WIN64) || defined(_WIN64) || defined(__WIN64__) ||                    \
     defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__) || \
     defined(WINCE) || defined(_WIN32_WCE)
-#define VEIGAR_OS_WINDOWS
+#define VEIGAR_OS_WINDOWS 1
 #elif defined(__linux__) || defined(linux) || defined(__linux)
-#define VEIGAR_OS_LINUX
+#define VEIGAR_OS_LINUX 1
+#elif defined(__QNX__)
+#define VEIGAR_OS_QNX 1
 #elif defined(__APPLE__)
 #define VEIGAR_OS_MACOS 1
 #elif defined(__unix__) || defined(unix) || defined(__unix)

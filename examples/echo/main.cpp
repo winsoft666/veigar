@@ -22,7 +22,58 @@
 #include <iostream>
 #include <mutex>
 #include <cstdlib>  //std::system
+#include <inttypes.h>
 #include "thread_group.h"
+
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#define IS_WINDOWS 1
+#endif
+
+#if IS_WINDOWS
+bool IsWow64(HANDLE process, bool& result) noexcept {
+    BOOL bIsWow64 = FALSE;
+
+    typedef BOOL(WINAPI * LPFN_ISWOW64PROCESS)(HANDLE, PBOOL);
+    LPFN_ISWOW64PROCESS fnIsWow64Process =
+        (LPFN_ISWOW64PROCESS)GetProcAddress(GetModuleHandle(TEXT("kernel32")), "IsWow64Process");
+
+    if (NULL == fnIsWow64Process) {
+        return false;
+    }
+
+    if (!fnIsWow64Process(process, &bIsWow64)) {
+        return false;
+    }
+
+    result = !!bIsWow64;
+    return true;
+}
+
+bool IsWin64(HANDLE process) noexcept {
+#if (defined _WIN64) || (defined WIN64)
+    return true;
+#else
+    bool result = false;
+    IsWow64(process, result);
+    return result;
+#endif
+}
+
+bool Is32BitProcess() noexcept {
+    HANDLE process = GetCurrentProcess();
+    if (!process)
+        return false;
+
+    bool wow64 = false;
+    IsWow64(process, wow64);
+    if (wow64)
+        return true;
+
+    BOOL win64 = IsWin64(process);
+    return !win64;
+}
+
+#endif
 
 std::string str1046 = R"(
 no4vvZcIIRoc3xz9ZkccRYo9XiliFGQqhnAk5zKz85ttbSI8IcOUGUx3OXagffEzSbuAO6W930KRSFBY0P6JlNPB0QyhhsFYl
@@ -38,7 +89,7 @@ X7RHvEcSqriLCNS4etwZawJaQWiyVud9PZL4Ixxg7HuRBMwJtlYn7bx2Yx96RmItUU8DjtGZVUrbnTcL
 gVsPnzU5oqkOD3aNUCEs74gxRWQGR0iv9A17Fsnwgd44UBxOnAIlFXaNLZyn3reVSQJQnWpag8Wa
 )";
 
-const unsigned int warnDelayMicroseconds = 200000;
+const uint32_t warnDelayMicroseconds = 500000;
 
 std::vector<std::string> StringSplit(const std::string& src, const std::string& delimiter, bool includeEmptyStr) {
     std::vector<std::string> fields;
@@ -60,7 +111,7 @@ std::vector<std::string> StringSplit(const std::string& src, const std::string& 
 }
 
 std::string genRandomString(const uint32_t len) {
-    srand((unsigned int)time(nullptr) + len);
+    srand((uint32_t)time(nullptr) + len);
     static const char alphanum[] =
         "0123456789"
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -78,7 +129,11 @@ std::string genRandomString(const uint32_t len) {
 int main(int argc, char** argv) {
     setlocale(LC_ALL, "");
     printf("Veigar: Cross platform RPC library using shared memory.\n");
+#if IS_WINDOWS
+    printf("Version: %d.%d (%s)\n\n", veigar::VERSION_MAJOR, veigar::VERSION_MINOR, Is32BitProcess() ? "x86" : "x64");
+#else
     printf("Version: %d.%d\n\n", veigar::VERSION_MAJOR, veigar::VERSION_MINOR);
+#endif
 
     std::string channelName;
     int outputRecv = 0;
@@ -152,7 +207,7 @@ int main(int argc, char** argv) {
                 int error = 0;
                 int success = 0;
 
-                printf("[Thread %lld, Target %s] Calling...\n", (int64_t)threadId, targetChannel.c_str());
+                printf("[Thread %" PRId64 ", Target %s] Calling...\n", (int64_t)threadId, targetChannel.c_str());
                 veigar::detail::TimeMeter threadTM;
                 for (int i = 0; i < callTimesEachThread; i++) {
                     std::string msg = str1046 + channelName + "_" + targetChannel + "_" + std::to_string(i) + "_" + std::to_string(threadId);
@@ -178,15 +233,14 @@ int main(int argc, char** argv) {
                     }
 
                     int64_t used = tm.elapsed();
-                    if (used >= warnDelayMicroseconds) {
-                        printf("[Thread %lld, Target %s] Warn: call %d take long time: %lldus >= %dus\n",
-                               (int64_t)threadId, targetChannel.c_str(), i, tm.elapsed(), warnDelayMicroseconds);
-                    }
-
                     std::string expectResultStr = msg + "_" + std::to_string(i);
 
                     if (ret.isSuccess() && ret.obj.get().as<std::string>() == expectResultStr) {
                         success++;
+                        if (used >= warnDelayMicroseconds) {
+                            printf("[Thread %" PRId64 ", Target %s] Warn: call %d take long time: %" PRId64 "us >= %dus\n",
+                                   (int64_t)threadId, targetChannel.c_str(), i, tm.elapsed(), warnDelayMicroseconds);
+                        }
                     }
                     else {
                         error++;
@@ -194,7 +248,7 @@ int main(int argc, char** argv) {
                     }
                 }
                 int64_t totalUsed = threadTM.elapsed();
-                printf("[Thread %lld, Target %s] Total %d, Success %d, Error %d, Used: %lldus, Average: %lldus/call.\n\n",
+                printf("[Thread %" PRId64 ", Target %s] Total %d, Success %d, Error %d, Used: %" PRId64 "us, Average: %" PRId64 "us/call.\n\n",
                        (int64_t)threadId, targetChannel.c_str(),
                        callTimesEachThread, success, error, totalUsed,
                        (int64_t)((double)totalUsed / (double)callTimesEachThread));

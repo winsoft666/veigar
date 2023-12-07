@@ -31,4 +31,12 @@ static constexpr unsigned VERSION_MINOR = 1;
 #define MSGPACK_NO_BOOST
 #endif
 
+#ifndef VEIGAR_MAX_MESSAGE_NUMBER
+#define VEIGAR_MAX_MESSAGE_NUMBER 10
+#endif
+
+#ifndef VEIGAR_MAX_MESSAGE_EXPECTED_SIZE
+#define VEIGAR_MAX_MESSAGE_EXPECTED_SIZE 1048576  // 1MB
+#endif
+
 #endif  // !VEIGAR_CONFIG_H_

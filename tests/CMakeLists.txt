@@ -44,7 +44,8 @@ endif()
 
 add_executable(
 	${EXE_NAME}
-	${TEST_SOURCE_FILES})
+	${TEST_SOURCE_FILES}
+    ${VEIGAR_SOURCE_FILES})
 
 add_dependencies(${EXE_NAME} ${PROJECT_NAME})
 target_link_libraries(${EXE_NAME} ${PROJECT_NAME})
