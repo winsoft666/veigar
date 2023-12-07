@@ -57,7 +57,7 @@ bool Semaphore::wait(const int64_t& ms) {
     }
 
 #ifdef VEIGAR_OS_WINDOWS
-    DWORD result = WaitForSingleObject(h_, ms >= 0 ? ms : INFINITE);
+    DWORD result = WaitForSingleObject(h_, ms >= 0 ? (DWORD)ms : INFINITE);
     return (result == WAIT_OBJECT_0);
 #else
     timeval tv_now;

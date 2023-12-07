@@ -30,8 +30,6 @@ file(GLOB DETAIL_HEADER_FILES         ../include/veigar/detail/*.h ../include/ve
 file(GLOB SOURCE_FILES                 ./*.cpp ./*.h ./*.hpp)
 file(GLOB_RECURSE MSGPACK_FILES      ../include/veigar/msgpack/*.hpp ../include/veigar/msgpack/*.h)
 
-file(GLOB_RECURSE ALL_EXPORT_HEADER_FILES      ../include/veigar/*.*)
-
 source_group("Header Files" FILES ${HEADER_FILES})
 source_group("Header Files/detail" FILES ${DETAIL_HEADER_FILES})
 
@@ -63,9 +61,13 @@ add_library(
 	${MSGPACK_FILES}
 )
 
+target_include_directories(${PROJECT_NAME} PUBLIC
+	"$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>"
+    "$<INSTALL_INTERFACE:include>"
+)
+
 # set output name prefix/suffix
 set_target_properties(${PROJECT_NAME} PROPERTIES 
-  PUBLIC_HEADER ${ALL_EXPORT_HEADER_FILES}
   OUTPUT_NAME ${PROJECT_NAME}
   DEBUG_OUTPUT_NAME ${PROJECT_NAME}${DEBUG_LIBNAME_SUFFIX})
 
@@ -75,10 +77,11 @@ install(TARGETS ${PROJECT_NAME}
 	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 	OBJECTS DESTINATION ${CMAKE_INSTALL_LIBDIR}
-	PUBLIC_HEADER DESTINATION include
+	INCLUDES DESTINATION include
 )
 
 install(EXPORT veigar-targets
+	FILE veigar-targets.cmake
 	NAMESPACE veigar::
 	DESTINATION share/veigar
 )
