@@ -39,7 +39,7 @@ vcpkg install veigar
 ```
 
 # 3. Quick Start
-Although Veigar's underlying implementation is based on msgpack and boost interprocess, we have included these two libraries in the project and do not require additional installation when using them.
+Although Veigar's underlying implementation is based on msgpack, Veigar have included this library in the project and do not require additional installation.
 
 Veigar only supports compiling to static libraries.
 
