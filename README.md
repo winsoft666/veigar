@@ -1,16 +1,17 @@
 [ >>> 简体中文版](README_CN.md)
 
-# Veigar
+# 1. Veigar
 The term 'Veigar' comes from the game 'The Tiny Master of Evil' in League of Legends.
 
 ![Veigar on LOL](./veigar-lol.jpg)
 
-Veigar is a cross platform remote procedure call (RPC) framework. 
+Veigar is a cross platform remote procedure call (RPC) framework, supports Windows and Linux platforms.
 
 Veigar is implemented based on shared memory technology and only supports remote procedure calls between native processes or threads, which is the biggest difference between Veigar and other RPC frameworks such as Thrift and grpc.
 
 > So far as I know, Veigar is the first open source RPC framework based on shared memory technology.
 
+# 2. Advantage
 Compared to other RPC frameworks, Veigar's advantages is that:
 
 - Expose functions of your program to be called via RPC (from any language implementing msgpack-rpc).
@@ -27,7 +28,7 @@ Compared to other RPC frameworks, Veigar's advantages is that:
 
 - No strange port pseudo availability issues (especially in Windows).
 
-# 2. Compile
+# 3. Compile
 Although Veigar's underlying implementation is based on msgpack and boost interprocess, we have included these two libraries in the project and do not require additional installation when using them.
 
 Veigar only supports compiling to static libraries.
@@ -38,14 +39,14 @@ CMake can be used for compilation and build, or using [vcpkg](https://github.com
 vcpkg install veigar
 ```
 
-# 3. Quick Start
+# 4. Quick Start
 Although Veigar's underlying implementation is based on msgpack, Veigar have included this library in the project and do not require additional installation.
 
 Veigar only supports compiling to static libraries.
 
 When using Veigar, simply include the `include` directory in the project and link Veigar's static library.
 
-## 3.1 Synchronous Call
+## 4.1 Synchronous Call
 
 Here is an example of synchronous call:
 
@@ -98,11 +99,11 @@ Each instance bind a function named `echo`, which simply returns the msg paramet
 
 By specifying the `syncCall` function with 'target channel name', 'function name', 'function parameters', and 'timeout milliseconds', the target function can be synchronously called and the call result obtained.
 
-## 3.2 Reject exceptions
+## 4.2 Reject exceptions
 
 I don't like exceptions, so Veigar doesn't throw errors in the form of exceptions. Veigar actively catches all C++ standard libraries, msgpack, and boost exceptions, and returns them to the caller as return values. When the call fails (`!ret.isSuccess()`), the error information stored in the `errorMessage` may be the exception information captured by Veigar.
 
-## 3.3 Asynchronous Call
+## 4.3 Asynchronous Call
 
 Asynchronous call can be implemented using the `asyncCall` function.
 
@@ -139,12 +140,12 @@ vg.releaseCall(acr->first);
 
 Unlike synchronous calls, the `asyncCall` function return `std::shared_ptr<veigar::AsyncCallResult>`, and the caller needs to call the `releaseCall` function to release resources when obtaining the `CallResult` or when the call result is no longer related.
 
-# 4. Performance
+# 5. Performance
 Veigar is implemented based on shared memory and has the advantages of high throughput and ultra-low latency.
 
 Use the `examples\echo` program for testing.
 
-## 4.1 Single thread
+## 5.1 Single thread
 Single thread calls 1 million times (include call function and wait the result), with each call passing ~1050 bytes of parameters. The test results are as follows:
 
 ```txt
@@ -163,7 +164,7 @@ Total 1000000, Success 1000000, Error 0, Used: 23414ms.
 Total used 23414ms，Average 42709 calls per second.
 
 
-## 4.2 Multi-threading
+## 5.2 Multi-threading
 
 Six threads running simultaneously, with each thread calling 1 million times (include call function and wait the result), and each call passed ~1050 bytes of parameters. The test results are as follows:
 
