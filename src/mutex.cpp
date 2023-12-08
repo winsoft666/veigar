@@ -3,7 +3,6 @@
 
 namespace veigar {
 #ifdef VEIGAR_OS_WINDOWS
-
 Mutex::Mutex() {
 }
 

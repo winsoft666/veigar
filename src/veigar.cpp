@@ -33,14 +33,18 @@ class Veigar::Impl {
 
     bool init(const std::string& channelName) {
         if (isInit_) {
-            veigar::log("Veigar: Already init.\n");
+            veigar::log("Veigar: Warning: Already init.\n");
+            if (channelName_ == channelName) {
+                return true;
+            }
             return false;
         }
+
         do {
             quit_.store(false);
 
             if (channelName.empty()) {
-                veigar::log("Veigar: Channel name is empty.\n");
+                veigar::log("Veigar: Error: Channel name is empty.\n");
                 break;
             }
 
@@ -48,19 +52,19 @@ class Veigar::Impl {
 
             uuid_ = UUID::Create();
             if (uuid_.empty()) {
-                veigar::log("Veigar: Generate uuid failed.\n");
+                veigar::log("Veigar: Error: Generate uuid failed.\n");
                 break;
             }
 
             assert(parent_->disp_);
             if (!parent_->disp_->init()) {
-                veigar::log("Veigar: Init dispatcher failed.\n");
+                veigar::log("Veigar: Error: Init dispatcher failed.\n");
                 break;
             }
 
             msgQueue_ = std::make_shared<MessageQueue>(true, VEIGAR_MAX_MESSAGE_NUMBER, VEIGAR_MAX_MESSAGE_EXPECTED_SIZE);
             if (!msgQueue_->create(channelName_)) {
-                veigar::log("Veigar: Create message queue(%s) failed.\n", channelName_.c_str());
+                veigar::log("Veigar: Error: Create message queue(%s) failed.\n", channelName_.c_str());
                 break;
             }
 
@@ -69,14 +73,14 @@ class Veigar::Impl {
             try {
                 pac_.reserve_buffer(recvBufSize_);
             } catch (std::bad_alloc& e) {
-                veigar::log("Veigar: Pre-alloc memory(%d bytes) failed: %s.\n", recvBufSize_, e.what());
+                veigar::log("Veigar: Error: Pre-alloc memory(%d bytes) failed: %s.\n", recvBufSize_, e.what());
                 break;
             }
 
             try {
                 recvThread_ = std::async(std::launch::async, &Impl::RecvThreadProc, this);
             } catch (std::exception& e) {
-                veigar::log("Veigar: An exception occurred during starting receive thread: %s.\n", e.what());
+                veigar::log("Veigar: Error: An exception occurred during starting receive thread: %s.\n", e.what());
                 break;
             }
             isInit_ = true;
@@ -173,7 +177,7 @@ class Veigar::Impl {
         queue = std::make_shared<MessageQueue>(true, VEIGAR_MAX_MESSAGE_NUMBER, VEIGAR_MAX_MESSAGE_EXPECTED_SIZE);
         if (!queue->open(channelName)) {
             queue.reset();
-            veigar::log("Veigar: Open message queue(%s) failed.\n", channelName.c_str());
+            veigar::log("Veigar: Error: Open message queue(%s) failed.\n", channelName.c_str());
             return nullptr;
         }
 
@@ -206,7 +210,7 @@ class Veigar::Impl {
 
             return true;
         } catch (std::exception& e) {
-            veigar::log("Veigar: An exception occurred during sending message: %s.\n", e.what());
+            veigar::log("Veigar: Error: An exception occurred during sending message: %s.\n", e.what());
             errMsg = e.what();
             return false;
         }
@@ -215,14 +219,14 @@ class Veigar::Impl {
     void RecvThreadProc() {
         void* recvBuf = malloc(recvBufSize_);
         if (!recvBuf) {
-            veigar::log("Veigar: Allocate receive buffer(%d bytes) failed.\n", recvBufSize_);
+            veigar::log("Veigar: Error: Allocate receive buffer(%d bytes) failed.\n", recvBufSize_);
             return;
         }
 
         int64_t written = 0L;
         while (!quit_.load()) {
             written = 0L;
-            if (!msgQueue_->wait(200)) {
+            if (!msgQueue_->wait(-1)) {
                 continue;
             }
 
@@ -243,7 +247,7 @@ class Veigar::Impl {
 
                 recvBuf = malloc((size_t)written);
                 if (!recvBuf) {
-                    veigar::log("Veigar: buffer size too small and reallocate %" PRId64 " bytes failed.\n", written);
+                    veigar::log("Veigar: Error: Buffer size too small and reallocate %" PRId64 " bytes failed.\n", written);
                     continue;
                 }
 
@@ -271,11 +275,11 @@ class Veigar::Impl {
                 veigar_msgpack::object_handle& objRef = *result;
                 nextRet = pac_.next(objRef);
             } catch (std::exception& e) {
-                veigar::log("Veigar: An exception occurred during parsing received data: %s.\n", e.what());
+                veigar::log("Veigar: Error: An exception occurred during parsing received data: %s.\n", e.what());
                 nextRet = false;
             } catch (...) {
                 veigar::log(
-                    "Veigar: An exception occurred during parsing received data. The exception is not derived from std::exception. "
+                    "Veigar: Error: An exception occurred during parsing received data. The exception is not derived from std::exception. "
                     "No further information available.\n");
                 nextRet = false;
             }
@@ -298,17 +302,17 @@ class Veigar::Impl {
                 msgFlag = std::get<0>(commonMsg);
                 callId = std::get<1>(commonMsg);
             } catch (std::exception& e) {
-                veigar::log("Veigar: An exception occurred during parsing received data: %s.\n", e.what());
+                veigar::log("Veigar: Error: An exception occurred during parsing received data: %s.\n", e.what());
                 continue;
             } catch (...) {
                 veigar::log(
-                    "Veigar: An exception occurred during parsing received data. The exception is not derived from std::exception. "
+                    "Veigar: Error: An exception occurred during parsing received data. The exception is not derived from std::exception. "
                     "No further information available.\n");
                 continue;
             }
 
             if (callId.empty()) {
-                veigar::log("Veigar: Call Id is empty, message flag: %d.\n", msgFlag);
+                veigar::log("Veigar: Warning: Call Id is empty, message flag: %d.\n", msgFlag);
                 continue;
             }
 
@@ -321,7 +325,7 @@ class Veigar::Impl {
             else if (msgFlag == 1) {  // recv response
                 CallPromise callPromise;
                 if (!getCallPromise(callId, callPromise)) {
-                    veigar::log("Veigar: Can not find on going call (%s).\n", callId.c_str());
+                    veigar::log("Veigar: Warning: Can not find on going call (%s).\n", callId.c_str());
                     continue;
                 }
 
@@ -444,6 +448,7 @@ void Veigar::waitAllResponse() noexcept {
     if (!impl_) {
         return;
     }
+
     try {
         for (auto& c : impl_->ongoingCalls_) {
             std::shared_ptr<std::promise<CallResult>> p = c.second.second;
@@ -455,7 +460,7 @@ void Veigar::waitAllResponse() noexcept {
             }
         }
     } catch (std::exception& e) {
-        veigar::log("Veigar: An exception occurred during waiting all response: %s.\n", e.what());
+        veigar::log("Veigar: Warning: An exception occurred during waiting all responses: %s.\n", e.what());
     }
 }
 

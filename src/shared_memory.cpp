@@ -39,7 +39,7 @@ bool SharedMemory::createOrOpen() noexcept {
                                      path_.c_str());
 
         if (!handle_) {
-            veigar::log("Veigar: Create file mapping failed, name: %s, size: %d, gle: %d\n",
+            veigar::log("Veigar: Error: Create file mapping failed, name: %s, size: %d, gle: %d.\n",
                         path_.c_str(), sizeLowOrder, GetLastError());
             return false;
         }
@@ -50,7 +50,7 @@ bool SharedMemory::createOrOpen() noexcept {
                                    path_.c_str());
 
         if (!handle_) {
-            veigar::log("Veigar: Open file mapping failed, name: %s, gle: %d\n", path_.c_str(), GetLastError());
+            veigar::log("Veigar: Error: Open file mapping failed, name: %s, gle: %d.\n", path_.c_str(), GetLastError());
             return false;
         }
     }
@@ -60,7 +60,7 @@ bool SharedMemory::createOrOpen() noexcept {
     data_ = static_cast<uint8_t*>(MapViewOfFile(handle_, access, 0, 0, 0));
 
     if (!data_) {
-        veigar::log("Veigar: Map file view failed, name: %s, gle: %d\n", path_.c_str(), GetLastError());
+        veigar::log("Veigar: Error: Map file view failed, name: %s, gle: %d.\n", path_.c_str(), GetLastError());
         if (handle_) {
             CloseHandle(handle_);
             handle_ = NULL;
@@ -109,7 +109,7 @@ bool SharedMemory::createOrOpen() noexcept {
     fd_ = shm_open(path_.c_str(), flags, 0666);
     if (fd_ < 0) {
         int err = errno;
-        veigar::log("Veigar: %s shm failed, err: %d.\n", create_ ? "Create" : "Open", err);
+        veigar::log("Veigar: Error: %s shared memory failed, err: %d.\n", create_ ? "Create" : "Open", err);
         return false;
     }
 
@@ -118,7 +118,7 @@ bool SharedMemory::createOrOpen() noexcept {
         int ret = ftruncate(fd_, size_);
         if (ret != 0) {
             int err = errno;
-            veigar::log("Veigar: ftruncate shm failed, size: %" PRId64 ", err: %d.\n", size_, err);
+            veigar::log("Veigar: Error: ftruncate shm failed, size: %" PRId64 ", err: %d.\n", size_, err);
             ::close(fd_);
             fd_ = -1;
             if (create_) {
@@ -138,7 +138,7 @@ bool SharedMemory::createOrOpen() noexcept {
 
     if (memory == MAP_FAILED) {
         int err = errno;
-        veigar::log("Veigar: mmap shm failed, size: %" PRId64 ", err: %d.\n", size_, err);
+        veigar::log("Veigar: Error: mmap shm failed, size: %" PRId64 ", err: %d.\n", size_, err);
 
         ::close(fd_);
         fd_ = -1;
@@ -159,7 +159,7 @@ bool SharedMemory::createOrOpen() noexcept {
         return false;
     }
 
-    veigar::log("Veigar: %s shm fd: %d.\n", create_ ? "Create" : "Open", fd_);
+    //veigar::log("Veigar: %s shared memory success, fd: %d.\n", create_ ? "Create" : "Open", fd_);
     return true;
 }
 
@@ -169,7 +169,7 @@ bool SharedMemory::valid() const noexcept {
 
 void SharedMemory::close() noexcept {
     if (fd_ != -1) {
-        veigar::log("Veigar: Close fd: %d.\n", fd_);
+        //veigar::log("Veigar: Close fd: %d.\n", fd_);
         if (data_) {
             munmap(data_, size_);
             data_ = nullptr;

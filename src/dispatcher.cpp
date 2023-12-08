@@ -71,18 +71,18 @@ bool Dispatcher::init() noexcept {
 
                     veigar_msgpack::sbuffer respBuf = resp.getData();
                     if (respBuf.size() == 0) {
-                        veigar::log("Veigar: The size of response data is zero.\n");
+                        veigar::log("Veigar: Warning: The size of response data is zero.\n");
                         continue;
                     }
 
                     errMsg.clear();
                     if (!parent_->sendMessage(callerChannelName, (const uint8_t*)respBuf.data(), respBuf.size(), errMsg)) {
-                        veigar::log("Veigar: Send response to caller failed, caller: %s, error: %s.\n",
+                        veigar::log("Veigar: Error: Send response to caller failed, caller: %s, error: %s.\n",
                             callerChannelName.c_str(), errMsg.c_str());
                     }
                 }
                 catch (std::exception& e) {
-                    veigar::log("Veigar: An exception occurred during handling dispatch message: %s.\n", e.what());
+                    veigar::log("Veigar: Error: An exception occurred during handling dispatch message: %s.\n", e.what());
                 }
             }
         });
@@ -106,8 +106,11 @@ void Dispatcher::uninit() noexcept {
         stop_ = true;
     }
     condition_.notify_all();
-    for (std::thread& worker : workers_)
-        worker.join();
+    for (std::thread& worker : workers_) {
+        if (worker.joinable()) {
+            worker.join();
+        }
+    }
 
     funcs_.clear();
 
@@ -148,10 +151,10 @@ Response Dispatcher::dispatchCall(veigar_msgpack::object const& msg, std::string
     try {
         msg.convert(the_call);
     } catch (std::exception& e) {
-        veigar::log("Veigar: An exception occurred during parsing response message: %s.\n", e.what());
+        veigar::log("Veigar: Error: An exception occurred during parsing response message: %s.\n", e.what());
         return Response::MakeEmptyResponse();
     } catch (...) {
-        veigar::log("Veigar: An exception occurred during parsing response message.\n");
+        veigar::log("Veigar: Error: An exception occurred during parsing response message.\n");
         return Response::MakeEmptyResponse();
     }
 

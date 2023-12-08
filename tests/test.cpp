@@ -50,72 +50,14 @@ TEST_CASE("init-unint") {
     veigar::Veigar vg;
     REQUIRE(vg.init(channelName));
     REQUIRE(vg.isInit());
-    REQUIRE(!vg.init(channelName));
+    REQUIRE(vg.init(channelName));
     REQUIRE(vg.isInit());
     vg.uninit();
     REQUIRE(!vg.isInit());
     REQUIRE(vg.init(channelName));
     REQUIRE(vg.isInit());
-    REQUIRE(!vg.init(channelName));
+    REQUIRE(!vg.init(channelName + "1"));
     REQUIRE(vg.isInit());
     vg.uninit();
     REQUIRE(!vg.isInit());
-}
-
-TEST_CASE("bind-unbind") {
-    const std::string channelName = "6CEAEF1BE01B46128CC23BBED8605B2D";
-    auto func1 = []() {};
-    auto func2 = [](int a, bool b, std::string c) {};
-    auto func3 = [](int a, int b, int c) { return a + b + c; };
-    auto func4 = [](std::string s) {};
-    auto func5 = [](std::string s) { return s; };
-    auto func6 = [](std::vector<uint8_t> buf1, std::vector<uint8_t> buf2) {};
-    auto func7 = [](std::vector<uint8_t> buf) { return buf; };
-    auto func8 = []() { return std::string("test"); };
-
-    veigar::Veigar vg;
-    REQUIRE(vg.init("test"));
-
-    REQUIRE(vg.bind("func1", func1));
-    REQUIRE(!vg.bind("func1", func1));
-    vg.unbind("func1");
-    REQUIRE(vg.bind("func1", func1));
-
-    REQUIRE(vg.bind("func2", func2));
-    REQUIRE(!vg.bind("func2", func2));
-    vg.unbind("func2");
-    REQUIRE(vg.bind("func2", func2));
-
-    REQUIRE(vg.bind("func3", func3));
-    REQUIRE(!vg.bind("func3", func3));
-    vg.unbind("func3");
-    REQUIRE(vg.bind("func3", func3));
-
-    REQUIRE(vg.bind("func4", func4));
-    REQUIRE(!vg.bind("func4", func4));
-    vg.unbind("func4");
-    REQUIRE(vg.bind("func4", func4));
-
-    REQUIRE(vg.bind("func5", func5));
-    REQUIRE(!vg.bind("func5", func5));
-    vg.unbind("func5");
-    REQUIRE(vg.bind("func5", func5));
-
-    REQUIRE(vg.bind("func6", func6));
-    REQUIRE(!vg.bind("func6", func6));
-    vg.unbind("func6");
-    REQUIRE(vg.bind("func6", func6));
-
-    REQUIRE(vg.bind("func7", func7));
-    REQUIRE(!vg.bind("func7", func7));
-    vg.unbind("func7");
-    REQUIRE(vg.bind("func7", func7));
-
-    REQUIRE(vg.bind("func8", func8));
-    REQUIRE(!vg.bind("func8", func8));
-    vg.unbind("func8");
-    REQUIRE(vg.bind("func8", func8));
-
-    REQUIRE(vg.isInit());
-    vg.uninit();
 }

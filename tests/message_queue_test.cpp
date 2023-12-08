@@ -35,47 +35,47 @@ TEST_CASE("mq-push-pop-no-discard") {
     veigar::MessageQueue mq1(false, 3, 10);  // max size = 30
     REQUIRE(mq1.create(mqPath));
 
-    REQUIRE(mq1.pushBack(data.c_str(), data.size()));
-    REQUIRE(mq1.pushBack(data.c_str(), data.size()));
-    REQUIRE(!mq1.pushBack(data.c_str(), data.size()));
+    REQUIRE(mq1.pushBack(100, data.c_str(), data.size()));
+    REQUIRE(mq1.pushBack(100, data.c_str(), data.size()));
+    REQUIRE(!mq1.pushBack(100, data.c_str(), data.size()));
 
     char buf10[10] = {0};
     int64_t written = 0L;
-    REQUIRE(!mq1.popFront(buf10, 10, written));
+    REQUIRE(!mq1.popFront(100, buf10, 10, written));
     REQUIRE(written == 12);
 
     char buf20[20] = {0};
-    REQUIRE(mq1.popFront(buf20, 20, written));
+    REQUIRE(mq1.popFront(100, buf20, 20, written));
     REQUIRE(buf20 == data);
     REQUIRE(written == 12);
 
     memset(&buf20[0], 0, 20);
-    REQUIRE(mq1.popFront(buf20, 20, written));
+    REQUIRE(mq1.popFront(100, buf20, 20, written));
     REQUIRE(buf20 == data);
     REQUIRE(written == 12);
 
     memset(&buf20[0], 0, 20);
-    REQUIRE(!mq1.popFront(buf20, 20, written));
+    REQUIRE(!mq1.popFront(100, buf20, 20, written));
     REQUIRE(written == 0);
 
     // again
     //
-    REQUIRE(mq1.pushBack(data.c_str(), data.size()));
-    REQUIRE(mq1.pushBack(data.c_str(), data.size()));
-    REQUIRE(!mq1.pushBack(data.c_str(), data.size()));
+    REQUIRE(mq1.pushBack(100, data.c_str(), data.size()));
+    REQUIRE(mq1.pushBack(100, data.c_str(), data.size()));
+    REQUIRE(!mq1.pushBack(100, data.c_str(), data.size()));
 
     memset(&buf20[0], 0, 20);
-    REQUIRE(mq1.popFront(buf20, 20, written));
+    REQUIRE(mq1.popFront(100, buf20, 20, written));
     REQUIRE(buf20 == data);
     REQUIRE(written == 12);
 
     memset(&buf20[0], 0, 20);
-    REQUIRE(mq1.popFront(buf20, 20, written));
+    REQUIRE(mq1.popFront(100, buf20, 20, written));
     REQUIRE(buf20 == data);
     REQUIRE(written == 12);
 
     memset(&buf20[0], 0, 20);
-    REQUIRE(!mq1.popFront(buf20, 20, written));
+    REQUIRE(!mq1.popFront(100, buf20, 20, written));
     REQUIRE(written == 0);
 
     mq1.close();
@@ -88,51 +88,51 @@ TEST_CASE("mq-push-pop-discard") {
     REQUIRE(mq1.create(mqPath));
 
     std::string data1 = "hello-123451";  // size = 12
-    REQUIRE(mq1.pushBack(data1.c_str(), data1.size()));
+    REQUIRE(mq1.pushBack(100, data1.c_str(), data1.size()));
 
     std::string data2 = "hello-123452";  // size = 12
-    REQUIRE(mq1.pushBack(data2.c_str(), data2.size()));
+    REQUIRE(mq1.pushBack(100, data2.c_str(), data2.size()));
 
     std::string data3 = "hello-123453";  // size = 12
-    REQUIRE(mq1.pushBack(data3.c_str(), data3.size()));
+    REQUIRE(mq1.pushBack(100, data3.c_str(), data3.size()));
 
     char buf10[10] = {0};
     int64_t written = 0L;
-    REQUIRE(!mq1.popFront(buf10, 10, written));
+    REQUIRE(!mq1.popFront(100, buf10, 10, written));
     REQUIRE(written == 12);
 
     char buf20[20] = {0};
-    REQUIRE(mq1.popFront(buf20, 20, written));
+    REQUIRE(mq1.popFront(100, buf20, 20, written));
     REQUIRE(buf20 == data2);
     REQUIRE(written == 12);
 
     memset(&buf20[0], 0, 20);
-    REQUIRE(mq1.popFront(buf20, 20, written));
+    REQUIRE(mq1.popFront(100, buf20, 20, written));
     REQUIRE(buf20 == data3);
     REQUIRE(written == 12);
 
     memset(&buf20[0], 0, 20);
-    REQUIRE(!mq1.popFront(buf20, 20, written));
+    REQUIRE(!mq1.popFront(100, buf20, 20, written));
     REQUIRE(written == 0);
 
     // again
     //
-    REQUIRE(mq1.pushBack(data1.c_str(), data1.size()));
-    REQUIRE(mq1.pushBack(data2.c_str(), data2.size()));
-    REQUIRE(mq1.pushBack(data3.c_str(), data3.size()));
+    REQUIRE(mq1.pushBack(100, data1.c_str(), data1.size()));
+    REQUIRE(mq1.pushBack(100, data2.c_str(), data2.size()));
+    REQUIRE(mq1.pushBack(100, data3.c_str(), data3.size()));
 
     memset(&buf20[0], 0, 20);
-    REQUIRE(mq1.popFront(buf20, 20, written));
+    REQUIRE(mq1.popFront(100, buf20, 20, written));
     REQUIRE(buf20 == data2);
     REQUIRE(written == 12);
 
     memset(&buf20[0], 0, 20);
-    REQUIRE(mq1.popFront(buf20, 20, written));
+    REQUIRE(mq1.popFront(100, buf20, 20, written));
     REQUIRE(buf20 == data3);
     REQUIRE(written == 12);
 
     memset(&buf20[0], 0, 20);
-    REQUIRE(!mq1.popFront(buf20, 20, written));
+    REQUIRE(!mq1.popFront(100, buf20, 20, written));
     REQUIRE(written == 0);
 
     mq1.close();
@@ -152,7 +152,7 @@ TEST_CASE("mq-multi-thread-push-pop") {
         char buf20[20] = {0};
         for (int i = 0; i < 9999; i++) {
             if (id % 2 == 0) {
-                if (!mq.pushBack(data.c_str(), data.size()))
+                if (!mq.pushBack(100, data.c_str(), data.size()))
                     pushFailed++;
             }
             else {
@@ -161,7 +161,7 @@ TEST_CASE("mq-multi-thread-push-pop") {
                 }
                 int64_t written = 0;
                 memset(&buf20[0], 0, 20);
-                if (!mq.popFront(buf20, 20, written))
+                if (!mq.popFront(100, buf20, 20, written))
                     popFailed++;
             }
         }
