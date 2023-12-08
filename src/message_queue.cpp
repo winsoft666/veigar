@@ -131,7 +131,7 @@ bool MessageQueue::open(const std::string& path) noexcept {
 | Shm Total Size | Msg Number | Front Free Size | Msg 0 Size | Msg 1 Size | ... | Msg 0 Data | Msg 1 Data | ... |
 |      8           |      8       |       8           |    8         |    8        |      | Msg 0 Size | Msg 1 Size | ... |
 */
-bool MessageQueue::pushBack(const void* data, int64_t dataSize) noexcept {
+bool MessageQueue::pushBack(uint32_t timeoutMS, const void* data, int64_t dataSize) noexcept {
     bool ret = false;
 
     if (!data || dataSize <= 0) {
@@ -147,7 +147,11 @@ bool MessageQueue::pushBack(const void* data, int64_t dataSize) noexcept {
         veigar::log("Veigar: Warning: Message size(%" PRId64 ") greater than expected(%d).\n", dataSize, msgExpectedMaxSize_);
     }
 
-    rwLock_->lock(-1);
+    if (!rwLock_->lock(timeoutMS)) {
+        veigar::log("Veigar: Warning: Get rw-lock timeout when push back.\n");
+        return false;
+    }
+
     do {
         uint8_t* const shmData = shm_->data();
         assert(shmData);
@@ -255,14 +259,17 @@ bool MessageQueue::pushBack(const void* data, int64_t dataSize) noexcept {
     return ret;
 }
 
-bool MessageQueue::popFront(void* buf, int64_t bufSize, int64_t& written) noexcept {
+bool MessageQueue::popFront(uint32_t timeoutMS, void* buf, int64_t bufSize, int64_t& written) noexcept {
     bool ret = false;
 
     if (!buf || bufSize <= 0) {
         return false;
     }
 
-    rwLock_->lock(-1);
+    if (!rwLock_->lock(timeoutMS)) {
+        veigar::log("Veigar: Warning: Get rw-lock timeout when pop front.\n");
+        return false;
+    }
 
     do {
         written = 0;
@@ -358,5 +365,4 @@ void MessageQueue::notifyRead() noexcept {
         readSmp_->release();
     }
 }
-
 }  // namespace veigar

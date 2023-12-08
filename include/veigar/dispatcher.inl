@@ -19,7 +19,6 @@ bool Dispatcher::bind(std::string const& name, F func, detail::tags::void_result
         return false;
     }
 
-    std::lock_guard<std::mutex> lg(funcMutex_);
     funcs_.insert(
         std::make_pair(name, [func, name](veigar_msgpack::object const& args) {
             constexpr int args_count = std::tuple_size<args_type>::value;
@@ -39,7 +38,6 @@ bool Dispatcher::bind(std::string const& name, F func, detail::tags::void_result
         return false;
     }
 
-    std::lock_guard<std::mutex> lg(funcMutex_);
     funcs_.insert(
         std::make_pair(name,
                        [func, name](veigar_msgpack::object const& args) {
@@ -65,7 +63,6 @@ bool Dispatcher::bind(std::string const& name, F func, detail::tags::nonvoid_res
         return false;
     }
 
-    std::lock_guard<std::mutex> lg(funcMutex_);
     funcs_.insert(
         std::make_pair(name,
                        [func, name](veigar_msgpack::object const& args) {
@@ -89,7 +86,6 @@ bool Dispatcher::bind(std::string const& name, F func, detail::tags::nonvoid_res
         return false;
     }
 
-    std::lock_guard<std::mutex> lg(funcMutex_);
     funcs_.insert(std::make_pair(name,
                                  [func, name](veigar_msgpack::object const& args) {
                                      constexpr int args_count = std::tuple_size<args_type>::value;

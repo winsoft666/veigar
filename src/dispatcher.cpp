@@ -60,24 +60,29 @@ bool Dispatcher::init() noexcept {
                     continue;
                 }
 
-                auto msg = obj->get();
+                try {
+                    auto msg = obj->get();
 
-                std::string callerChannelName;
-                Response resp = dispatch(msg, callerChannelName);
-                if (callerChannelName.empty()) {
-                    continue;
+                    std::string callerChannelName;
+                    Response resp = dispatch(msg, callerChannelName);
+                    if (callerChannelName.empty()) {
+                        continue;
+                    }
+
+                    veigar_msgpack::sbuffer respBuf = resp.getData();
+                    if (respBuf.size() == 0) {
+                        veigar::log("Veigar: The size of response data is zero.\n");
+                        continue;
+                    }
+
+                    errMsg.clear();
+                    if (!parent_->sendMessage(callerChannelName, (const uint8_t*)respBuf.data(), respBuf.size(), errMsg)) {
+                        veigar::log("Veigar: Send response to caller failed, caller: %s, error: %s.\n",
+                            callerChannelName.c_str(), errMsg.c_str());
+                    }
                 }
-
-                veigar_msgpack::sbuffer respBuf = resp.getData();
-                if (respBuf.size() == 0) {
-                    veigar::log("Veigar: The size of response data is zero.\n");
-                    continue;
-                }
-
-                errMsg.clear();
-                if (!parent_->sendMessage(callerChannelName, (const uint8_t*)respBuf.data(), respBuf.size(), errMsg)) {
-                    veigar::log("Veigar: Send response to caller failed, caller: %s, error: %s.\n",
-                                callerChannelName.c_str(), errMsg.c_str());
+                catch (std::exception& e) {
+                    veigar::log("Veigar: An exception occurred during handling dispatch message: %s.\n", e.what());
                 }
             }
         });
@@ -110,7 +115,6 @@ void Dispatcher::uninit() noexcept {
 }
 
 void Dispatcher::unbind(std::string const& name) noexcept {
-    std::lock_guard<std::mutex> lg(funcMutex_);
     auto it = funcs_.find(name);
     if (it != funcs_.end()) {
         funcs_.erase(it);
@@ -165,18 +169,12 @@ Response Dispatcher::dispatchCall(veigar_msgpack::object const& msg, std::string
     auto&& funcName = std::get<3>(the_call);
     auto&& args = std::get<4>(the_call);
 
-    std::unordered_map<std::string, AdaptorType>::const_iterator itFunc;
-
-    funcMutex_.lock();
-    itFunc = funcs_.find(funcName);
-
+    std::unordered_map<std::string, AdaptorType>::const_iterator itFunc = funcs_.find(funcName);
     if (itFunc == funcs_.cend()) {
-        funcMutex_.unlock();
         return Response::MakeResponseWithError(
             callId,
             StringHelper::StringPrintf("Could not find function '%s' with argument count %d.", funcName.c_str(), args.via.array.size));
     }
-    funcMutex_.unlock();
 
     try {
         auto result = (itFunc->second)(args);
@@ -197,7 +195,6 @@ Response Dispatcher::dispatchCall(veigar_msgpack::object const& msg, std::string
 }
 
 bool Dispatcher::isFuncNameExist(std::string const& func) noexcept {
-    std::lock_guard<std::mutex> lg(funcMutex_);
     auto pos = funcs_.find(func);
     if (pos != end(funcs_)) {
         return true;

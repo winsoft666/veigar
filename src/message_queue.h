@@ -15,8 +15,8 @@ class MessageQueue {
     bool create(const std::string& path) noexcept;
     bool open(const std::string& path) noexcept;
 
-    bool pushBack(const void* data, int64_t dataSize) noexcept;
-    bool popFront(void* buf, int64_t bufSize, int64_t& written) noexcept;
+    bool pushBack(uint32_t timeoutMS, const void* data, int64_t dataSize) noexcept;
+    bool popFront(uint32_t timeoutMS, void* buf, int64_t bufSize, int64_t& written) noexcept;
 
     bool wait(int64_t ms) noexcept;
 

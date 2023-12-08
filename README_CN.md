@@ -61,12 +61,12 @@ int main(int argc, char** argv) {
 
     veigar::Veigar vg;
 
-    vg.init(channelName);
-
     vg.bind("echo", [](const std::string& msg) {
         std::cout << "RECV:" << msg << std::endl;
         return msg;
     });
+
+    vg.init(channelName);
 
     veigar::CallResult ret = vg.syncCall(targetChannelName, "echo", 100, "hello");
     if(ret.isSuccess()) {

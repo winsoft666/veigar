@@ -89,7 +89,7 @@ X7RHvEcSqriLCNS4etwZawJaQWiyVud9PZL4Ixxg7HuRBMwJtlYn7bx2Yx96RmItUU8DjtGZVUrbnTcL
 gVsPnzU5oqkOD3aNUCEs74gxRWQGR0iv9A17Fsnwgd44UBxOnAIlFXaNLZyn3reVSQJQnWpag8Wa
 )";
 
-const uint32_t warnDelayMicroseconds = 500000;
+const uint32_t warnDelayMicroseconds = 500000; // 500ms
 
 std::vector<std::string> StringSplit(const std::string& src, const std::string& delimiter, bool includeEmptyStr) {
     std::vector<std::string> fields;
@@ -139,7 +139,6 @@ int main(int argc, char** argv) {
     int outputRecv = 0;
 
     veigar::Veigar vg;
-    vg.setReadWriteTimeout(100);
 
     while (true) {
         if (channelName.empty()) {
@@ -181,6 +180,7 @@ int main(int argc, char** argv) {
             int asyncMethod = 0;
             int threadNum = 0;
             int callTimesEachThread = 0;
+            int rwTimeout = 0;
             std::string targetChannels;
             std::vector<std::string> targetChannelList;
 
@@ -203,7 +203,12 @@ int main(int argc, char** argv) {
             std::cout << "Call times each of thread: \n";
             std::cin >> callTimesEachThread;
 
-            auto fn = [&vg, channelName, asyncMethod, callTimesEachThread](std::size_t threadId, std::string targetChannel) {
+            std::cout << "Read/Write Timeout(ms):\n";
+            std::cin >> rwTimeout;
+
+            vg.setReadWriteTimeout(rwTimeout);
+
+            auto fn = [&vg, rwTimeout, channelName, asyncMethod, callTimesEachThread](std::size_t threadId, std::string targetChannel) {
                 int error = 0;
                 int success = 0;
 
@@ -215,12 +220,12 @@ int main(int argc, char** argv) {
                     veigar::CallResult ret;
 
                     if (asyncMethod == 0) {
-                        ret = vg.syncCall(targetChannel, warnDelayMicroseconds / 1000 * 2, "echo", msg, i);
+                        ret = vg.syncCall(targetChannel, rwTimeout * 3, "echo", msg, i);
                     }
                     else {
                         std::shared_ptr<veigar::AsyncCallResult> acr = vg.asyncCall(targetChannel, "echo", msg, i);
                         if (acr->second.valid()) {
-                            auto waitResult = acr->second.wait_for(std::chrono::microseconds(warnDelayMicroseconds * 2));
+                            auto waitResult = acr->second.wait_for(std::chrono::milliseconds(rwTimeout * 3));
                             if (waitResult == std::future_status::timeout) {
                                 ret.errCode = veigar::ErrorCode::TIMEOUT;
                                 ret.errorMessage = "Timeout";
@@ -248,10 +253,11 @@ int main(int argc, char** argv) {
                     }
                 }
                 int64_t totalUsed = threadTM.elapsed();
-                printf("[Thread %" PRId64 ", Target %s] Total %d, Success %d, Error %d, Used: %" PRId64 "us, Average: %" PRId64 "us/call.\n\n",
+                printf("[Thread %" PRId64 ", Target %s] Total %d, Success %d, Error %d, Used: %" PRId64 "us, Average: %" PRId64 "us/call, %" PRId64 "call/s.\n\n",
                        (int64_t)threadId, targetChannel.c_str(),
                        callTimesEachThread, success, error, totalUsed,
-                       (int64_t)((double)totalUsed / (double)callTimesEachThread));
+                       (int64_t)((double)totalUsed / (double)callTimesEachThread),
+                       (int64_t)(1000000.0 / ((double)totalUsed / (double)callTimesEachThread)));
             };
 
             std::vector<std::shared_ptr<ThreadGroup>> threadGroups;

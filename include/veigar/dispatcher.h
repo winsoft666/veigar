@@ -111,7 +111,7 @@ class Dispatcher {
    private:
     Veigar* parent_ = nullptr;
     bool init_ = false;
-    std::mutex funcMutex_;
+
     std::unordered_map<std::string, AdaptorType> funcs_;
 
     std::vector<std::thread> workers_;

@@ -40,7 +40,12 @@ class Veigar {
 
     Veigar& operator=(Veigar&& other) noexcept;
 
-    // channelName: 
+    template <typename F>
+    bool bind(const std::string& funcName, F func) noexcept;
+
+    void unbind(const std::string& funcName) noexcept;
+
+    // channelName:
     //       Channel name must be unique within the current computer scope.
     //       This uniqueness is guaranteed by the user and Veigar will not check it.
     //
@@ -52,11 +57,6 @@ class Veigar {
 
     std::string channelName() const noexcept;
 
-    template <typename F>
-    bool bind(const std::string& funcName, F func) noexcept;
-
-    void unbind(const std::string& funcName) noexcept;
-
     std::vector<std::string> bindNames() const noexcept;
 
     template <typename... Args>
@@ -66,7 +66,7 @@ class Veigar {
         Args... args) noexcept;
 
     // Release resources.
-    // If using 'asyncCall' function, the caller must call the this function to release resources 
+    // If using 'asyncCall' function, the caller must call the this function to release resources
     //     when obtaining the 'CallResult' or when the call result is no longer related.
     void releaseCall(const std::string& callId);
 
@@ -88,8 +88,8 @@ class Veigar {
     // Set the timeout for reading and writing shared memory.
     // This timeout is different from the timeout in 'syncCall' function and it same as
     //    the timeout in 'sendMessage' function.
-    // 
-    // Default is 100ms.
+    //
+    // Default is 260ms.
     void setReadWriteTimeout(uint32_t ms) noexcept;
     uint32_t readWriteTimeout() const noexcept;
 

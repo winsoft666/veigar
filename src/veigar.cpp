@@ -52,7 +52,7 @@ class Veigar::Impl {
                 break;
             }
 
-            parent_->disp_ = std::make_shared<detail::Dispatcher>(parent_);
+            assert(parent_->disp_);
             if (!parent_->disp_->init()) {
                 veigar::log("Veigar: Init dispatcher failed.\n");
                 break;
@@ -98,11 +98,8 @@ class Veigar::Impl {
                 msgQueue_.reset();
             }
 
-            if (parent_->disp_) {
-                if (parent_->disp_->isInit()) {
-                    parent_->disp_->uninit();
-                }
-                parent_->disp_.reset();
+            if (parent_->disp_->isInit()) {
+                parent_->disp_->uninit();
             }
 
             uuid_.clear();
@@ -148,14 +145,9 @@ class Veigar::Impl {
         targetMsgQueues_.clear();
         targetMQsMutex_.unlock();
 
-        assert(parent_);
-        if (parent_) {
-            if (parent_->disp_) {
-                if (parent_->disp_->isInit()) {
-                    parent_->disp_->uninit();
-                }
-                parent_->disp_.reset();
-            }
+        assert(parent_ && parent_->disp_);
+        if (parent_->disp_->isInit()) {
+            parent_->disp_->uninit();
         }
 
         isInit_ = false;
@@ -207,7 +199,7 @@ class Veigar::Impl {
                 return false;
             }
 
-            if (!mq->pushBack(buf, bufSize)) {
+            if (!mq->pushBack(rwTimeout_.load(), buf, bufSize)) {
                 errMsg = "Unable to push message to queue.";
                 return false;
             }
@@ -238,7 +230,7 @@ class Veigar::Impl {
                 break;
             }
 
-            if (!msgQueue_->popFront(recvBuf, recvBufSize_, written)) {
+            if (!msgQueue_->popFront(rwTimeout_.load(), recvBuf, recvBufSize_, written)) {
                 if (written <= 0) {
                     continue;
                 }
@@ -256,7 +248,7 @@ class Veigar::Impl {
                 }
 
                 recvBufSize_ = (uint32_t)written;
-                if (!msgQueue_->popFront(recvBuf, recvBufSize_, written)) {
+                if (!msgQueue_->popFront(rwTimeout_.load(), recvBuf, recvBufSize_, written)) {
                     continue;
                 }
             }
@@ -370,7 +362,7 @@ class Veigar::Impl {
     bool isInit_ = false;
     uint32_t recvBufSize_ = 0;
 
-    std::atomic<uint32_t> rwTimeout_ = {100};  // ms
+    std::atomic<uint32_t> rwTimeout_ = {260};  // ms
 
     std::atomic<uint32_t> callIndex_ = {0};
     std::string channelName_;
@@ -389,6 +381,7 @@ class Veigar::Impl {
 
 Veigar::Veigar() noexcept :
     impl_(new Veigar::Impl(this)) {
+    disp_ = std::make_shared<detail::Dispatcher>(this);
 }
 
 Veigar::Veigar(Veigar&& other) noexcept {
@@ -406,6 +399,10 @@ Veigar& Veigar::operator=(Veigar&& other) noexcept {
 Veigar::~Veigar() {
     if (impl_ && impl_->recvThread_.valid()) {
         impl_->recvThread_.wait();
+    }
+
+    if (disp_) {
+        disp_.reset();
     }
 }
 
@@ -472,7 +469,9 @@ bool Veigar::sendMessage(const std::string& targetChannel,
 
 void Veigar::setReadWriteTimeout(uint32_t ms) noexcept {
     assert(impl_);
-    impl_->rwTimeout_.store(ms);
+    if (ms > 0) {
+        impl_->rwTimeout_.store(ms);
+    }
 }
 
 uint32_t Veigar::readWriteTimeout() const noexcept {
