@@ -115,8 +115,8 @@ The following is an example of asynchronous call:
 //
 // Same as synchronous call
 // ...
-
-std::shared_ptr<veigar::AsyncCallResult> acr = vg.asyncCall(targetChannelName, "echo", msg);
+std::vector<uint8_t> buf;
+std::shared_ptr<veigar::AsyncCallResult> acr = vg.asyncCall(targetChannelName, "echo", "hello", 12, 3.14, buf);
 if (acr->second.valid()) {
     auto waitResult = acr->second.wait_for(std::chrono::milliseconds(100));
     if (waitResult == std::future_status::timeout) {
