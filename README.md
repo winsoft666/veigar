@@ -1,7 +1,7 @@
 [ >>> 简体中文版](README_CN.md)
 
 # 1. Veigar
-The term 'Veigar' comes from the game 'The Tiny Master of Evil' in League of Legends.
+The term 'Veigar' comes from the 'The Tiny Master of Evil' in League of Legends.
 
 ![Veigar on LOL](./veigar-lol.jpg)
 
@@ -57,7 +57,7 @@ Here is an example of synchronous call:
 #include "veigar/veigar.h"
 
 int main(int argc, char** argv) {
-    if(argv != 3) {
+    if (argc != 3) {
         return 1;
     }
 
@@ -66,15 +66,17 @@ int main(int argc, char** argv) {
 
     veigar::Veigar vg;
 
-    vg.bind("echo", [](const std::string& msg) {
-        std::cout << "RECV:" << msg << std::endl;
-        return msg;
+    vg.bind("echo", [](const std::string& msg, int i, double d, std::vector<uint8_t> buf) {
+        std::string result;
+        // ...
+        return result;
     });
 
     vg.init(channelName);
 
-    veigar::CallResult ret = vg.syncCall(targetChannelName, 100,  "echo", "hello");
-    if(ret.isSuccess()) {
+    std::vector<uint8_t> buf;
+    veigar::CallResult ret = vg.syncCall(targetChannelName, 100, "echo", "hello", 12, 3.14, buf);
+    if (ret.isSuccess()) {
         std::cout << ret.obj.get().as<std::string>() << std::endl;
     }
     else {
@@ -82,7 +84,7 @@ int main(int argc, char** argv) {
     }
 
     vg.uninit();
- 
+
     return 0;
 }
 ```
@@ -141,63 +143,53 @@ vg.releaseCall(acr->first);
 Unlike synchronous calls, the `asyncCall` function return `std::shared_ptr<veigar::AsyncCallResult>`, and the caller needs to call the `releaseCall` function to release resources when obtaining the `CallResult` or when the call result is no longer related.
 
 # 5. Performance
-Veigar is implemented based on shared memory and has the advantages of high throughput and ultra-low latency.
 
-Use the `examples\echo` program for testing.
+Use the `examples\echo` program as a test case.
 
-## 5.1 Single thread
-Single thread calls 1 million times (include call function and wait the result), with each call passing ~1050 bytes of parameters. The test results are as follows:
+Start three channels A, B, and C, each channel calling each other 1 million times using two threads:
 
+![3 Channels Test Case](./3-channel-test-case.jpg)
+
+## Windows Platform Test Results
+
+Test machine CPU configuration：
 ```txt
-Target Channel Name:
-a2
-Async Method(0/1):
-0
-Thread Number:
-1
-Call times each of thread:
-1000000
-Calling...
-Total 1000000, Success 1000000, Error 0, Used: 23414ms.
+12th Gen Intel(R) Core(TM) i7-12700H   2.30 GHz
 ```
 
-Total used 23414ms，Average 42709 calls per second.
-
-
-## 5.2 Multi-threading
-
-Six threads running simultaneously, with each thread calling 1 million times (include call function and wait the result), and each call passed ~1050 bytes of parameters. The test results are as follows:
+Test result：
 
 ```txt
-Target Channel Name:
-a2
-Async Method(0/1):
+Target channel names (Split by comma):
+A,B,C
+Async method(0/1):
 0
-Thread Number:
-6
+Thread number for each target:
+2
 Call times each of thread:
 1000000
-Calling...
-Calling...
-Calling...
-Calling...
-Calling...
-Calling...
-Total 1000000, Success 1000000, Error 0, Used: 45275ms.
+Read/Write Timeout(ms):
+100
+[Thread 1, Target A] Calling...
+[Thread 0, Target C] Calling...
+[Thread 0, Target A] Calling...
+[Thread 1, Target B] Calling...
+[Thread 0, Target B] Calling...
+[Thread 1, Target C] Calling...
+[Thread 1, Target B] Total 1000000, Success 1000000, Error 0, Used: 59092341us, Average: 59us/call, 16922call/s.
 
-Total 1000000, Success 1000000, Error 0, Used: 45277ms.
+[Thread 0, Target B] Total 1000000, Success 1000000, Error 0, Used: 59112785us, Average: 59us/call, 16916call/s.
 
-Total 1000000, Success 1000000, Error 0, Used: 45295ms.
+[Thread 1, Target A] Total 1000000, Success 1000000, Error 0, Used: 59111520us, Average: 59us/call, 16917call/s.
 
-Total 1000000, Success 1000000, Error 0, Used: 45297ms.
+[Thread 0, Target C] Total 1000000, Success 1000000, Error 0, Used: 59126879us, Average: 59us/call, 16912call/s.
 
-Total 1000000, Success 1000000, Error 0, Used: 45300ms.
+[Thread 0, Target A] Total 1000000, Success 1000000, Error 0, Used: 59206766us, Average: 59us/call, 16889call/s.
 
-Total 1000000, Success 1000000, Error 0, Used: 45313ms.
+[Thread 1, Target C] Total 1000000, Success 1000000, Error 0, Used: 59299407us, Average: 59us/call, 16863call/s.
 ```
 
-Total used 45275ms，Average 132459 calls per second.
+On average, it takes 59 microseconds per call and can be called approximately 16900 times per second.
 
-> The above test results may vary on computers with different configurations.
->
-> If some multi-threaded mutexes are removed, the performance can be higher, but this requires constraints on the usage of the library, such as having to first `bind` and then `init`. Taking all factors into consideration, Veigar has not removed this part of the mutex, as this performance can already meet the vast majority of usage scenarios.
+![Windows Test Result](./windows-test-result.png)
+

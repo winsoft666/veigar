@@ -1,5 +1,5 @@
 # 1. Veigar
-Veigar一词来源于英雄联盟游戏里面的“邪恶小法师-维迦”。
+Veigar一词来源于英雄联盟里面的“邪恶小法师-维迦”。
 
 ![Veigar on LOL](./veigar-lol.jpg)
 
@@ -52,7 +52,7 @@ vcpkg install veigar
 #include "veigar/veigar.h"
 
 int main(int argc, char** argv) {
-    if(argv != 3) {
+    if (argc != 3) {
         return 1;
     }
 
@@ -61,15 +61,17 @@ int main(int argc, char** argv) {
 
     veigar::Veigar vg;
 
-    vg.bind("echo", [](const std::string& msg) {
-        std::cout << "RECV:" << msg << std::endl;
-        return msg;
+    vg.bind("echo", [](const std::string& msg, int i, double d, std::vector<uint8_t> buf) {
+        std::string result;
+        // ...
+        return result;
     });
 
     vg.init(channelName);
 
-    veigar::CallResult ret = vg.syncCall(targetChannelName, "echo", 100, "hello");
-    if(ret.isSuccess()) {
+    std::vector<uint8_t> buf;
+    veigar::CallResult ret = vg.syncCall(targetChannelName, 100, "echo", "hello", 12, 3.14, buf);
+    if (ret.isSuccess()) {
         std::cout << ret.obj.get().as<std::string>() << std::endl;
     }
     else {
@@ -77,7 +79,7 @@ int main(int argc, char** argv) {
     }
 
     vg.uninit();
- 
+
     return 0;
 }
 ```
@@ -134,62 +136,51 @@ vg.releaseCall(acr->first);
 与同步调用不同，`asyncCall`函数返回的是`std::shared_ptr<veigar::AsyncCallResult>`，而且调用者在获取到`CallResult`或不再关系调用结果时，需要调用`releaseCall`函数释放资源。
 
 # 5. 性能
-Veigar基于共享内存实现，具有高吞吐量、超低延迟的优势。
+使用`examples\echo`程序作为测试用例。
 
-使用`examples\echo`程序进行测试。
+启动A、B、C三个Channel，每个Channel分别使用2个线程向彼此调用100万次，如下图所示：
 
-## 5.1 单线程
-单线程调用100万次（包含调用函数并等待函数返回值），每次调用传参约1050字节，测试结果如下：
+![3 Channels Test Case](./3-channel-test-case.jpg)
 
+## Windows平台测试结果
+
+测试机器CPU配置：
 ```txt
-Target Channel Name:
-a2
-Async Method(0/1):
-0
-Thread Number:
-1
-Call times each of thread:
-1000000
-Calling...
-Total 1000000, Success 1000000, Error 0, Used: 23414ms.
+12th Gen Intel(R) Core(TM) i7-12700H   2.30 GHz
 ```
 
-总共花费23414毫秒，平均42709次/秒。
-
-
-## 5.2 多线程
-
-6个线程同时调用，每个线程调用100万次（包含调用函数并等待函数返回值），每次调用传参约1050字节，测试结果如下：
+测试结果如下：
 ```txt
-Target Channel Name:
-a2
-Async Method(0/1):
+Target channel names (Split by comma):
+A,B,C
+Async method(0/1):
 0
-Thread Number:
-6
+Thread number for each target:
+2
 Call times each of thread:
 1000000
-Calling...
-Calling...
-Calling...
-Calling...
-Calling...
-Calling...
-Total 1000000, Success 1000000, Error 0, Used: 45275ms.
+Read/Write Timeout(ms):
+100
+[Thread 1, Target A] Calling...
+[Thread 0, Target C] Calling...
+[Thread 0, Target A] Calling...
+[Thread 1, Target B] Calling...
+[Thread 0, Target B] Calling...
+[Thread 1, Target C] Calling...
+[Thread 1, Target B] Total 1000000, Success 1000000, Error 0, Used: 59092341us, Average: 59us/call, 16922call/s.
 
-Total 1000000, Success 1000000, Error 0, Used: 45277ms.
+[Thread 0, Target B] Total 1000000, Success 1000000, Error 0, Used: 59112785us, Average: 59us/call, 16916call/s.
 
-Total 1000000, Success 1000000, Error 0, Used: 45295ms.
+[Thread 1, Target A] Total 1000000, Success 1000000, Error 0, Used: 59111520us, Average: 59us/call, 16917call/s.
 
-Total 1000000, Success 1000000, Error 0, Used: 45297ms.
+[Thread 0, Target C] Total 1000000, Success 1000000, Error 0, Used: 59126879us, Average: 59us/call, 16912call/s.
 
-Total 1000000, Success 1000000, Error 0, Used: 45300ms.
+[Thread 0, Target A] Total 1000000, Success 1000000, Error 0, Used: 59206766us, Average: 59us/call, 16889call/s.
 
-Total 1000000, Success 1000000, Error 0, Used: 45313ms.
+[Thread 1, Target C] Total 1000000, Success 1000000, Error 0, Used: 59299407us, Average: 59us/call, 16863call/s.
 ```
 
-总共花费45275毫秒，平均132459次/秒。
+平均每次调用花费59微妙，每秒可以调用约16900次。
 
-> 上述测试结果，在不同配置的计算机上测试结果可能存在差异。
->
-> 如果移除部分多线程互斥锁，性能可以更高，但这需要在库的使用方式上做出约束，如必须先`bind`然后再`init`等。综合考虑，Veigar没有移除这部分互斥锁，毕竟这个性能已可以满足绝大部分使用场景。
+![Windows Test Result](./windows-test-result.png)
+
