@@ -373,40 +373,6 @@ class Veigar::Impl {
                 break;
             }
 
-#if 0
-            // The first two type of CallMsg and ResponseMsg are the same.
-            // std:: tuple<int8_ t. std:: string,...>;
-            using CommonMsg = std::tuple<int8_t, std::string>;
-
-            int8_t msgFlag = 99;
-            std::string callId;
-            CommonMsg commonMsg;
-
-            try {
-                result->get().convert(commonMsg);
-
-                msgFlag = std::get<0>(commonMsg);
-                callId = std::get<1>(commonMsg);
-            } catch (std::exception& e) {
-                veigar::log("Veigar: Error: An exception occurred during parsing received data: %s.\n", e.what());
-                continue;
-            } catch (...) {
-                veigar::log(
-                    "Veigar: Error: An exception occurred during parsing received data. The exception is not derived from std::exception. "
-                    "No further information available.\n");
-                continue;
-            }
-
-            if (callId.empty()) {
-                veigar::log("Veigar: Warning: Call Id is empty, message flag: %d.\n", msgFlag);
-                continue;
-            }
-
-            if (msgFlag != 0) {
-                veigar::log("Veigar: Warning: Msg flag not 0: %d.\n", msgFlag);
-                continue;
-            }
-#endif
             assert(parent_ && parent_->callDisp_);
             if (parent_->callDisp_) {
                 parent_->callDisp_->pushCall(result);
@@ -485,40 +451,6 @@ class Veigar::Impl {
             if (!nextRet) {
                 break;
             }
-#if 0
-            // The first two type of CallMsg and ResponseMsg are the same.
-            // std:: tuple<int8_ t. std:: string,...>;
-            using CommonMsg = std::tuple<int8_t, std::string>;
-
-            int8_t msgFlag = 99;
-            std::string callId;
-            CommonMsg commonMsg;
-
-            try {
-                result->get().convert(commonMsg);
-
-                msgFlag = std::get<0>(commonMsg);
-                callId = std::get<1>(commonMsg);
-            } catch (std::exception& e) {
-                veigar::log("Veigar: Error: An exception occurred during parsing received data: %s.\n", e.what());
-                continue;
-            } catch (...) {
-                veigar::log(
-                    "Veigar: Error: An exception occurred during parsing received data. The exception is not derived from std::exception. "
-                    "No further information available.\n");
-                continue;
-            }
-
-            if (callId.empty()) {
-                veigar::log("Veigar: Warning: Call Id is empty, message flag: %d.\n", msgFlag);
-                continue;
-            }
-
-            if (msgFlag != 1) {
-                veigar::log("Veigar: Warning: Msg flag not 1: %d.\n", msgFlag);
-                continue;
-            }
-#endif
 
             assert(respDispatcher_);
             if (respDispatcher_) {

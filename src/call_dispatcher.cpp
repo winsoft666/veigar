@@ -64,7 +64,7 @@ bool CallDispatcher::init() noexcept {
         return false;
     }
 
-    for (size_t i = 0; i < 6; ++i) {
+    for (size_t i = 0; i < VEIGAR_DISPATCHER_THREAD_NUMBER; ++i) {
         impl_->workers_.emplace_back(std::thread(&CallDispatcher::dispatchThreadProc, this));
     }
 

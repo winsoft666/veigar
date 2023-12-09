@@ -211,9 +211,10 @@ int main(int argc, char** argv) {
             auto fn = [&vg, rwTimeout, channelName, asyncMethod, callTimesEachThread](std::size_t threadId, std::string targetChannel) {
                 int error = 0;
                 int success = 0;
+                int64_t totalUsed = 0;
 
                 printf("[Thread %" PRId64 ", Target %s] Calling...\n", (int64_t)threadId, targetChannel.c_str());
-                veigar::detail::TimeMeter threadTM;
+                
                 std::string msgPre = channelName + "_" + targetChannel + "_" + std::to_string(threadId) + "_";
                 for (int i = 0; i < callTimesEachThread; i++) {
                     std::string msg = msgPre + std::to_string(i);
@@ -243,8 +244,9 @@ int main(int argc, char** argv) {
                     }
 
                     int64_t used = tm.elapsed();
-                    std::string expectResultStr = msg + "_" + std::to_string(i);
+                    totalUsed += used;
 
+                    std::string expectResultStr = msg + "_" + std::to_string(i);
                     if (ret.isSuccess() && ret.obj.get().as<std::string>() == expectResultStr) {
                         success++;
                         if (used >= warnDelayMicroseconds) {
@@ -257,7 +259,7 @@ int main(int argc, char** argv) {
                         std::cout << ret.errorMessage << std::endl;
                     }
                 }
-                int64_t totalUsed = threadTM.elapsed();
+
                 printf("[Thread %" PRId64 ", Target %s] Total %d, Success %d, Error %d, Used: %" PRId64 "us, Average: %" PRId64 "us/call, %" PRId64 "call/s.\n\n",
                        (int64_t)threadId, targetChannel.c_str(),
                        callTimesEachThread, success, error, totalUsed,

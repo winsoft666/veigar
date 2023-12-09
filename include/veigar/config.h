@@ -47,4 +47,8 @@ static constexpr unsigned VERSION_MINOR = 2;
 #define VEIGAR_MAX_MESSAGE_EXPECTED_SIZE 1048576  // 1MB
 #endif
 
+#ifndef VEIGAR_DISPATCHER_THREAD_NUMBER
+#define VEIGAR_DISPATCHER_THREAD_NUMBER 6
+#endif
+
 #endif  // !VEIGAR_CONFIG_H_

@@ -147,21 +147,21 @@ TEST_CASE("mq-multi-thread-push-pop") {
     int pushFailed = 0;
     int popFailed = 0;
     ThreadGroup tg;
-    tg.createThreads(2, [&mq, &pushFailed, &popFailed](std::size_t id) {
+    tg.createThreads(2, [&mq, &pushFailed, &popFailed](std::size_t tid) {
         std::string data = "hello-123456";  // size = 12
         char buf20[20] = {0};
         for (int i = 0; i < 9999; i++) {
-            if (id % 2 == 0) {
-                if (!mq.pushBack(100, data.c_str(), data.size()))
+            if (tid % 2 == 0) {
+                if (!mq.pushBack(50, data.c_str(), data.size()))
                     pushFailed++;
             }
             else {
                 if (i == 0) {
-                    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+                    std::this_thread::sleep_for(std::chrono::milliseconds(100));
                 }
                 int64_t written = 0;
                 memset(&buf20[0], 0, 20);
-                if (!mq.popFront(100, buf20, 20, written))
+                if (!mq.popFront(50, buf20, 20, written))
                     popFailed++;
             }
         }
