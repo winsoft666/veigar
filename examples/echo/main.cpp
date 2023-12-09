@@ -89,7 +89,7 @@ X7RHvEcSqriLCNS4etwZawJaQWiyVud9PZL4Ixxg7HuRBMwJtlYn7bx2Yx96RmItUU8DjtGZVUrbnTcL
 gVsPnzU5oqkOD3aNUCEs74gxRWQGR0iv9A17Fsnwgd44UBxOnAIlFXaNLZyn3reVSQJQnWpag8Wa
 )";
 
-const uint32_t warnDelayMicroseconds = 500000; // 500ms
+const uint32_t warnDelayMicroseconds = 500000;  // 500ms
 
 std::vector<std::string> StringSplit(const std::string& src, const std::string& delimiter, bool includeEmptyStr) {
     std::vector<std::string> fields;
@@ -214,8 +214,10 @@ int main(int argc, char** argv) {
 
                 printf("[Thread %" PRId64 ", Target %s] Calling...\n", (int64_t)threadId, targetChannel.c_str());
                 veigar::detail::TimeMeter threadTM;
+                std::string msgPre = channelName + "_" + targetChannel + "_" + std::to_string(threadId) + "_";
                 for (int i = 0; i < callTimesEachThread; i++) {
-                    std::string msg = str1046 + channelName + "_" + targetChannel + "_" + std::to_string(i) + "_" + std::to_string(threadId);
+                    std::string msg = msgPre + std::to_string(i);
+
                     veigar::detail::TimeMeter tm;
                     veigar::CallResult ret;
 
@@ -224,17 +226,20 @@ int main(int argc, char** argv) {
                     }
                     else {
                         std::shared_ptr<veigar::AsyncCallResult> acr = vg.asyncCall(targetChannel, "echo", msg, i);
-                        if (acr->second.valid()) {
-                            auto waitResult = acr->second.wait_for(std::chrono::milliseconds(rwTimeout * 3));
-                            if (waitResult == std::future_status::timeout) {
-                                ret.errCode = veigar::ErrorCode::TIMEOUT;
-                                ret.errorMessage = "Timeout";
+                        assert(acr);
+                        if (acr) {
+                            if (acr->second.valid()) {
+                                auto waitResult = acr->second.wait_for(std::chrono::milliseconds(rwTimeout * 3));
+                                if (waitResult == std::future_status::timeout) {
+                                    ret.errCode = veigar::ErrorCode::TIMEOUT;
+                                    ret.errorMessage = "Timeout";
+                                }
+                                else {
+                                    ret = std::move(acr->second.get());
+                                }
                             }
-                            else {
-                                ret = std::move(acr->second.get());
-                            }
+                            vg.releaseCall(acr->first);
                         }
-                        vg.releaseCall(acr->first);
                     }
 
                     int64_t used = tm.elapsed();
@@ -243,7 +248,7 @@ int main(int argc, char** argv) {
                     if (ret.isSuccess() && ret.obj.get().as<std::string>() == expectResultStr) {
                         success++;
                         if (used >= warnDelayMicroseconds) {
-                            printf("[Thread %" PRId64 ", Target %s] Warn: call %d take long time: %" PRId64 "us >= %dus\n",
+                            printf("[Thread %" PRId64 ", Target %s] Warning: call %d take long time: %" PRId64 "us >= %dus\n",
                                    (int64_t)threadId, targetChannel.c_str(), i, tm.elapsed(), warnDelayMicroseconds);
                         }
                     }

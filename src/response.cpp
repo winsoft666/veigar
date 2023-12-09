@@ -57,46 +57,6 @@ Response Response::MakeEmptyResponse() {
     return r;
 }
 
-bool Response::MakeResponseWithMsgpackObject(veigar_msgpack::object_handle o, Response& resp, std::string& exceptionMsg) {
-    try {
-        ResponseMsg r;
-        o.get().convert(r);
-
-        // check protocol
-        uint32_t msgFlag = std::get<0>(r);
-        if (msgFlag != 1) {
-            exceptionMsg = "Invalid response message flag.";
-            return false;
-        }
-
-        resp.callId_ = std::get<1>(r);
-
-        auto&& error_obj = std::get<2>(r);
-        if (!error_obj.is_nil()) {
-            resp.error_ = std::make_shared<veigar_msgpack::object_handle>();
-            *(resp.error_) = veigar_msgpack::clone(error_obj);
-        }
-
-        resp.result_ = std::make_shared<veigar_msgpack::object_handle>(std::get<3>(r), std::move(o.zone()));
-
-        return true;
-    } catch (std::exception& e) {
-        resp.callId_.clear();
-        resp.error_.reset();
-        resp.result_.reset();
-
-        exceptionMsg = StringHelper::StringPrintf("An exception occurred during parsing response message: %s.", e.what());
-        return false;
-    } catch (...) {
-        resp.callId_.clear();
-        resp.error_.reset();
-        resp.result_.reset();
-
-        exceptionMsg = "An exception occurred during parsing response message.";
-        return false;
-    }
-}
-
 bool Response::isEmpty() const {
     return (!error_ && !result_);
 }

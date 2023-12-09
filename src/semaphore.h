@@ -17,6 +17,14 @@
 #endif
 
 namespace veigar {
+struct SemaphoreHandle {
+#ifdef VEIGAR_OS_WINDOWS
+    HANDLE h_ = NULL;
+#else
+    sem_t* named_ = SEM_FAILED;  // Named
+    sem_t unnamed_;              // Unnamed
+#endif
+};
 class Semaphore {
    public:
     Semaphore();
@@ -32,11 +40,8 @@ class Semaphore {
     void release();                // semaphore + 1
 
    private:
-#ifdef VEIGAR_OS_WINDOWS
-    HANDLE h_ = NULL;
-#else
-    sem_t* h_ = SEM_FAILED;
-#endif
+    bool named_ = false;
+    SemaphoreHandle* sh_ = nullptr;
 };
 }  // namespace veigar
 #endif

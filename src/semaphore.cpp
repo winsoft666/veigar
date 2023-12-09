@@ -5,48 +5,81 @@ Semaphore::Semaphore() {
 }
 
 Semaphore::~Semaphore() {
+    close();
 }
 
 bool Semaphore::open(const std::string& name, int value /*= 0*/) noexcept {
+    named_ = !name.empty();
+    sh_ = new SemaphoreHandle();
 #ifdef VEIGAR_OS_WINDOWS
-    h_ = CreateSemaphoreA(NULL,
-                          value,
-                          100000,
-                          name.c_str());
-    return !!h_;
+    HANDLE h = CreateSemaphoreA(NULL,
+                                value,
+                                100000,
+                                name.empty() ? NULL : name.c_str());
+    if (h) {
+        sh_->h_ = h;
+    }
+    else {
+        delete sh_;
+        sh_ = nullptr;
+    }
 #else
-    h_ = ::sem_open(name.c_str(), O_CREAT, 0666, static_cast<unsigned>(value));
-    return h_ != SEM_FAILED;
+    if (name.empty()) {
+        int err = ::sem_init(&sh_->unnamed_, 0, 0);
+        if (err == -1) {
+            delete sh_;
+            sh_ = nullptr;
+        }
+    }
+    else {
+        sem_t* sem = ::sem_open(name.c_str(), O_CREAT, 0666, static_cast<unsigned>(value));
+        if (sem != SEM_FAILED) {
+            sh_->named_ = sem;
+        }
+        else {
+            delete sh_;
+            sh_ = nullptr;
+        }
+    }
 #endif
+    return valid();
 }
 
 void Semaphore::close() noexcept {
     if (valid()) {
 #ifdef VEIGAR_OS_WINDOWS
-        CloseHandle(h_);
-        h_ = nullptr;
+        CloseHandle(sh_->h_);
+        sh_->h_ = nullptr;
 #else
-        if (::sem_close(h_) != 0) {
+        if (named_) {
+            ::sem_close(sh_->named_);
+            sh_->named_ = SEM_FAILED;
         }
-        h_ = SEM_FAILED;
+        else {
+            ::sem_destroy(&sh_->unnamed_);
+        }
 #endif
+
+        delete sh_;
+        sh_ = nullptr;
     }
 }
 
 bool Semaphore::valid() const noexcept {
-#ifdef VEIGAR_OS_WINDOWS
-    return !!h_;
-#else
-    return h_ != SEM_FAILED;
-#endif
+    return !!sh_;
 }
 
 void Semaphore::wait() {
     if (valid()) {
 #ifdef VEIGAR_OS_WINDOWS
-        WaitForSingleObject(h_, INFINITE);
+        WaitForSingleObject(sh_->h_, INFINITE);
 #else
-        sem_wait(h_);
+        if (named_) {
+            sem_wait(sh_->named_);
+        }
+        else {
+            sem_wait(&sh_->unnamed_);
+        }
 #endif
     }
 }
@@ -57,7 +90,7 @@ bool Semaphore::wait(const int64_t& ms) {
     }
 
 #ifdef VEIGAR_OS_WINDOWS
-    DWORD result = WaitForSingleObject(h_, ms >= 0 ? (DWORD)ms : INFINITE);
+    DWORD result = WaitForSingleObject(sh_->h_, ms >= 0 ? (DWORD)ms : INFINITE);
     return (result == WAIT_OBJECT_0);
 #else
     timeval tv_now;
@@ -72,19 +105,32 @@ bool Semaphore::wait(const int64_t& ms) {
     ts.tv_sec += ns / 1000000000;
     ts.tv_sec += ms / 1000;
 
-    if (sem_timedwait(h_, &ts) != 0) {
-        return true;
+    if (named_) {
+        if (sem_timedwait(sh_->named_, &ts) != 0) {
+            return true;
+        }
+        return false;
     }
-    return false;
+    else {
+        if (sem_timedwait(&sh_->unnamed_, &ts) != 0) {
+            return true;
+        }
+        return false;
+    }
 #endif
 }
 
 void Semaphore::release() {
     if (valid()) {
 #ifdef VEIGAR_OS_WINDOWS
-        ReleaseSemaphore(h_, 1, NULL);
+        ReleaseSemaphore(sh_->h_, 1, NULL);
 #else
-        sem_post(h_);
+        if (named_) {
+            sem_post(sh_->named_);
+        }
+        else {
+            sem_post(&sh_->unnamed_);
+        }
 #endif
     }
 }

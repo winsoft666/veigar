@@ -16,76 +16,56 @@
 *    You should have received a copy of the GNU General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ******************************************************************************/
-#include "veigar/dispatcher.h"
+#include "veigar/call_dispatcher.h"
 #include "string_helper.h"
 #include "log.h"
 #include "veigar/veigar.h"
 #include "time_util.h"
+#include "semaphore.h"
+#include <atomic>
 
 namespace veigar {
 namespace detail {
 using detail::Response;
 
-Dispatcher::Dispatcher(Veigar* parent) noexcept :
-    parent_(parent) {
+class CallDispatcher::Impl {
+   public:
+    std::vector<std::thread> workers_;
+    std::queue<std::shared_ptr<veigar_msgpack::object_handle>> objs_;
+    std::mutex objsMutex_;
+
+    std::atomic_bool stop_ = {false};
+    std::shared_ptr<Semaphore> smh_ = nullptr;
+};
+
+CallDispatcher::CallDispatcher(Veigar* parent) noexcept :
+    parent_(parent),
+    impl_(new Impl()) {
+    impl_->smh_ = std::make_shared<Semaphore>();
 }
 
-bool Dispatcher::init() noexcept {
+CallDispatcher::~CallDispatcher() {
+    impl_->smh_.reset();
+
+    if (impl_) {
+        delete impl_;
+        impl_ = nullptr;
+    }
+}
+
+bool CallDispatcher::init() noexcept {
     if (init_) {
+        return true;
+    }
+
+    impl_->stop_.store(false);
+
+    if (!impl_->smh_->open("")) {
         return false;
     }
 
-    for (size_t i = 0; i < 10; ++i) {
-        workers_.emplace_back([this] {
-            std::string errMsg;
-            for (;;) {
-                std::shared_ptr<veigar_msgpack::object_handle> obj = nullptr;
-
-                do {
-                    std::unique_lock<std::mutex> lock(objsMutex_);
-                    condition_.wait(lock, [this] {
-                        return stop_ || !objs_.empty();
-                    });
-
-                    if (stop_)
-                        return;
-
-                    if (!objs_.empty()) {
-                        obj = std::move(objs_.front());
-                        objs_.pop();
-                    }
-                } while (false);
-
-                if (!obj) {
-                    continue;
-                }
-
-                try {
-                    auto msg = obj->get();
-
-                    std::string callerChannelName;
-                    Response resp = dispatch(msg, callerChannelName);
-                    if (callerChannelName.empty()) {
-                        continue;
-                    }
-
-                    veigar_msgpack::sbuffer respBuf = resp.getData();
-                    if (respBuf.size() == 0) {
-                        veigar::log("Veigar: Warning: The size of response data is zero.\n");
-                        continue;
-                    }
-
-                    errMsg.clear();
-                    if (!parent_->sendMessage(callerChannelName, (const uint8_t*)respBuf.data(), respBuf.size(), errMsg)) {
-                        veigar::log("Veigar: Error: Send response to caller failed, caller: %s, error: %s.\n",
-                            callerChannelName.c_str(), errMsg.c_str());
-                    }
-                }
-                catch (std::exception& e) {
-                    veigar::log("Veigar: Error: An exception occurred during handling dispatch message: %s.\n", e.what());
-                }
-            }
-        });
+    for (size_t i = 0; i < 6; ++i) {
+        impl_->workers_.emplace_back(std::thread(&CallDispatcher::dispatchThreadProc, this));
     }
 
     init_ = true;
@@ -93,60 +73,60 @@ bool Dispatcher::init() noexcept {
     return init_;
 }
 
-bool Dispatcher::isInit() const noexcept {
+bool CallDispatcher::isInit() const noexcept {
     return init_;
 }
 
-void Dispatcher::uninit() noexcept {
+void CallDispatcher::uninit() noexcept {
     if (!init_) {
         return;
     }
-    {
-        std::unique_lock<std::mutex> lock(objsMutex_);
-        stop_ = true;
+
+    impl_->stop_.store(true);
+
+    const size_t releaseNum = impl_->workers_.size() * 2;
+    for (size_t i = 0; i < releaseNum; i++) {
+        impl_->smh_->release();
     }
-    condition_.notify_all();
-    for (std::thread& worker : workers_) {
+
+    for (std::thread& worker : impl_->workers_) {
         if (worker.joinable()) {
             worker.join();
         }
     }
+
+    impl_->smh_->close();
 
     funcs_.clear();
 
     init_ = false;
 }
 
-void Dispatcher::unbind(std::string const& name) noexcept {
+void CallDispatcher::unbind(std::string const& name) noexcept {
     auto it = funcs_.find(name);
     if (it != funcs_.end()) {
         funcs_.erase(it);
     }
 }
 
-void Dispatcher::pushCall(std::shared_ptr<veigar_msgpack::object_handle> result) noexcept {
-    {
-        std::unique_lock<std::mutex> lock(objsMutex_);
+void CallDispatcher::pushCall(std::shared_ptr<veigar_msgpack::object_handle> result) noexcept {
+    impl_->objsMutex_.lock();
+    impl_->objs_.emplace(result);
+    impl_->objsMutex_.unlock();
 
-        // don't allow enqueueing after stopping the pool
-        if (!stop_) {
-            objs_.emplace(result);
-        }
-    }
-    condition_.notify_one();
+    impl_->smh_->release();
 }
 
-Response Dispatcher::dispatch(veigar_msgpack::object const& msg, std::string& callerChannelName) noexcept {
-    // quickly check
-    switch (msg.via.array.size) {
-        case 5:
-            return dispatchCall(msg, callerChannelName);
-        default:
-            return Response::MakeEmptyResponse();
+Response CallDispatcher::dispatch(veigar_msgpack::object const& msg, std::string& callerChannelName) noexcept {
+    // Quickly check
+    if (msg.via.array.size != 5) {
+        return Response::MakeEmptyResponse();
     }
+
+    return dispatchCall(msg, callerChannelName);
 }
 
-Response Dispatcher::dispatchCall(veigar_msgpack::object const& msg, std::string& callerChannelName) noexcept {
+Response CallDispatcher::dispatchCall(veigar_msgpack::object const& msg, std::string& callerChannelName) noexcept {
     CallMsg the_call;
     try {
         msg.convert(the_call);
@@ -197,7 +177,54 @@ Response Dispatcher::dispatchCall(veigar_msgpack::object const& msg, std::string
     }
 }
 
-bool Dispatcher::isFuncNameExist(std::string const& func) noexcept {
+void CallDispatcher::dispatchThreadProc() {
+    std::string errMsg;
+    while (true) {
+        impl_->smh_->wait();
+        if (impl_->stop_.load()) {
+            break;
+        }
+
+        std::shared_ptr<veigar_msgpack::object_handle> obj = nullptr;
+        do {
+            std::lock_guard<std::mutex> lock(impl_->objsMutex_);
+            if (!impl_->objs_.empty()) {
+                obj = std::move(impl_->objs_.front());
+                impl_->objs_.pop();
+            }
+        } while (false);
+
+        if (!obj) {
+            continue;
+        }
+
+        try {
+            auto msg = obj->get();
+
+            std::string callerChannelName;
+            Response resp = dispatch(msg, callerChannelName);
+            if (callerChannelName.empty()) {
+                continue;
+            }
+
+            veigar_msgpack::sbuffer respBuf = resp.getData();
+            if (respBuf.size() == 0) {
+                veigar::log("Veigar: Warning: The size of response data is zero.\n");
+                continue;
+            }
+
+            errMsg.clear();
+            if (!parent_->sendMessage(callerChannelName, false, (const uint8_t*)respBuf.data(), respBuf.size(), errMsg)) {
+                veigar::log("Veigar: Error: Send response to caller failed, caller: %s, error: %s.\n",
+                            callerChannelName.c_str(), errMsg.c_str());
+            }
+        } catch (std::exception& e) {
+            veigar::log("Veigar: Error: An exception occurred during handling dispatch call: %s.\n", e.what());
+        }
+    }
+}
+
+bool CallDispatcher::isFuncNameExist(std::string const& func) noexcept {
     auto pos = funcs_.find(func);
     if (pos != end(funcs_)) {
         return true;

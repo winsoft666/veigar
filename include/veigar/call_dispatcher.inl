@@ -1,7 +1,7 @@
 namespace veigar {
 namespace detail {
 template <typename F>
-bool Dispatcher::bind(std::string const& name, F func) noexcept {
+bool CallDispatcher::bind(std::string const& name, F func) noexcept {
     if (name.empty() || isFuncNameExist(name)) {
         return false;
     }
@@ -13,7 +13,7 @@ bool Dispatcher::bind(std::string const& name, F func) noexcept {
 }
 
 template <typename F>
-bool Dispatcher::bind(std::string const& name, F func, detail::tags::void_result const&, detail::tags::zero_arg const&) noexcept {
+bool CallDispatcher::bind(std::string const& name, F func, detail::tags::void_result const&, detail::tags::zero_arg const&) noexcept {
     using args_type = typename func_traits<F>::args_type;
     if (name.empty() || isFuncNameExist(name)) {
         return false;
@@ -30,7 +30,7 @@ bool Dispatcher::bind(std::string const& name, F func, detail::tags::void_result
 }
 
 template <typename F>
-bool Dispatcher::bind(std::string const& name, F func, detail::tags::void_result const&, detail::tags::nonzero_arg const&) noexcept {
+bool CallDispatcher::bind(std::string const& name, F func, detail::tags::void_result const&, detail::tags::nonzero_arg const&) noexcept {
     using detail::func_traits;
     using args_type = typename func_traits<F>::args_type;
 
@@ -55,7 +55,7 @@ bool Dispatcher::bind(std::string const& name, F func, detail::tags::void_result
 }
 
 template <typename F>
-bool Dispatcher::bind(std::string const& name, F func, detail::tags::nonvoid_result const&, detail::tags::zero_arg const&) noexcept {
+bool CallDispatcher::bind(std::string const& name, F func, detail::tags::nonvoid_result const&, detail::tags::zero_arg const&) noexcept {
     using detail::func_traits;
     using args_type = typename func_traits<F>::args_type;
 
@@ -78,7 +78,7 @@ bool Dispatcher::bind(std::string const& name, F func, detail::tags::nonvoid_res
 }
 
 template <typename F>
-bool Dispatcher::bind(std::string const& name, F func, detail::tags::nonvoid_result const&, detail::tags::nonzero_arg const&) noexcept {
+bool CallDispatcher::bind(std::string const& name, F func, detail::tags::nonvoid_result const&, detail::tags::nonzero_arg const&) noexcept {
     using detail::func_traits;
     using args_type = typename func_traits<F>::args_type;
 

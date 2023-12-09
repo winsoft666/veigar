@@ -24,10 +24,8 @@
 #include <functional>
 #include <memory>
 #include <thread>
-#include <vector>
 #include <queue>
 #include <mutex>
-#include <condition_variable>
 #include <unordered_map>
 #include "veigar/config.h"
 #include "veigar/msgpack.hpp"
@@ -43,13 +41,14 @@ namespace detail {
 
 // This class maintains a registry of functors associated with their names,
 // and callable using a msgpack-rpc call pack.
-class Dispatcher {
+class CallDispatcher {
    public:
     // This functor type unifies the interfaces of functions that are called remotely
     using AdaptorType =
         std::function<std::unique_ptr<veigar_msgpack::object_handle>(veigar_msgpack::object const&)>;
 
-    Dispatcher(Veigar* parent) noexcept;
+    CallDispatcher(Veigar* parent) noexcept;
+    ~CallDispatcher();
 
     bool init() noexcept;
     bool isInit() const noexcept;
@@ -108,20 +107,18 @@ class Dispatcher {
     template <typename T>
     veigar_msgpack::object pack(T&& arg);
 
+    void dispatchThreadProc();
    private:
     Veigar* parent_ = nullptr;
     bool init_ = false;
 
     std::unordered_map<std::string, AdaptorType> funcs_;
 
-    std::vector<std::thread> workers_;
-    std::queue<std::shared_ptr<veigar_msgpack::object_handle>> objs_;
-    std::mutex objsMutex_;
-    std::condition_variable condition_;
-    bool stop_ = false;
+    class Impl;
+    Impl* impl_ = nullptr;
 };
 }  // namespace detail
 }  // namespace veigar
 
-#include "dispatcher.inl"
+#include "call_dispatcher.inl"
 #endif

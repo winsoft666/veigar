@@ -19,10 +19,10 @@
 namespace veigar {
 template <typename F>
 bool Veigar::bind(const std::string& funcName, F func) noexcept {
-    if (!disp_) {
+    if (!callDisp_) {
         return false;
     }
-    return disp_->bind(funcName, func);
+    return callDisp_->bind(funcName, func);
 }
 
 template <typename... Args>
@@ -32,7 +32,7 @@ std::shared_ptr<AsyncCallResult> Veigar::asyncCall(const std::string& targetChan
 
 template <typename... Args>
 CallResult Veigar::syncCall(const std::string& targetChannel, uint32_t timeoutMS, const std::string& funcName, Args... args) noexcept {
-    std::shared_ptr<AsyncCallResult> acr = doAsyncCall(targetChannel, funcName, std::forward<Args>(args)...);
+    std::shared_ptr<AsyncCallResult> acr = doAsyncCall(targetChannel, funcName, std::forward<Args>(args)...);    
     if (!acr || !acr->second.valid()) {
         if (acr) {
             releaseCall(acr->first);

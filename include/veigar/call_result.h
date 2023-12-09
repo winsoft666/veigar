@@ -20,6 +20,7 @@
 #define VEIGAR_CALL_RESULT_H_
 #pragma once
 
+#include <future>
 #include "veigar/msgpack.hpp"
 
 namespace veigar {

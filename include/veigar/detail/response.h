@@ -55,9 +55,6 @@ class Response {
     // Gets an empty response which means "no response" (not to be confused with void return)
     static Response MakeEmptyResponse();
 
-    // Creates a response from veigar_msgpack::object (useful when reading a response from a stream).
-    static bool MakeResponseWithMsgpackObject(veigar_msgpack::object_handle o, Response& resp, std::string& exceptionMsg);
-
     // Gets the response data as a veigar_msgpack::sbuffer.
     veigar_msgpack::sbuffer getData() const;
 

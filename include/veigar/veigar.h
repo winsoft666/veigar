@@ -26,7 +26,7 @@
 #include <inttypes.h>
 #include "veigar/config.h"
 #include "veigar/call_result.h"
-#include "veigar/dispatcher.h"
+#include "veigar/call_dispatcher.h"
 #include "veigar/detail/meter.h"
 
 namespace veigar {
@@ -79,12 +79,6 @@ class Veigar {
 
     void waitAllResponse() noexcept;
 
-    bool sendMessage(
-        const std::string& targetChannel,
-        const uint8_t* buf,
-        size_t bufSize,
-        std::string& errMsg) noexcept;
-
     // Set the timeout for reading and writing shared memory.
     // This timeout is different from the timeout in 'syncCall' function and it same as
     //    the timeout in 'sendMessage' function.
@@ -93,6 +87,12 @@ class Veigar {
     void setReadWriteTimeout(uint32_t ms) noexcept;
     uint32_t readWriteTimeout() const noexcept;
 
+    bool sendMessage(
+        const std::string& targetChannel,
+        bool toCallQueue,
+        const uint8_t* buf,
+        size_t bufSize,
+        std::string& errMsg) noexcept;
    private:
     std::string getNextCallId(const std::string& funcName) const noexcept;
 
@@ -114,7 +114,7 @@ class Veigar {
    private:
     class Impl;
     Impl* impl_ = nullptr;
-    std::shared_ptr<detail::Dispatcher> disp_;
+    std::shared_ptr<detail::CallDispatcher> callDisp_;
 };
 }  // namespace veigar
 
