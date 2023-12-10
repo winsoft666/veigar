@@ -16,7 +16,7 @@
 ############################################################################
 
 set (CMAKE_CXX_STANDARD 11)
-set (PACKAGE_VERSION 1.2)
+set (PACKAGE_VERSION 1.0)
 
 if (MSVC)
 	add_definitions(
