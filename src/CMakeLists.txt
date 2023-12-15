@@ -100,5 +100,3 @@ write_basic_package_version_file(
 	COMPATIBILITY AnyNewerVersion
 )
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/veigarConfigVersion.cmake DESTINATION share/veigar)
-
-install(DIRECTORY ../include/veigar   DESTINATION include)
