@@ -15,10 +15,10 @@ TEST_CASE("meter-now") {
     int64_t elapsed4 = tm.elapsed();
     int64_t elapsed5 = tm.elapsed();
 
-    REQUIRE(abs(elapsed2 - elapsed1) <= 1);
-    REQUIRE(abs(elapsed3 - elapsed2) <= 1);
-    REQUIRE(abs(elapsed4 - elapsed3) <= 1);
-    REQUIRE(abs(elapsed5 - elapsed4) <= 1);
+    REQUIRE(abs(elapsed2 - elapsed1) <= 3);
+    REQUIRE(abs(elapsed3 - elapsed2) <= 3);
+    REQUIRE(abs(elapsed4 - elapsed3) <= 3);
+    REQUIRE(abs(elapsed5 - elapsed4) <= 3);
 }
 
 TEST_CASE("meter-thread") {

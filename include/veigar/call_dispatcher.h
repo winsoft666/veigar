@@ -20,12 +20,8 @@
 #define DISPATCHER_H_CXIVZD5L
 #pragma once
 
-#include <atomic>
 #include <functional>
 #include <memory>
-#include <thread>
-#include <queue>
-#include <mutex>
 #include <unordered_map>
 #include "veigar/config.h"
 #include "veigar/msgpack.hpp"

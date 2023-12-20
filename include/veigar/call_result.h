@@ -25,6 +25,9 @@
 
 namespace veigar {
 enum class ErrorCode {
+    // This success only indicates that the message has been delivered to target message queue,
+    // does not mean that the target successfully parse or execute the calling function.
+    // If the 'errorMessage' is not empty, it indicates an error during parsing and execution by the target.
     SUCCESS = 0,
     TIMEOUT = 1,
     FAILED = 2,
@@ -49,10 +52,23 @@ class CallResult {
    public:
     ErrorCode errCode = ErrorCode::FAILED;
     std::string errorMessage;
+
+    // MsgPack object, 'convertObject' function can be used to convert 'obj' to the corresponding type.
     veigar_msgpack::object_handle obj;
 
     bool isSuccess() const {
         return errCode == ErrorCode::SUCCESS;
+    }
+
+    template <typename T>
+    bool convertObject(T& t) {
+        bool result = true;
+        try {
+            t = obj.get().as<T>();
+        } catch (...) {
+            result = false;
+        }
+        return result;
     }
 
    private:

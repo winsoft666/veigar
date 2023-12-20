@@ -23,6 +23,7 @@
 #include "time_util.h"
 #include "semaphore.h"
 #include <atomic>
+#include <queue>
 
 namespace veigar {
 namespace detail {
