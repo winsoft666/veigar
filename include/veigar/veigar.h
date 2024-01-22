@@ -1,21 +1,10 @@
-/*******************************************************************************
-*    Veigar: Cross platform RPC library using shared memory.
-*    ---------------------------------------------------------------------------
-*    Copyright (C) 2023 winsoft666 <winsoft666@outlook.com>.
-*
-*    This program is free software: you can redistribute it and/or modify
-*    it under the terms of the GNU General Public License as published by
-*    the Free Software Foundation, either version 3 of the License, or
-*    (at your option) any later version.
-*
-*    This program is distributed in the hope that it will be useful,
-*    but WITHOUT ANY WARRANTY; without even the implied warranty of
-*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*    GNU General Public License for more details.
-*
-*    You should have received a copy of the GNU General Public License
-*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-******************************************************************************/
+/*
+ * Copyright (c) winsoft666.
+ * All rights reserved.
+ *
+ * This source code is licensed under the license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 #ifndef VEIGAR_H_
 #define VEIGAR_H_
 #pragma once
@@ -36,7 +25,7 @@ class Veigar {
 
     Veigar(Veigar&& other) noexcept;
 
-    virtual ~Veigar();
+    virtual ~Veigar() noexcept;
 
     Veigar& operator=(Veigar&& other) noexcept;
 
@@ -68,7 +57,7 @@ class Veigar {
     // Release resources.
     // If using 'asyncCall' function, the caller must call the this function to release resources
     //     when obtaining the 'CallResult' or when the call result is no longer related.
-    void releaseCall(const std::string& callId);
+    void releaseCall(const std::string& callId) noexcept;
 
     template <typename... Args>
     CallResult syncCall(
@@ -93,6 +82,7 @@ class Veigar {
         const uint8_t* buf,
         size_t bufSize,
         std::string& errMsg) noexcept;
+
    private:
     std::string getNextCallId(const std::string& funcName) const noexcept;
 

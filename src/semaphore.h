@@ -1,24 +1,14 @@
-/*******************************************************************************
-*    Veigar: Cross platform RPC library using shared memory.
-*    ---------------------------------------------------------------------------
-*    Copyright (C) 2023 winsoft666 <winsoft666@outlook.com>.
-*
-*    This program is free software: you can redistribute it and/or modify
-*    it under the terms of the GNU General Public License as published by
-*    the Free Software Foundation, either version 3 of the License, or
-*    (at your option) any later version.
-*
-*    This program is distributed in the hope that it will be useful,
-*    but WITHOUT ANY WARRANTY; without even the implied warranty of
-*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*    GNU General Public License for more details.
-*
-*    You should have received a copy of the GNU General Public License
-*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-******************************************************************************/
+/*
+ * Copyright (c) winsoft666.
+ * All rights reserved.
+ *
+ * This source code is licensed under the license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 #ifndef VEIGAR_SEMAPHORE_H_
 #define VEIGAR_SEMAPHORE_H_
 #pragma once
+
 #include "os_platform.h"
 #include <inttypes.h>
 #include <string>
@@ -45,17 +35,17 @@ struct SemaphoreHandle {
 };
 class Semaphore {
    public:
-    Semaphore();
-    ~Semaphore();
+    Semaphore() noexcept;
+    ~Semaphore() noexcept;
 
     bool open(const std::string& name, int value = 0) noexcept;
     void close() noexcept;
 
     bool valid() const noexcept;
 
-    void wait();                   // semaphore - 1
-    bool wait(const int64_t& ms);  // semaphore - 1 , timeout ms
-    void release();                // semaphore + 1
+    void wait() noexcept;                   // semaphore - 1
+    bool wait(const int64_t& ms) noexcept;  // semaphore - 1 , timeout ms
+    void release() noexcept;                // semaphore + 1
 
    private:
     bool named_ = false;

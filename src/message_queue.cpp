@@ -1,15 +1,22 @@
+/*
+ * Copyright (c) winsoft666.
+ * All rights reserved.
+ *
+ * This source code is licensed under the license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 #include "message_queue.h"
 #include "log.h"
 #include <assert.h>
 
 namespace veigar {
-MessageQueue::MessageQueue(bool discardOldMsg, int32_t msgMaxNumber, int32_t msgExpectedMaxSize) :
+MessageQueue::MessageQueue(bool discardOldMsg, int32_t msgMaxNumber, int32_t msgExpectedMaxSize) noexcept :
     discardOldMsg_(discardOldMsg),
     msgMaxNumber_(msgMaxNumber),
     msgExpectedMaxSize_(msgExpectedMaxSize) {
 }
 
-MessageQueue::~MessageQueue() {
+MessageQueue::~MessageQueue() noexcept {
     close();
 }
 
@@ -319,7 +326,7 @@ bool MessageQueue::popFront(uint32_t timeoutMS, void* buf, int64_t bufSize, int6
         *pFrontFree += *pFirstMsgDataSize;
 
         // pop a element from data size list
-        memcpy(pFirstMsgDataSize, pFirstMsgDataSize + 1,  (size_t)(sizeof(int64_t) * (*pCurMsgNumber)));
+        memcpy(pFirstMsgDataSize, pFirstMsgDataSize + 1, (size_t)(sizeof(int64_t) * (*pCurMsgNumber)));
 
         ret = true;
     } while (false);

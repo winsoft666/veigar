@@ -1,12 +1,20 @@
+/*
+ * Copyright (c) winsoft666.
+ * All rights reserved.
+ *
+ * This source code is licensed under the license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 #include "mutex.h"
 #include <assert.h>
 
 namespace veigar {
 #ifdef VEIGAR_OS_WINDOWS
-Mutex::Mutex() {
+Mutex::Mutex() noexcept {
 }
 
-Mutex::~Mutex() {
+Mutex::~Mutex() noexcept {
 }
 
 bool Mutex::valid() const noexcept {
@@ -91,10 +99,10 @@ bool Mutex::unlock() noexcept {
     return true;
 }
 #else
-Mutex::Mutex() {
+Mutex::Mutex() noexcept {
 }
 
-Mutex::~Mutex() {
+Mutex::~Mutex() noexcept {
 }
 
 bool Mutex::valid() const noexcept {

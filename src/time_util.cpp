@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) winsoft666.
+ * All rights reserved.
+ *
+ * This source code is licensed under the license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 #include "time_util.h"
 #include "os_platform.h"
 #ifdef VEIGAR_OS_WINDOWS
@@ -18,8 +25,7 @@
 #endif
 
 namespace veigar {
-
-int64_t TimeUtil::GetCurrentTimestamp() {
+int64_t TimeUtil::GetCurrentTimestamp() noexcept {
 #ifdef VEIGAR_OS_WINDOWS
     union {
         int64_t ns100;
@@ -38,5 +44,4 @@ int64_t TimeUtil::GetCurrentTimestamp() {
     return lNowMicroMS;
 #endif
 }
-
 }  // namespace veigar
