@@ -30,6 +30,8 @@ Veigar基于共享内存技术实现，只支持本机进程或线程间的远�
 # 3. 编译
 虽然Veigar的底层是基于`msgpack`实现的，但已经将其包含到项目中，不需要额外编译和安装`msgpack`。
 
+虽然在veigar公共头文件引用了msgpack头文件，但这不会污染您的全局msgpack命名空间，因为Veigar中的msgpack命令空间为`veigar_msgpack`。
+
 Veigar仅支持编译为静态库。
 
 可以使用CMake进行编译构建，也可以使用[vcpkg](https://github.com/microsoft/vcpkg)进行安装，如：

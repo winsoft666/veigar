@@ -29,7 +29,9 @@ Compared to other RPC frameworks, Veigar's advantages is that:
 - No strange port pseudo availability issues (especially in Windows).
 
 # 3. Compile
-Although Veigar's underlying implementation is based on msgpack and boost interprocess, we have included these two libraries in the project and do not require additional installation when using them.
+Although Veigar's underlying implementation is based on msgpack, we have included this library in the project and do not require additional installation when using it.
+
+Although the header file of msgpack is referenced in the public header files of Veigar, it will not contaminate your global msgpack namespace, as the msgpack namespace in Veigar is `vegar_msgpack`.
 
 Veigar only supports compiling to static libraries.
 
