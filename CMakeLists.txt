@@ -1,8 +1,9 @@
 ############################################################################
-#    Veigar: Cross platform RPC library using shared memory.
-#    -----------------------------------------------------------------------
-#    Copyright (C), winsoft666, <winsoft666@outlook.com>.
+# Copyright (c) winsoft666.
+# All rights reserved.
 #
+# This source code is licensed under the license found in the
+# LICENSE file in the root directory of this source tree.
 ############################################################################
 
 cmake_minimum_required(VERSION 3.4 FATAL_ERROR)
