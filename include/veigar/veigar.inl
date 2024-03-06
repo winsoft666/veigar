@@ -82,10 +82,10 @@ std::shared_ptr<AsyncCallResult> Veigar::doAsyncCall(const std::string& targetCh
         std::string errMsg;
         if (!sendCall(targetChannel, buffer, callId, funcName, p, errMsg)) {
             if (errMsg.empty()) {
-                failedRet.errorMessage = "Unknown Error.";
+                failedRet.errorMessage = "Send failed: Unknown.";
             }
             else {
-                failedRet.errorMessage = errMsg;
+                failedRet.errorMessage = "Send failed: " + errMsg;
             }
 
             p->set_value(std::move(failedRet));

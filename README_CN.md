@@ -1,4 +1,4 @@
-# 1. Veigar
+# Veigar
 Veigar一词来源于英雄联盟里面的“邪恶小法师-维迦”。
 
 ![Veigar on LOL](./veigar-lol.jpg)
@@ -9,7 +9,7 @@ Veigar基于共享内存技术实现，只支持本机进程或线程间的远�
 
 > 据我所知，Veigar是第一个开源的基于共享内存技术的RPC框架。
 
-# 2. 优势
+# 优势
 
 与其他RPC框架相比，Veigar的优势在于：
 
@@ -27,7 +27,7 @@ Veigar基于共享内存技术实现，只支持本机进程或线程间的远�
 
 - 没有诡异的端口假可用性问题（特别是在Windows系统上）。
 
-# 3. 编译
+# 编译
 虽然Veigar的底层是基于`msgpack`实现的，但已经将其包含到项目中，不需要额外编译和安装`msgpack`。
 
 虽然在veigar公共头文件引用了msgpack头文件，但这不会污染您的全局msgpack命名空间，因为Veigar中的msgpack命令空间为`veigar_msgpack`。
@@ -39,11 +39,11 @@ Veigar仅支持编译为静态库。
 vcpkg install veigar
 ```
 
-# 4. 快速上手
+# 快速上手
 
 在使用Veigar时，仅需要在项目中包含`include`目录，并链接静态库即可。
 
-## 4.1 同步调用
+## 同步调用
 
 下面是一个同步调用的示例：
 
@@ -98,11 +98,7 @@ sample.exe myself other
 
 通过为`syncCall`函数指定“目标通道名称”、“函数名称”、“函数参数”及“超时毫秒数”就可以同步调用目标函数并得到调用结果。
 
-## 4.2 拒绝异常
-
-我不喜欢异常，因此Veigar也不会通过异常的形式来抛出错误，Veigar会主动捕获所有C++标准库、msgpack、boost异常，以返回值的形式返回给调用者。当调用失败时（`!ret.isSuccess()`)，errorMessage中存储的错误信息就可能是Veigar捕获的异常信息。
-
-## 4.3 异步调用
+## 异步调用
 使用`asyncCall`函数可以实现异步调用。
 
 下面是异步调用示例：
@@ -137,7 +133,11 @@ vg.releaseCall(acr->first);
 
 与同步调用不同，`asyncCall`函数返回的是`std::shared_ptr<veigar::AsyncCallResult>`，而且调用者在获取到`CallResult`或不再关系调用结果时，需要调用`releaseCall`函数释放资源。
 
-# 5. 性能
+# 拒绝异常
+
+我不喜欢异常，因此Veigar也不会通过异常的形式来抛出错误，Veigar会主动捕获所有C++标准库、msgpack、boost异常，以返回值的形式返回给调用者。当调用失败时（`!ret.isSuccess()`)，errorMessage中存储的错误信息就可能是Veigar捕获的异常信息。
+
+# 性能
 使用`examples\echo`程序作为测试用例。
 
 启动A、B、C三个Channel，每个Channel分别使用2个线程向彼此调用100万次，如下图所示：
