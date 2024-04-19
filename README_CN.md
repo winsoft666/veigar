@@ -1,40 +1,41 @@
 # Veigar
-Veigar一词来源于英雄联盟里面的“邪恶小法师-维迦”。
+Veigar 一词来源于英雄联盟里面的“邪恶小法师-维迦”。
 
 ![Veigar on LOL](./veigar-lol.jpg)
 
-Veigar是一个跨平台的远程过程调用（RPC）框架，目前支持Windows、Linux平台。
+Veigar 是一个跨平台的远程过程调用（RPC）框架，目前支持 Windows、Linux 平台。
 
-Veigar基于共享内存技术实现，只支持本机进程或线程间的远程过程调用，这是Veigar与其他RPC框架（如Thrift、grpc）的最大不同之处。
+Veigar 基于共享内存技术实现，只支持本机进程或线程间的远程过程调用，这是 Veigar 与其他 RPC 框架（如 Thrift、grpc）的最大不同之处。
 
-> 据我所知，Veigar是第一个开源的基于共享内存技术的RPC框架。
+> 据我所知，Veigar 是第一个开源的基于共享内存技术的RPC框架。
 
 # 优势
 
-与其他RPC框架相比，Veigar的优势在于：
+与其他 RPC 框架相比，Veigar 的优势在于：
 
-- 可以将任何函数暴露给调用方（不限语言，只要实现msgpack-rpc即可）。
+- 可以将任何函数暴露给调用方（不限语言，只要实现 msgpack-rpc 即可）。
 
 - 任何语言编写的程序都可以调用被暴露的函数。
 
-- 不需要学习IDL语言。
+- 不需要学习 IDL 语言。
 
-- 不需要添加额外的代码生成步骤，仅需要C++代码。
+- 不需要添加额外的代码生成步骤，仅需要 C++ 代码。
 
-- 没有服务端和客户端的概念，每个Veigar实例间都可以相互调用。
+- 没有服务端和客户端的概念，每个 Veigar 实例间都可以相互调用。
 
 - 没有网络问题，如端口占用、半关闭状态等。
 
-- 没有诡异的端口假可用性问题（特别是在Windows系统上）。
+- 没有诡异的端口假可用性问题（特别是在 Windows 系统上）。
 
 # 编译
-虽然Veigar的底层是基于`msgpack`实现的，但已经将其包含到项目中，不需要额外编译和安装`msgpack`。
+虽然 Veigar 的底层是基于`msgpack`实现的，但已经将其包含到项目中，不需要额外编译和安装`msgpack`。
 
-虽然在veigar公共头文件引用了msgpack头文件，但这不会污染您的全局msgpack命名空间，因为Veigar中的msgpack命令空间为`veigar_msgpack`。
+虽然在 Veigar 公共头文件引用了 msgpack 头文件，但这不会污染您的全局msgpack命名空间，因为 Veigar 中的 msgpack 命令空间为`veigar_msgpack`。
 
-Veigar仅支持编译为静态库。
+Veigar 仅支持编译为静态库。
 
-可以使用CMake进行编译构建，也可以使用[vcpkg](https://github.com/microsoft/vcpkg)进行安装，如：
+可以使用 [CMake](https://cmake.org/) 进行编译构建，也可以使用 [vcpkg](https://github.com/microsoft/vcpkg) 进行安装，如：
+
 ```bash
 vcpkg install veigar
 ```
@@ -86,7 +87,7 @@ int main(int argc, char** argv) {
 }
 ```
 
-每个Veigar实例有一个在本机范围内唯一的通道名称（Channel），在调用`init`函数时需要为Veigar指定通道名称，Veigar不会检测通道的唯一性，需要由调用者来保证通道名称的唯一性。
+每个 Veigar 实例有一个在本机范围内唯一的通道名称（Channel），在调用`init`函数时需要为 Veigar 指定通道名称，Veigar 不会检测通道的唯一性，需要由调用者来保证通道名称的唯一性。
 
 在上述示例中，需要通过命令行参数指定当前实例的通道名称和目标实例的通道名称，如：
 
@@ -135,18 +136,19 @@ vg.releaseCall(acr->first);
 
 # 拒绝异常
 
-我不喜欢异常，因此Veigar也不会通过异常的形式来抛出错误，Veigar会主动捕获所有C++标准库、msgpack、boost异常，以返回值的形式返回给调用者。当调用失败时（`!ret.isSuccess()`)，errorMessage中存储的错误信息就可能是Veigar捕获的异常信息。
+我不喜欢异常，因此 Veigar 也不会通过异常的形式来抛出错误，Veigar 会主动捕获所有 C++ 标准库、msgpack、boost 异常，以返回值的形式返回给调用者。当调用失败时（`!ret.isSuccess()`)，errorMessage 中存储的错误信息就可能是 Veigar 捕获的异常信息。
 
 # 性能
 使用`examples\echo`程序作为测试用例。
 
-启动A、B、C三个Channel，每个Channel分别使用2个线程向彼此调用100万次，如下图所示：
+启动A、B、C三个 Channel，每个 Channel 分别使用 2 个线程向彼此调用 100 万次，如下图所示：
 
 ![3 Channels Test Case](./3-channel-test-case.jpg)
 
 ## Windows平台测试结果
 
-测试机器CPU配置：
+测试机器 CPU 配置：
+
 ```txt
 12th Gen Intel(R) Core(TM) i7-12700H   2.30 GHz
 ```
