@@ -25,7 +25,7 @@
 #endif
 
 namespace veigar {
-int64_t TimeUtil::GetCurrentTimestamp() noexcept {
+int64_t TimeUtil::GetCurrentTimestamp() {
 #ifdef VEIGAR_OS_WINDOWS
     union {
         int64_t ns100;

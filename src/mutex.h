@@ -35,17 +35,17 @@ struct MutexHandle {
 
 class Mutex {
    public:
-    Mutex() noexcept;
-    ~Mutex() noexcept;
+    Mutex() noexcept = default;
+    ~Mutex() noexcept = default;
 
-    bool valid() const noexcept;
+    bool valid() const;
 
-    bool open(const char* name) noexcept;
-    void close() noexcept;
+    bool open(const char* name);
+    void close();
 
-    bool lock(int64_t ms) noexcept;
-    bool tryLock() noexcept;
-    bool unlock() noexcept;
+    bool lock(int64_t ms);
+    bool tryLock();
+    bool unlock();
 
    private:
     MutexHandle* h_ = nullptr;

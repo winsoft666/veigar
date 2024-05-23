@@ -19,7 +19,7 @@
 #endif
 
 #if IS_WINDOWS
-bool IsWow64(HANDLE process, bool& result) noexcept {
+bool IsWow64(HANDLE process, bool& result) {
     BOOL bIsWow64 = FALSE;
 
     typedef BOOL(WINAPI * LPFN_ISWOW64PROCESS)(HANDLE, PBOOL);
@@ -38,7 +38,7 @@ bool IsWow64(HANDLE process, bool& result) noexcept {
     return true;
 }
 
-bool IsWin64(HANDLE process) noexcept {
+bool IsWin64(HANDLE process) {
 #if (defined _WIN64) || (defined WIN64)
     return true;
 #else
@@ -48,7 +48,7 @@ bool IsWin64(HANDLE process) noexcept {
 #endif
 }
 
-bool Is32BitProcess() noexcept {
+bool Is32BitProcess() {
     HANDLE process = GetCurrentProcess();
     if (!process)
         return false;
@@ -119,10 +119,12 @@ int main(int argc, char** argv) {
     setlocale(LC_ALL, "");
     printf("Veigar: Cross platform RPC library using shared memory.\n");
 #if IS_WINDOWS
-    printf("Version: %d.%d (%s)\n\n", veigar::VERSION_MAJOR, veigar::VERSION_MINOR, Is32BitProcess() ? "x86" : "x64");
+    printf("Version: %d.%d (%s)\n", veigar::VERSION_MAJOR, veigar::VERSION_MINOR, Is32BitProcess() ? "x86" : "x64");
 #else
-    printf("Version: %d.%d\n\n", veigar::VERSION_MAJOR, veigar::VERSION_MINOR);
+    printf("Version: %d.%d\n", veigar::VERSION_MAJOR, veigar::VERSION_MINOR);
 #endif
+    printf("Input 'quit' to exit the program.\n");
+    printf("\n");
 
     std::string channelName;
     int outputRecv = 0;
@@ -135,7 +137,7 @@ int main(int argc, char** argv) {
             std::cin >> channelName;
 
             if (channelName.empty()) {
-                std::cout << "Channel name can not be empty,\n";
+                std::cout << "Channel name can not be empty.\n";
                 continue;
             }
 

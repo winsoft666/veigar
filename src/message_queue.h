@@ -19,21 +19,21 @@ namespace veigar {
 class MessageQueue {
    public:
     MessageQueue(bool discardOldMsg, int32_t msgMaxNumber, int32_t msgExpectedMaxSize) noexcept;
-    ~MessageQueue() noexcept;
+    ~MessageQueue() noexcept = default;
 
-    bool create(const std::string& path) noexcept;
-    bool open(const std::string& path) noexcept;
+    bool create(const std::string& path);
+    bool open(const std::string& path);
 
-    bool pushBack(uint32_t timeoutMS, const void* data, int64_t dataSize) noexcept;
-    bool popFront(uint32_t timeoutMS, void* buf, int64_t bufSize, int64_t& written) noexcept;
+    bool pushBack(uint32_t timeoutMS, const void* data, int64_t dataSize);
+    bool popFront(uint32_t timeoutMS, void* buf, int64_t bufSize, int64_t& written);
 
-    bool wait(int64_t ms) noexcept;
+    bool wait(int64_t ms);
 
-    bool isDiscardOldMsg() const noexcept;
+    bool isDiscardOldMsg() const;
 
-    void close() noexcept;
+    void close();
 
-    void notifyRead() noexcept;
+    void notifyRead();
 
    private:
     bool discardOldMsg_ = false;

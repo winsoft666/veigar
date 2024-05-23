@@ -11,17 +11,11 @@
 
 namespace veigar {
 #ifdef VEIGAR_OS_WINDOWS
-Mutex::Mutex() noexcept {
-}
-
-Mutex::~Mutex() noexcept {
-}
-
-bool Mutex::valid() const noexcept {
+bool Mutex::valid() const {
     return !!h_;
 }
 
-bool Mutex::open(const char* name) noexcept {
+bool Mutex::open(const char* name) {
     close();
     h_ = new MutexHandle();
     h_->pMutex = ::CreateMutexA(NULL, FALSE, name);
@@ -32,7 +26,7 @@ bool Mutex::open(const char* name) noexcept {
     return !!h_;
 }
 
-void Mutex::close() noexcept {
+void Mutex::close() {
     if (!h_)
         return;
 
@@ -43,7 +37,7 @@ void Mutex::close() noexcept {
     h_ = nullptr;
 }
 
-bool Mutex::lock(int64_t ms) noexcept {
+bool Mutex::lock(int64_t ms) {
     assert(h_);
     if (!h_) {
         return false;
@@ -69,7 +63,7 @@ bool Mutex::lock(int64_t ms) noexcept {
     }
 }
 
-bool Mutex::tryLock() noexcept {
+bool Mutex::tryLock() {
     assert(h_);
     if (!h_)
         return false;
@@ -88,7 +82,7 @@ bool Mutex::tryLock() noexcept {
     }
 }
 
-bool Mutex::unlock() noexcept {
+bool Mutex::unlock() {
     assert(h_);
     if (!h_) {
         return false;
@@ -99,17 +93,11 @@ bool Mutex::unlock() noexcept {
     return true;
 }
 #else
-Mutex::Mutex() noexcept {
-}
-
-Mutex::~Mutex() noexcept {
-}
-
-bool Mutex::valid() const noexcept {
+bool Mutex::valid() const {
     return !!h_;
 }
 
-bool Mutex::open(const char* name) noexcept {
+bool Mutex::open(const char* name) {
     close();
     h_ = new MutexHandle();
     int eno = ::pthread_mutex_init(&h_->pMutex, nullptr);
@@ -122,7 +110,7 @@ bool Mutex::open(const char* name) noexcept {
     return true;
 }
 
-void Mutex::close() noexcept {
+void Mutex::close() {
     if (h_) {
         int eno = ::pthread_mutex_destroy(&h_->pMutex);
         delete h_;
@@ -130,7 +118,7 @@ void Mutex::close() noexcept {
     }
 }
 
-bool Mutex::lock(int64_t ms) noexcept {
+bool Mutex::lock(int64_t ms) {
     if (!h_)
         return false;
 
@@ -169,7 +157,7 @@ bool Mutex::lock(int64_t ms) noexcept {
     }
 }
 
-bool Mutex::tryLock() noexcept {
+bool Mutex::tryLock() {
     if (!h_)
         return false;
 
@@ -198,7 +186,7 @@ bool Mutex::tryLock() noexcept {
     return false;
 }
 
-bool Mutex::unlock() noexcept {
+bool Mutex::unlock() {
     if (!h_)
         return false;
 

@@ -13,7 +13,7 @@
 namespace veigar {
 
 static constexpr unsigned VERSION_MAJOR = 1;
-static constexpr unsigned VERSION_MINOR = 2;
+static constexpr unsigned VERSION_MINOR = 3;
 
 }  // namespace veigar
 

@@ -28,7 +28,7 @@
 #include "string_helper.h"
 
 namespace veigar {
-void log(const wchar_t* format, ...) noexcept {
+void log(const wchar_t* format, ...) {
     std::wstring output;
     va_list args;
     va_start(args, format);
@@ -45,7 +45,7 @@ void log(const wchar_t* format, ...) noexcept {
     }
 }
 
-void log(const char* format, ...) noexcept {
+void log(const char* format, ...) {
     std::string output;
     va_list args;
     va_start(args, format);

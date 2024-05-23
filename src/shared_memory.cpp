@@ -32,7 +32,7 @@ SharedMemory::SharedMemory(const std::string& path, int64_t size, bool create) n
     create_(create) {
 }
 
-bool SharedMemory::createOrOpen() noexcept {
+bool SharedMemory::createOrOpen() {
     if (path_.empty()) {
         return false;
     }
@@ -79,11 +79,11 @@ bool SharedMemory::createOrOpen() noexcept {
     return true;
 }
 
-bool SharedMemory::valid() const noexcept {
+bool SharedMemory::valid() const {
     return !!handle_;
 }
 
-void SharedMemory::close() noexcept {
+void SharedMemory::close() {
     if (data_) {
         UnmapViewOfFile(data_);
         data_ = nullptr;
@@ -95,10 +95,7 @@ void SharedMemory::close() noexcept {
     }
 }
 
-SharedMemory::~SharedMemory() noexcept {
-    close();
-}
-#else  // !VEIGAR_OS_WINDOWS
+#else   // !VEIGAR_OS_WINDOWS
 
 SharedMemory::SharedMemory(const std::string& path, int64_t size, bool create) noexcept :
     size_(size),
@@ -107,7 +104,7 @@ SharedMemory::SharedMemory(const std::string& path, int64_t size, bool create) n
     path_ = "/" + path;
 }
 
-bool SharedMemory::createOrOpen() noexcept {
+bool SharedMemory::createOrOpen() {
     if (path_.empty()) {
         return false;
     }
@@ -171,11 +168,11 @@ bool SharedMemory::createOrOpen() noexcept {
     return true;
 }
 
-bool SharedMemory::valid() const noexcept {
+bool SharedMemory::valid() const {
     return fd_ != -1;
 }
 
-void SharedMemory::close() noexcept {
+void SharedMemory::close() {
     if (fd_ != -1) {
         //veigar::log("Veigar: Close fd: %d.\n", fd_);
         if (data_) {
@@ -195,10 +192,5 @@ void SharedMemory::close() noexcept {
         }
     }
 }
-
-SharedMemory::~SharedMemory() noexcept {
-    close();
-}
-
 #endif  //VEIGAR_OS_WINDOWS
 }  // namespace veigar

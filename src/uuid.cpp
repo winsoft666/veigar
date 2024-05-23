@@ -21,12 +21,12 @@
 
 namespace veigar {
 #ifndef VEIGAR_OS_WINDOWS
-uint32_t UUID::Rand32() noexcept {
+uint32_t UUID::Rand32() {
     return ((rand() & 0x3) << 30) | ((rand() & 0x7fff) << 15) |
            (rand() & 0x7fff);
 }
 
-std::string UUID::GenUuid4() noexcept {
+std::string UUID::GenUuid4() {
     return StringHelper::StringPrintf(
         "%08x%04x%04x%04x%04x%08x",
         Rand32(),           // Generates a 32-bit Hex number
@@ -41,7 +41,7 @@ std::string UUID::GenUuid4() noexcept {
 }
 #endif
 
-std::string UUID::Create() noexcept {
+std::string UUID::Create() {
 #ifdef VEIGAR_OS_WINDOWS
     GUID guid;
     if (S_OK != CoCreateGuid(&guid))

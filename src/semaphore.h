@@ -35,17 +35,17 @@ struct SemaphoreHandle {
 };
 class Semaphore {
    public:
-    Semaphore() noexcept;
-    ~Semaphore() noexcept;
+    Semaphore() noexcept = default;
+    ~Semaphore() noexcept = default;
 
-    bool open(const std::string& name, int value = 0) noexcept;
-    void close() noexcept;
+    bool open(const std::string& name, int value = 0);
+    void close();
 
-    bool valid() const noexcept;
+    bool valid() const;
 
-    void wait() noexcept;                   // semaphore - 1
-    bool wait(const int64_t& ms) noexcept;  // semaphore - 1 , timeout ms
-    void release() noexcept;                // semaphore + 1
+    void wait();                   // semaphore - 1
+    bool wait(const int64_t& ms);  // semaphore - 1 , timeout ms
+    void release();                // semaphore + 1
 
    private:
     bool named_ = false;

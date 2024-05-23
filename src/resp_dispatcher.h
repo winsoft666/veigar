@@ -27,17 +27,17 @@ class Veigar;
 class RespDispatcher {
    public:
     RespDispatcher(Veigar* parent) noexcept;
-    ~RespDispatcher() noexcept;
+    ~RespDispatcher() noexcept = default;
 
-    bool init() noexcept;
-    bool isInit() const noexcept;
-    void uninit() noexcept;
+    bool init();
+    bool isInit() const;
+    void uninit();
 
-    void pushResp(const std::shared_ptr<veigar_msgpack::object_handle>& respObj) noexcept;
+    void pushResp(const std::shared_ptr<veigar_msgpack::object_handle>& respObj);
 
-    void addOngoingCall(const std::string& callId, const std::shared_ptr<std::promise<CallResult>>& cr) noexcept;
-    void releaseCall(const std::string& callId) noexcept;
-    void waitAllResponse() noexcept;
+    void addOngoingCall(const std::string& callId, const std::shared_ptr<std::promise<CallResult>>& cr);
+    void releaseCall(const std::string& callId);
+    void waitAllResponse();
 
    private:
     void dispatchRespThreadProc();

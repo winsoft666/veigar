@@ -17,7 +17,8 @@ namespace veigar {
 enum class ErrorCode {
     // This success only indicates that the message has been delivered to target message queue,
     // does not mean that the target successfully parse or execute the calling function.
-    // If the 'errorMessage' is not empty, it indicates an error during parsing and execution by the target.
+    // 
+    // If the 'errorMessage' is not empty, it indicates an error occurred during parsing and execution by the target.
     SUCCESS = 0,
     TIMEOUT = 1,
     FAILED = 2,

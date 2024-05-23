@@ -30,68 +30,68 @@ class Veigar {
     Veigar& operator=(Veigar&& other) noexcept;
 
     template <typename F>
-    bool bind(const std::string& funcName, F func) noexcept;
+    bool bind(const std::string& funcName, F func);
 
-    void unbind(const std::string& funcName) noexcept;
+    void unbind(const std::string& funcName);
 
     // channelName:
     //       Channel name must be unique within the current computer scope.
     //       This uniqueness is guaranteed by the user and Veigar will not check it.
     //
-    bool init(const std::string& channelName) noexcept;
+    bool init(const std::string& channelName);
 
-    bool isInit() const noexcept;
+    bool isInit() const;
 
-    void uninit() noexcept;
+    void uninit();
 
-    std::string channelName() const noexcept;
+    std::string channelName() const;
 
-    std::vector<std::string> bindNames() const noexcept;
+    std::vector<std::string> bindNames() const;
 
     template <typename... Args>
     std::shared_ptr<AsyncCallResult> asyncCall(
         const std::string& targetChannel,
         const std::string& funcName,
-        Args... args) noexcept;
+        Args... args);
 
     // Release resources.
     // If using 'asyncCall' function, the caller must call the this function to release resources
     //     when obtaining the 'CallResult' or when the call result is no longer related.
-    void releaseCall(const std::string& callId) noexcept;
+    void releaseCall(const std::string& callId);
 
     template <typename... Args>
     CallResult syncCall(
         const std::string& targetChannel,
         uint32_t timeoutMS,
         const std::string& funcName,
-        Args... args) noexcept;
+        Args... args);
 
-    void waitAllResponse() noexcept;
+    void waitAllResponse();
 
     // Set the timeout for reading and writing shared memory.
     // This timeout is different from the timeout in 'syncCall' function and it same as
     //    the timeout in 'sendMessage' function.
     //
     // Default is 260ms.
-    void setReadWriteTimeout(uint32_t ms) noexcept;
-    uint32_t readWriteTimeout() const noexcept;
+    void setReadWriteTimeout(uint32_t ms);
+    uint32_t readWriteTimeout() const;
 
     bool sendMessage(
         const std::string& targetChannel,
         bool toCallQueue,
         const uint8_t* buf,
         size_t bufSize,
-        std::string& errMsg) noexcept;
+        std::string& errMsg);
 
    private:
-    std::string getNextCallId(const std::string& funcName) const noexcept;
+    std::string getNextCallId(const std::string& funcName) const;
 
     // std::promise will not set_exception forever.
     template <typename... Args>
     std::shared_ptr<AsyncCallResult> doAsyncCall(
         const std::string& targetChannel,
         const std::string& funcName,
-        Args... args) noexcept;
+        Args... args);
 
     bool sendCall(
         const std::string& channelName,
@@ -99,7 +99,7 @@ class Veigar {
         const std::string& callId,
         const std::string& funcName,
         std::shared_ptr<std::promise<CallResult>> p,
-        std::string& errMsg) noexcept;
+        std::string& errMsg);
 
    private:
     class Impl;

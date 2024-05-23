@@ -14,8 +14,6 @@
 namespace veigar {
 namespace detail {
 
-Response::Response() noexcept {}
-
 veigar_msgpack::sbuffer Response::getData() const {
     veigar_msgpack::sbuffer data;
     ResponseMsg r(1,
@@ -26,7 +24,7 @@ veigar_msgpack::sbuffer Response::getData() const {
     return data;
 }
 
-std::string Response::getCallId() const noexcept {
+std::string Response::getCallId() const {
     return callId_;
 }
 
@@ -43,7 +41,7 @@ Response Response::MakeEmptyResponse() {
     return r;
 }
 
-bool Response::isEmpty() const noexcept {
+bool Response::isEmpty() const {
     return (!error_ && !result_);
 }
 

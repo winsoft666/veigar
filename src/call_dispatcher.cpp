@@ -36,15 +36,20 @@ CallDispatcher::CallDispatcher(Veigar* parent) noexcept :
 }
 
 CallDispatcher::~CallDispatcher() noexcept {
-    impl_->smh_.reset();
-
     if (impl_) {
+        if (impl_->smh_) {
+            if (impl_->smh_->valid()) {
+                impl_->smh_->close();
+            }
+            impl_->smh_.reset();
+        }
+
         delete impl_;
         impl_ = nullptr;
     }
 }
 
-bool CallDispatcher::init() noexcept {
+bool CallDispatcher::init() {
     if (init_) {
         return true;
     }
@@ -64,20 +69,22 @@ bool CallDispatcher::init() noexcept {
     return init_;
 }
 
-bool CallDispatcher::isInit() const noexcept {
+bool CallDispatcher::isInit() const {
     return init_;
 }
 
-void CallDispatcher::uninit() noexcept {
+void CallDispatcher::uninit() {
     if (!init_) {
         return;
     }
 
     impl_->stop_.store(true);
 
-    const size_t releaseNum = impl_->workers_.size() * 2;
-    for (size_t i = 0; i < releaseNum; i++) {
-        impl_->smh_->release();
+    if (impl_->smh_) {
+        const size_t releaseNum = impl_->workers_.size() * 2;
+        for (size_t i = 0; i < releaseNum; i++) {
+            impl_->smh_->release();
+        }
     }
 
     for (std::thread& worker : impl_->workers_) {
@@ -86,21 +93,25 @@ void CallDispatcher::uninit() noexcept {
         }
     }
 
-    impl_->smh_->close();
+    if (impl_->smh_) {
+        if (impl_->smh_->valid()) {
+            impl_->smh_->close();
+        }
+    }
 
     funcs_.clear();
 
     init_ = false;
 }
 
-void CallDispatcher::unbind(std::string const& name) noexcept {
+void CallDispatcher::unbind(std::string const& name) {
     auto it = funcs_.find(name);
     if (it != funcs_.end()) {
         funcs_.erase(it);
     }
 }
 
-void CallDispatcher::pushCall(std::shared_ptr<veigar_msgpack::object_handle> result) noexcept {
+void CallDispatcher::pushCall(std::shared_ptr<veigar_msgpack::object_handle> result) {
     impl_->objsMutex_.lock();
     impl_->objs_.emplace(result);
     impl_->objsMutex_.unlock();
@@ -108,7 +119,7 @@ void CallDispatcher::pushCall(std::shared_ptr<veigar_msgpack::object_handle> res
     impl_->smh_->release();
 }
 
-Response CallDispatcher::dispatch(veigar_msgpack::object const& msg, std::string& callerChannelName) noexcept {
+Response CallDispatcher::dispatch(veigar_msgpack::object const& msg, std::string& callerChannelName) {
     // Quickly check
     if (msg.via.array.size != 5) {
         return Response::MakeEmptyResponse();
@@ -117,7 +128,7 @@ Response CallDispatcher::dispatch(veigar_msgpack::object const& msg, std::string
     return dispatchCall(msg, callerChannelName);
 }
 
-Response CallDispatcher::dispatchCall(veigar_msgpack::object const& msg, std::string& callerChannelName) noexcept {
+Response CallDispatcher::dispatchCall(veigar_msgpack::object const& msg, std::string& callerChannelName) {
     CallMsg the_call;
     try {
         msg.convert(the_call);
@@ -215,7 +226,7 @@ void CallDispatcher::dispatchThreadProc() {
     }
 }
 
-bool CallDispatcher::isFuncNameExist(std::string const& func) noexcept {
+bool CallDispatcher::isFuncNameExist(std::string const& func) {
     auto pos = funcs_.find(func);
     if (pos != end(funcs_)) {
         return true;

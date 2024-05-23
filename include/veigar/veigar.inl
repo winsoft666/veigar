@@ -7,7 +7,7 @@
  */
 namespace veigar {
 template <typename F>
-bool Veigar::bind(const std::string& funcName, F func) noexcept {
+bool Veigar::bind(const std::string& funcName, F func) {
     if (!callDisp_) {
         return false;
     }
@@ -15,12 +15,12 @@ bool Veigar::bind(const std::string& funcName, F func) noexcept {
 }
 
 template <typename... Args>
-std::shared_ptr<AsyncCallResult> Veigar::asyncCall(const std::string& targetChannel, const std::string& funcName, Args... args) noexcept {
+std::shared_ptr<AsyncCallResult> Veigar::asyncCall(const std::string& targetChannel, const std::string& funcName, Args... args) {
     return doAsyncCall(targetChannel, funcName, std::forward<Args>(args)...);
 }
 
 template <typename... Args>
-CallResult Veigar::syncCall(const std::string& targetChannel, uint32_t timeoutMS, const std::string& funcName, Args... args) noexcept {
+CallResult Veigar::syncCall(const std::string& targetChannel, uint32_t timeoutMS, const std::string& funcName, Args... args) {
     std::shared_ptr<AsyncCallResult> acr = doAsyncCall(targetChannel, funcName, std::forward<Args>(args)...);    
     if (!acr || !acr->second.valid()) {
         if (acr) {
@@ -55,7 +55,7 @@ CallResult Veigar::syncCall(const std::string& targetChannel, uint32_t timeoutMS
 template <typename... Args>
 std::shared_ptr<AsyncCallResult> Veigar::doAsyncCall(const std::string& targetChannel,
                                                      const std::string& funcName,
-                                                     Args... args) noexcept {
+                                                     Args... args) {
     CallResult failedRet;
     failedRet.errCode = ErrorCode::FAILED;
 

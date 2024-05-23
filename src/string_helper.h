@@ -17,14 +17,14 @@ namespace veigar {
 class StringHelper {
    public:
     // format a string
-    static bool StringPrintfV(const char* format, va_list argList, std::string& output) noexcept;
-    static bool StringPrintfV(const wchar_t* format, va_list argList, std::wstring& output) noexcept;
+    static bool StringPrintfV(const char* format, va_list argList, std::string& output);
+    static bool StringPrintfV(const wchar_t* format, va_list argList, std::wstring& output);
 
-    static std::string StringPrintf(const char* format, ...) noexcept;
-    static std::wstring StringPrintf(const wchar_t* format, ...) noexcept;
+    static std::string StringPrintf(const char* format, ...);
+    static std::wstring StringPrintf(const wchar_t* format, ...);
 
-    static std::string StringPrintfV(const char* format, va_list argList) noexcept;
-    static std::wstring StringPrintfV(const wchar_t* format, va_list argList) noexcept;
+    static std::string StringPrintfV(const char* format, va_list argList);
+    static std::wstring StringPrintfV(const wchar_t* format, va_list argList);
 };
 }  // namespace veigar
 #endif  // !VEIGAR_STRING_HELPER_HPP__

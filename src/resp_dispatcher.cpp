@@ -13,18 +13,14 @@
 namespace veigar {
 RespDispatcher::RespDispatcher(Veigar* parent) noexcept :
     parent_(parent) {
-    smh_ = std::make_shared<Semaphore>();
 }
 
-RespDispatcher::~RespDispatcher() noexcept {
-    smh_.reset();
-}
-
-bool RespDispatcher::init() noexcept {
+bool RespDispatcher::init() {
     if (init_) {
         return true;
     }
 
+    smh_ = std::make_shared<Semaphore>();
     stop_.store(false);
 
     if (!smh_->open("")) {
@@ -40,20 +36,22 @@ bool RespDispatcher::init() noexcept {
     return init_;
 }
 
-bool RespDispatcher::isInit() const noexcept {
+bool RespDispatcher::isInit() const {
     return init_;
 }
 
-void RespDispatcher::uninit() noexcept {
+void RespDispatcher::uninit() {
     if (!init_) {
         return;
     }
 
     stop_.store(true);
 
-    const size_t releaseNum = workers_.size() * 2;
-    for (size_t i = 0; i < releaseNum; i++) {
-        smh_->release();
+    if (smh_) {
+        const size_t releaseNum = workers_.size() * 2;
+        for (size_t i = 0; i < releaseNum; i++) {
+            smh_->release();
+        }
     }
 
     for (std::thread& worker : workers_) {
@@ -66,12 +64,15 @@ void RespDispatcher::uninit() noexcept {
     ongoingCalls_.clear();
     ongoingCallsMutex_.unlock();
 
-    smh_->close();
+    if (smh_) {
+        smh_->close();
+        smh_.reset();
+    }
 
     init_ = false;
 }
 
-void RespDispatcher::pushResp(const std::shared_ptr<veigar_msgpack::object_handle>& respObj) noexcept {
+void RespDispatcher::pushResp(const std::shared_ptr<veigar_msgpack::object_handle>& respObj) {
     objsMutex_.lock();
     objs_.emplace(respObj);
     objsMutex_.unlock();
@@ -79,13 +80,13 @@ void RespDispatcher::pushResp(const std::shared_ptr<veigar_msgpack::object_handl
     smh_->release();
 }
 
-void RespDispatcher::addOngoingCall(const std::string& callId, const std::shared_ptr<std::promise<CallResult>>& cr) noexcept {
+void RespDispatcher::addOngoingCall(const std::string& callId, const std::shared_ptr<std::promise<CallResult>>& cr) {
     ongoingCallsMutex_.lock();
     ongoingCalls_[callId] = cr;
     ongoingCallsMutex_.unlock();
 }
 
-void RespDispatcher::releaseCall(const std::string& callId) noexcept {
+void RespDispatcher::releaseCall(const std::string& callId) {
     std::lock_guard<std::mutex> lg(ongoingCallsMutex_);
     auto it = ongoingCalls_.find(callId);
     if (it != ongoingCalls_.cend()) {
@@ -168,7 +169,7 @@ void RespDispatcher::dispatchRespThreadProc() {
     }
 }
 
-void RespDispatcher::waitAllResponse() noexcept {
+void RespDispatcher::waitAllResponse() {
     std::lock_guard<std::mutex> lg(ongoingCallsMutex_);
     try {
         for (auto& c : ongoingCalls_) {

@@ -10,8 +10,8 @@
 #pragma once
 
 namespace veigar {
-void log(const wchar_t* format, ...) noexcept;
-void log(const char* format, ...) noexcept;
+void log(const wchar_t* format, ...);
+void log(const char* format, ...);
 }  // namespace veigar
 
 #endif  // !VEIGAR_LOG_H_

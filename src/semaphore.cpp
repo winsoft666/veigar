@@ -8,14 +8,7 @@
 #include "semaphore.h"
 
 namespace veigar {
-Semaphore::Semaphore() noexcept {
-}
-
-Semaphore::~Semaphore() noexcept {
-    close();
-}
-
-bool Semaphore::open(const std::string& name, int value /*= 0*/) noexcept {
+bool Semaphore::open(const std::string& name, int value /*= 0*/) {
     named_ = !name.empty();
     sh_ = new SemaphoreHandle();
 #ifdef VEIGAR_OS_WINDOWS
@@ -52,7 +45,7 @@ bool Semaphore::open(const std::string& name, int value /*= 0*/) noexcept {
     return valid();
 }
 
-void Semaphore::close() noexcept {
+void Semaphore::close() {
     if (valid()) {
 #ifdef VEIGAR_OS_WINDOWS
         CloseHandle(sh_->h_);
@@ -72,11 +65,11 @@ void Semaphore::close() noexcept {
     }
 }
 
-bool Semaphore::valid() const noexcept {
+bool Semaphore::valid() const {
     return !!sh_;
 }
 
-void Semaphore::wait() noexcept {
+void Semaphore::wait() {
     if (valid()) {
 #ifdef VEIGAR_OS_WINDOWS
         WaitForSingleObject(sh_->h_, INFINITE);
@@ -91,7 +84,7 @@ void Semaphore::wait() noexcept {
     }
 }
 
-bool Semaphore::wait(const int64_t& ms) noexcept {
+bool Semaphore::wait(const int64_t& ms) {
     if (!valid()) {
         return false;
     }
@@ -127,7 +120,7 @@ bool Semaphore::wait(const int64_t& ms) noexcept {
 #endif
 }
 
-void Semaphore::release() noexcept {
+void Semaphore::release() {
     if (valid()) {
 #ifdef VEIGAR_OS_WINDOWS
         ReleaseSemaphore(sh_->h_, 1, NULL);

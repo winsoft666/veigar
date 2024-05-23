@@ -5,7 +5,7 @@
  * This source code is licensed under the license found in the
  * LICENSE file in the root directory of this source tree.
  */
- 
+
 #ifndef DISPATCHER_H_CXIVZD5L
 #define DISPATCHER_H_CXIVZD5L
 #pragma once
@@ -36,9 +36,9 @@ class CallDispatcher {
     CallDispatcher(Veigar* parent) noexcept;
     ~CallDispatcher() noexcept;
 
-    bool init() noexcept;
-    bool isInit() const noexcept;
-    void uninit() noexcept;
+    bool init();
+    bool isInit() const;
+    void uninit();
 
     // This is the type of messages as per the msgpack-rpc spec.
     // flag(0) - callId - callerChannelName - funcName - args
@@ -49,51 +49,49 @@ class CallDispatcher {
     // func: The functor to bind.
     // F: The type of the functor.
     template <typename F>
-    bool bind(std::string const& name, F func) noexcept;
+    bool bind(std::string const& name, F func);
 
     // Stores a void, zero-arg functor with a name.
     template <typename F>
-    bool bind(std::string const& name, F func, detail::tags::void_result const&, detail::tags::zero_arg const&) noexcept;
+    bool bind(std::string const& name, F func, detail::tags::void_result const&, detail::tags::zero_arg const&);
 
     // Stores a void, non-zero-arg functor with a name.
     template <typename F>
-    bool bind(std::string const& name, F func, detail::tags::void_result const&, detail::tags::nonzero_arg const&) noexcept;
+    bool bind(std::string const& name, F func, detail::tags::void_result const&, detail::tags::nonzero_arg const&);
 
     // Stores a non-void, zero-arg functor with a name.
     template <typename F>
-    bool bind(std::string const& name, F func, detail::tags::nonvoid_result const&, detail::tags::zero_arg const&) noexcept;
+    bool bind(std::string const& name, F func, detail::tags::nonvoid_result const&, detail::tags::zero_arg const&);
 
     // Stores a non-void, non-zero-arg functor with a name.
     template <typename F>
-    bool bind(std::string const& name, F func, detail::tags::nonvoid_result const&, detail::tags::nonzero_arg const&) noexcept;
+    bool bind(std::string const& name, F func, detail::tags::nonvoid_result const&, detail::tags::nonzero_arg const&);
 
     // Unbind a functor with a given name from callable functors.
-    void unbind(std::string const& name) noexcept;
+    void unbind(std::string const& name);
 
     // returns a list of all names which functors are binded to
-    std::vector<std::string> names() const noexcept {
+    std::vector<std::string> names() const {
         std::vector<std::string> names;
         for (auto it = funcs_.begin(); it != funcs_.end(); ++it)
             names.push_back(it->first);
         return names;
     }
 
-    void pushCall(std::shared_ptr<veigar_msgpack::object_handle> result) noexcept;
+    void pushCall(std::shared_ptr<veigar_msgpack::object_handle> result);
 
    private:
     // Processes a message that contains a call according to the Msgpack-RPC spec.
     // msg: The messagepack object that contains the call.
-    detail::Response dispatch(veigar_msgpack::object const& msg, std::string& callerChannelName) noexcept;
+    detail::Response dispatch(veigar_msgpack::object const& msg, std::string& callerChannelName);
 
-    bool isFuncNameExist(std::string const& func) noexcept;
+    bool isFuncNameExist(std::string const& func);
 
     // Dispatches a call (which will have a response).
-    detail::Response dispatchCall(veigar_msgpack::object const& msg, std::string& callerChannelName) noexcept;
-
-    template <typename T>
-    veigar_msgpack::object pack(T&& arg);
+    detail::Response dispatchCall(veigar_msgpack::object const& msg, std::string& callerChannelName);
 
     void dispatchThreadProc();
+
    private:
     Veigar* parent_ = nullptr;
     bool init_ = false;

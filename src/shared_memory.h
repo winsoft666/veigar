@@ -27,33 +27,33 @@ class SharedMemory {
     explicit SharedMemory(const std::string& path, int64_t size, bool create) noexcept;
 
     // open an existing shared memory for reading/writing
-    inline bool open() noexcept {
+    inline bool open() {
         if (valid()) {
             return true;
         }
         return createOrOpen();
     }
 
-    bool valid() const noexcept;
+    bool valid() const;
 
-    void close() noexcept;
+    void close();
 
-    inline int64_t size() const noexcept {
+    inline int64_t size() const {
         return size_;
     }
 
-    inline std::string path() const noexcept {
+    inline std::string path() const {
         return path_;
     }
 
-    inline uint8_t* data() noexcept {
+    inline uint8_t* data() {
         return data_;
     }
 
-    ~SharedMemory() noexcept;
+    ~SharedMemory() noexcept = default;
 
    private:
-    bool createOrOpen() noexcept;
+    bool createOrOpen();
 
    private:
     bool create_ = false;

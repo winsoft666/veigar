@@ -37,7 +37,7 @@
 namespace veigar {
 
 // format a string
-bool StringHelper::StringPrintfV(const char* format, va_list argList, std::string& output) noexcept {
+bool StringHelper::StringPrintfV(const char* format, va_list argList, std::string& output) {
     if (!format)
         return false;
 
@@ -122,7 +122,7 @@ bool StringHelper::StringPrintfV(const char* format, va_list argList, std::strin
 #endif
 }
 
-bool StringHelper::StringPrintfV(const wchar_t* format, va_list argList, std::wstring& output) noexcept {
+bool StringHelper::StringPrintfV(const wchar_t* format, va_list argList, std::wstring& output) {
     if (!format)
         return false;
 
@@ -207,7 +207,7 @@ bool StringHelper::StringPrintfV(const wchar_t* format, va_list argList, std::ws
 #endif
 }
 
-std::string StringHelper::StringPrintf(const char* format, ...) noexcept {
+std::string StringHelper::StringPrintf(const char* format, ...) {
     std::string output;
     try {
         va_list args;
@@ -223,7 +223,7 @@ std::string StringHelper::StringPrintf(const char* format, ...) noexcept {
     return output;
 }
 
-std::wstring StringHelper::StringPrintf(const wchar_t* format, ...) noexcept {
+std::wstring StringHelper::StringPrintf(const wchar_t* format, ...) {
     std::wstring output;
     try {
         va_list args;
@@ -237,13 +237,13 @@ std::wstring StringHelper::StringPrintf(const wchar_t* format, ...) noexcept {
     return output;
 }
 
-std::string StringHelper::StringPrintfV(const char* format, va_list argList) noexcept {
+std::string StringHelper::StringPrintfV(const char* format, va_list argList) {
     std::string output;
     StringPrintfV(format, argList, output);
     return output;
 }
 
-std::wstring StringHelper::StringPrintfV(const wchar_t* format, va_list argList) noexcept {
+std::wstring StringHelper::StringPrintfV(const wchar_t* format, va_list argList) {
     std::wstring output;
     StringPrintfV(format, argList, output);
     return output;

@@ -15,12 +15,12 @@
 namespace veigar {
 class UUID {
    public:
-    static std::string Create() noexcept;
+    static std::string Create() ;
 
    protected:
 #ifndef VEIGAR_OS_WINDOWS
-    static uint32_t Rand32() noexcept;
-    static std::string GenUuid4() noexcept;
+    static uint32_t Rand32() ;
+    static std::string GenUuid4() ;
 #endif
 };
 }  // namespace veigar

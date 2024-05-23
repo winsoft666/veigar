@@ -509,40 +509,40 @@ Veigar::~Veigar() noexcept {
     }
 }
 
-bool Veigar::init(const std::string& channelName) noexcept {
+bool Veigar::init(const std::string& channelName) {
     assert(impl_);
     return impl_->init(channelName);
 }
 
-bool Veigar::isInit() const noexcept {
+bool Veigar::isInit() const {
     assert(impl_);
     return impl_->isInit_;
 }
 
-void Veigar::uninit() noexcept {
+void Veigar::uninit() {
     assert(impl_);
     impl_->uninit();
 }
 
-std::string Veigar::channelName() const noexcept {
+std::string Veigar::channelName() const {
     assert(impl_);
     return impl_->channelName_;
 }
 
-void Veigar::unbind(const std::string& funcName) noexcept {
+void Veigar::unbind(const std::string& funcName) {
     if (callDisp_) {
         callDisp_->unbind(funcName);
     }
 }
 
-std::vector<std::string> Veigar::bindNames() const noexcept {
+std::vector<std::string> Veigar::bindNames() const {
     if (!callDisp_) {
         return {};
     }
     return callDisp_->names();
 }
 
-void Veigar::waitAllResponse() noexcept {
+void Veigar::waitAllResponse() {
     if (impl_->respDispatcher_) {
         impl_->respDispatcher_->waitAllResponse();
     }
@@ -552,24 +552,24 @@ bool Veigar::sendMessage(const std::string& targetChannel,
                          bool toCallQueue,
                          const uint8_t* buf,
                          size_t bufSize,
-                         std::string& errMsg) noexcept {
+                         std::string& errMsg) {
     assert(impl_);
     return impl_->sendMessage(targetChannel, toCallQueue, buf, bufSize, errMsg);
 }
 
-void Veigar::setReadWriteTimeout(uint32_t ms) noexcept {
+void Veigar::setReadWriteTimeout(uint32_t ms) {
     assert(impl_);
     if (ms > 0) {
         impl_->rwTimeout_.store(ms);
     }
 }
 
-uint32_t Veigar::readWriteTimeout() const noexcept {
+uint32_t Veigar::readWriteTimeout() const {
     assert(impl_);
     return impl_->rwTimeout_.load();
 }
 
-std::string Veigar::getNextCallId(const std::string& funcName) const noexcept {
+std::string Veigar::getNextCallId(const std::string& funcName) const {
     assert(impl_);
     uint32_t idx = impl_->callIndex_.fetch_add(1);
     return (impl_->uuid_ + "_" + funcName + "_" + std::to_string(idx));
@@ -580,7 +580,7 @@ bool Veigar::sendCall(const std::string& channelName,
                       const std::string& callId,
                       const std::string& funcName,
                       std::shared_ptr<std::promise<CallResult>> p,
-                      std::string& exceptionMsg) noexcept {
+                      std::string& exceptionMsg) {
     assert(impl_);
     if (!impl_->respDispatcher_) {
         return false;
@@ -595,7 +595,7 @@ bool Veigar::sendCall(const std::string& channelName,
                               exceptionMsg);
 }
 
-void Veigar::releaseCall(const std::string& callId) noexcept {
+void Veigar::releaseCall(const std::string& callId) {
     if (impl_->respDispatcher_) {
         impl_->respDispatcher_->releaseCall(callId);
     }

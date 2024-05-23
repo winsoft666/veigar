@@ -33,7 +33,7 @@ class Response {
     using ResponseMsg = std::tuple<int8_t, std::string, veigar_msgpack::object, veigar_msgpack::object>;
 
     // Default constructor for responses.
-    Response() noexcept;
+    Response() noexcept = default;
 
     // Creates a response that represents a normal return value.
     // param id The sequence id (as per protocol).
@@ -67,7 +67,7 @@ class Response {
     void setError(veigar_msgpack::object_handle& e);
 
     // Returns the call id used to identify which call this response corresponds to.
-    std::string getCallId() const noexcept;
+    std::string getCallId() const;
 
     // Returns the error object stored in the response. Can be empty.
     std::shared_ptr<veigar_msgpack::object_handle> getError() const;
@@ -76,7 +76,7 @@ class Response {
     std::shared_ptr<veigar_msgpack::object_handle> getResult() const;
 
     // If true, this response is empty (see MakeEmptyResponse())
-    bool isEmpty() const noexcept;
+    bool isEmpty() const;
 
    private:
     std::string callId_;
