@@ -132,7 +132,7 @@ bool MessageQueue::open(const std::string& path) {
 
 /*
 | Shm Total Size | Msg Number | Front Free Size | Msg 0 Size | Msg 1 Size | ... | Msg 0 Data | Msg 1 Data | ... |
-|      8           |      8       |       8           |    8         |    8        |      | Msg 0 Size | Msg 1 Size | ... |
+|      8         |      8     |       8         |    8       |    8       |     | Msg 0 Size | Msg 1 Size | ... |
 */
 bool MessageQueue::pushBack(uint32_t timeoutMS, const void* data, int64_t dataSize) {
     bool ret = false;
@@ -143,11 +143,15 @@ bool MessageQueue::pushBack(uint32_t timeoutMS, const void* data, int64_t dataSi
 
     assert(msgMaxNumber_ > 0);
     if (msgMaxNumber_ * msgExpectedMaxSize_ < dataSize) {
+        veigar::log("Veigar: Error: The data size has exceeded the total size of the message queue. Please adjust the parameters of the message queue.\n");
         return false;
     }
 
     if (dataSize > msgExpectedMaxSize_) {
-        veigar::log("Veigar: Warning: Message size(%" PRId64 ") greater than expected(%d).\n", dataSize, msgExpectedMaxSize_);
+        veigar::log("Veigar: Warning: Message size(%" PRId64 ") greater than expected(%d). It's best to adjust the parameters of the message queue.\n", dataSize, msgExpectedMaxSize_);
+#if (defined DEBUG) || (defined _DEBUG)
+        assert(false);
+#endif
     }
 
     if (!rwLock_->lock(timeoutMS)) {
@@ -202,6 +206,7 @@ bool MessageQueue::pushBack(uint32_t timeoutMS, const void* data, int64_t dataSi
                     break;
                 }
             }
+            veigar::log("Veigar: Warning: Message queue is full, discard %" PRId64 " old message(s). Please adjust the parameters of the message queue.\n", discardMsgNum);
 
             // copy remaining data to offset 0, discard the first discardMsgSize bytes of data.
             memcpy(pFirstMsgData, pFirstMsgData + *pFrontFree + discardMsgSize, (size_t)(msgDataTotalSize - discardMsgSize));

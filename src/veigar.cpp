@@ -27,7 +27,7 @@ class Veigar::Impl {
         respDispatcher_.reset();
     }
 
-    bool init(const std::string& channelName) {
+    bool init(const std::string& channelName, uint32_t msgQueueCapacity, uint32_t expectedMsgMaxSize) {
         if (isInit_) {
             veigar::log("Veigar: Warning: Already init.\n");
             if (channelName_ == channelName) {
@@ -45,6 +45,8 @@ class Veigar::Impl {
             }
 
             channelName_ = channelName;
+            msgQueueCapacity_ = msgQueueCapacity;
+            expectedMsgMaxSize_ = expectedMsgMaxSize;
 
             uuid_ = UUID::Create();
             if (uuid_.empty()) {
@@ -64,20 +66,20 @@ class Veigar::Impl {
                 break;
             }
 
-            callMsgQueue_ = std::make_shared<MessageQueue>(true, VEIGAR_MAX_MESSAGE_NUMBER, VEIGAR_MAX_MESSAGE_EXPECTED_SIZE);
+            callMsgQueue_ = std::make_shared<MessageQueue>(true, msgQueueCapacity, expectedMsgMaxSize);
             if (!callMsgQueue_->create(channelName_ + kCallQueueSuffix)) {
                 veigar::log("Veigar: Error: Create call message queue(%s) failed.\n", channelName_.c_str());
                 break;
             }
 
-            respMsgQueue_ = std::make_shared<MessageQueue>(true, VEIGAR_MAX_MESSAGE_NUMBER, VEIGAR_MAX_MESSAGE_EXPECTED_SIZE);
+            respMsgQueue_ = std::make_shared<MessageQueue>(true, msgQueueCapacity, expectedMsgMaxSize);
             if (!respMsgQueue_->create(channelName_ + kRespQueueSuffix)) {
                 veigar::log("Veigar: Error: Create response message queue(%s) failed.\n", channelName_.c_str());
                 break;
             }
 
-            recvCallBufSize_ = VEIGAR_MAX_MESSAGE_EXPECTED_SIZE;
-            recvRespBufSize_ = VEIGAR_MAX_MESSAGE_EXPECTED_SIZE;
+            recvCallBufSize_ = expectedMsgMaxSize;
+            recvRespBufSize_ = expectedMsgMaxSize;
 
             try {
                 callPac_.reserve_buffer(recvCallBufSize_);
@@ -228,7 +230,7 @@ class Veigar::Impl {
             return it->second;
         }
 
-        queue = std::make_shared<MessageQueue>(true, VEIGAR_MAX_MESSAGE_NUMBER, VEIGAR_MAX_MESSAGE_EXPECTED_SIZE);
+        queue = std::make_shared<MessageQueue>(true, msgQueueCapacity_, expectedMsgMaxSize_);
         if (!queue->open(channelName + kCallQueueSuffix)) {
             queue.reset();
             veigar::log("Veigar: Error: Open call message queue(%s) failed.\n", channelName.c_str());
@@ -247,7 +249,7 @@ class Veigar::Impl {
             return it->second;
         }
 
-        queue = std::make_shared<MessageQueue>(true, VEIGAR_MAX_MESSAGE_NUMBER, VEIGAR_MAX_MESSAGE_EXPECTED_SIZE);
+        queue = std::make_shared<MessageQueue>(true, msgQueueCapacity_, expectedMsgMaxSize_);
         if (!queue->open(channelName + kRespQueueSuffix)) {
             queue.reset();
             veigar::log("Veigar: Error: Open response message queue(%s) failed.\n", channelName.c_str());
@@ -451,6 +453,8 @@ class Veigar::Impl {
     Veigar* parent_ = nullptr;
     std::atomic_bool quit_ = {false};
     bool isInit_ = false;
+    uint32_t msgQueueCapacity_ = 0;
+    uint32_t expectedMsgMaxSize_ = 0;
     uint32_t recvCallBufSize_ = 0;
     uint32_t recvRespBufSize_ = 0;
 
@@ -509,9 +513,9 @@ Veigar::~Veigar() noexcept {
     }
 }
 
-bool Veigar::init(const std::string& channelName) {
+bool Veigar::init(const std::string& channelName, uint32_t msgQueueCapacity, uint32_t expectedMsgMaxSize) {
     assert(impl_);
-    return impl_->init(channelName);
+    return impl_->init(channelName, msgQueueCapacity, expectedMsgMaxSize);
 }
 
 bool Veigar::isInit() const {

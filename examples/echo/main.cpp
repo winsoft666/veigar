@@ -64,8 +64,7 @@ bool Is32BitProcess() {
 
 #endif
 
-std::string str1046 = R"(
-no4vvZcIIRoc3xz9ZkccRYo9XiliFGQqhnAk5zKz85ttbSI8IcOUGUx3OXagffEzSbuAO6W930KRSFBY0P6JlNPB0QyhhsFYl
+std::string str1046 = R"(no4vvZcIIRoc3xz9ZkccRYo9XiliFGQqhnAk5zKz85ttbSI8IcOUGUx3OXagffEzSbuAO6W930KRSFBY0P6JlNPB0QyhhsFYl
 vSHkwDnZOfLdWsS2zmDBa8It5Wcw9LWmKejilmpguZDO8vmtg4N1hUu2ayLJvoDAsQHiT5xL9qkF6KEznEba1ktT3grRNoGeZ
 uESEHgdgxkViuLGXhkQX0wDVgGnMO9xsrWHtUu4WyXCPRXF7XGIvLaIRce1uyAKEb5SzeIg7A4fLXzufvdo8AholKI5nwQ0xh
 1tnfOYtLLzvElGlkyJjHRoviSi1StkQKwKjHWIFYyVASDKzSTPWuqPFNXOigKsMlWkTerzSR6Ms1W9JBMxY8DB2XVMm7Nd1R7
@@ -75,10 +74,31 @@ PK3WURadvOQKr4b6xPsLD5FA7jwRx8a8ZYIKece9DYgQ6V4YllSXiPytCmeNcvjnQK7pCLYiB6HUpcnT
 7krgZYdb1ucYRnLVz0PKLLpGGfw5RPDkhxkIKDO2bmFS4OwoSVip0ZWSKwYiM2xWgWFsCLE0y8ppC7kK3ixwdouss9Rvq9Y3W
 I5uuTVNcilebnLkPwmlCIUclNETCVyxyXR0CUuRIHO0bXd6S0rxFSyej4TGo4UEecNxuTCsA6Ub9fgMwloKwYJKomiO83xmws
 X7RHvEcSqriLCNS4etwZawJaQWiyVud9PZL4Ixxg7HuRBMwJtlYn7bx2Yx96RmItUU8DjtGZVUrbnTcLzeAGyqGhRjfzHTLwC
-gVsPnzU5oqkOD3aNUCEs74gxRWQGR0iv9A17Fsnwgd44UBxOnAIlFXaNLZyn3reVSQJQnWpag8Wa
-)";
+gVsPnzU5oqkOD3aNUCEs74gxRWQGR0iv9A17Fsnwgd44UBxOnAIlFXaNLZyn3reVSQJQnWpag8Wa)";
 
-const uint32_t warnDelayMicroseconds = 500000;  // 500ms
+const uint32_t warnDelayMicroseconds = 6000000;  // 6000ms
+
+std::string TimeToHuman(int64_t microseconds) {
+    //printf("TimeToHuman %d\n", microseconds);
+    int64_t hour = microseconds / 3600000000;
+    int64_t min = (microseconds % 3600000000) / 60000000;
+    int64_t sec = (microseconds % 60000000) / 1000000;
+    int64_t mill = (microseconds % 1000000) / 1000;
+    int64_t micro = microseconds % 1000;
+
+    std::string str;
+    if (hour > 0)
+        str += std::to_string(hour) + "h";
+    if (min > 0)
+        str += std::to_string(min) + "m";
+    if (sec > 0)
+        str += std::to_string(sec) + "s";
+    if (mill > 0)
+        str += std::to_string(mill) + "ms";
+    if (micro > 0)
+        str += std::to_string(micro) + "¦Ìs";
+    return str;
+}
 
 std::vector<std::string> StringSplit(const std::string& src, const std::string& delimiter, bool includeEmptyStr) {
     std::vector<std::string> fields;
@@ -114,6 +134,12 @@ std::string genRandomString(const uint32_t len) {
 
     return ret;
 }
+
+struct STATS {
+    std::atomic<int64_t> error = 0;
+    std::atomic<int64_t> success = 0;
+    std::atomic<int64_t> totalUsed = 0;
+};
 
 int main(int argc, char** argv) {
     setlocale(LC_ALL, "");
@@ -168,13 +194,14 @@ int main(int argc, char** argv) {
             std::cout << "Armed.\n\n";
         }
         else {
-            int asyncMethod = 0;
+            int callMethod = 0;
             int threadNum = 0;
             int callTimesEachThread = 0;
             int rwTimeout = 0;
-            bool allCallbackFinished = false;
             std::string targetChannels;
             std::vector<std::string> targetChannelList;
+            std::atomic<int64_t> respTotal = 0;
+            std::vector<STATS*> statsList;
 
             std::cout << "Target channel names (Split by comma):\n";
             std::cin >> targetChannels;
@@ -187,7 +214,7 @@ int main(int argc, char** argv) {
                 continue;
 
             std::cout << "Call method(0 = Sync, 1 = Async with promise, 2 = Async with callback): \n";
-            std::cin >> asyncMethod;
+            std::cin >> callMethod;
 
             std::cout << "Thread number for each target: \n";
             std::cin >> threadNum;
@@ -200,15 +227,9 @@ int main(int argc, char** argv) {
 
             vg.setReadWriteTimeout(rwTimeout);
 
-            auto fn = [&vg, &allCallbackFinished, rwTimeout, channelName, asyncMethod, callTimesEachThread](std::size_t threadId, std::string targetChannel) {
-                struct STATS {
-                    int error = 0;
-                    int success = 0;
-                    int64_t totalUsed = 0;
-                    int respTotal = 0;
-                };
-
+            auto fn = [&vg, &statsList, &respTotal, rwTimeout, channelName, callMethod, callTimesEachThread](std::size_t threadId, std::string targetChannel) {
                 STATS* stats = new STATS();
+                statsList.push_back(stats);
 
                 printf("[Thread %" PRId64 ", Target %s] Calling...\n", (int64_t)threadId, targetChannel.c_str());
 
@@ -219,10 +240,10 @@ int main(int argc, char** argv) {
                     veigar::detail::TimeMeter tm;
                     veigar::CallResult ret;
 
-                    if (asyncMethod == 0) {
+                    if (callMethod == 0) {
                         ret = vg.syncCall(targetChannel, rwTimeout * 3, "echo", msg, i);
                     }
-                    else if (asyncMethod == 1) {
+                    else if (callMethod == 1) {  // Async with promise
                         std::shared_ptr<veigar::AsyncCallResult> acr = vg.asyncCall(targetChannel, "echo", msg, i);
                         assert(acr);
                         if (acr) {
@@ -239,20 +260,18 @@ int main(int argc, char** argv) {
                             vg.releaseCall(acr->first);
                         }
                     }
-                    else if (asyncMethod == 2) {
+                    else if (callMethod == 2) {  // Async with callback
+                        std::string expectResultStr = msg + "_" + std::to_string(i);
                         auto startCallTS = std::chrono::high_resolution_clock::now();
                         vg.asyncCall(
-                            [&allCallbackFinished, threadId, targetChannel, callTimesEachThread, startCallTS, msg, i, stats](const veigar::CallResult& cr) {
-                                stats->respTotal++;
+                            [&respTotal, threadId, targetChannel, callTimesEachThread, startCallTS, i, expectResultStr, stats](const veigar::CallResult& cr) {
                                 int64_t used = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - startCallTS).count();
-                                stats->totalUsed += used;
-
-                                std::string expectResultStr = msg + "_" + std::to_string(i);
                                 if (cr.isSuccess() && cr.obj.get().as<std::string>() == expectResultStr) {
                                     stats->success++;
                                     if (used >= warnDelayMicroseconds) {
-                                        printf("[Thread %" PRId64 ", Target %s] Warning: call %d take long time: %" PRId64 "us >= %dus\n",
-                                               (int64_t)threadId, targetChannel.c_str(), i, stats->totalUsed, warnDelayMicroseconds);
+                                        printf("[Thread %" PRId64 ", Target %s] Warning: call %d take long time: %s >= %s\n",
+                                               (int64_t)threadId, targetChannel.c_str(), i,
+                                               TimeToHuman(used).c_str(), TimeToHuman(warnDelayMicroseconds).c_str());
                                     }
                                 }
                                 else {
@@ -260,23 +279,12 @@ int main(int argc, char** argv) {
                                     std::cout << cr.errorMessage << std::endl;
                                 }
 
-                                if (stats->respTotal == callTimesEachThread) {
-                                    printf("[Thread %" PRId64 ", Target %s] Total %d, Success %d, Error %d, Used: %" PRId64 "us, Average: %" PRId64 "us/call, %" PRId64 "call/s.\n\n",
-                                           (int64_t)threadId, targetChannel.c_str(),
-                                           callTimesEachThread, stats->success, stats->error, stats->totalUsed,
-                                           (int64_t)((double)stats->totalUsed / (double)callTimesEachThread),
-                                           (int64_t)(1000000.0 / ((double)stats->totalUsed / (double)callTimesEachThread)));
-
-                                    allCallbackFinished = true;
-                                }
+                                respTotal++;
                             },
-                            targetChannel,
-                            "echo",
-                            msg,
-                            i);
+                            targetChannel, "echo", msg, i);
                     }
 
-                    if (asyncMethod == 0 || asyncMethod == 1) {
+                    if (callMethod == 0 || callMethod == 1) {
                         int64_t used = tm.elapsed();
                         stats->totalUsed += used;
 
@@ -284,8 +292,8 @@ int main(int argc, char** argv) {
                         if (ret.isSuccess() && ret.obj.get().as<std::string>() == expectResultStr) {
                             stats->success++;
                             if (used >= warnDelayMicroseconds) {
-                                printf("[Thread %" PRId64 ", Target %s] Warning: call %d take long time: %" PRId64 "us >= %dus\n",
-                                       (int64_t)threadId, targetChannel.c_str(), i, tm.elapsed(), warnDelayMicroseconds);
+                                printf("[Thread %" PRId64 ", Target %s] Warning: call %d take long time: %s >= %s\n",
+                                       (int64_t)threadId, targetChannel.c_str(), i, TimeToHuman(tm.elapsed()).c_str(), TimeToHuman(warnDelayMicroseconds).c_str());
                             }
                         }
                         else {
@@ -295,15 +303,19 @@ int main(int argc, char** argv) {
                     }
                 }
 
-                if (asyncMethod == 0 || asyncMethod == 1) {
-                    printf("[Thread %" PRId64 ", Target %s] Total %d, Success %d, Error %d, Used: %" PRId64 "us, Average: %" PRId64 "us/call, %" PRId64 "call/s.\n\n",
+                if (callMethod == 0 || callMethod == 1) {
+                    printf("[Thread %" PRId64 ", Target %s] Total %d, Success %" PRId64 ", Error %" PRId64 ", Used: %s, Average: %s/call, %" PRId64 "call/s.\n\n",
                            (int64_t)threadId, targetChannel.c_str(),
-                           callTimesEachThread, stats->success, stats->error, stats->totalUsed,
-                           (int64_t)((double)stats->totalUsed / (double)callTimesEachThread),
-                           (int64_t)(1000000.0 / ((double)stats->totalUsed / (double)callTimesEachThread)));
+                           callTimesEachThread, stats->success.load(), stats->error.load(), TimeToHuman(stats->totalUsed.load()).c_str(),
+                           TimeToHuman((int64_t)((double)stats->totalUsed.load() / (double)callTimesEachThread)).c_str(),
+                           (int64_t)(1000000.0 / ((double)stats->totalUsed.load() / (double)callTimesEachThread)));
+
+                    delete stats;
                 }
             };
 
+            veigar::detail::TimeMeter tmTotal;
+            int64_t expectRspTotal = targetChannelList.size() * threadNum * callTimesEachThread;
             std::vector<std::shared_ptr<ThreadGroup>> threadGroups;
 
             for (auto targetChannel : targetChannelList) {
@@ -316,9 +328,23 @@ int main(int argc, char** argv) {
                 tg->joinAll();
             }
 
-            if (asyncMethod == 2) {
-                while (!allCallbackFinished)
-                    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            if (callMethod == 2) {
+                while (respTotal.load() < expectRspTotal)
+                    std::this_thread::sleep_for(std::chrono::milliseconds(30));
+
+                int64_t successTotal = 0, errorTotal = 0, totalUsed = 0;
+                totalUsed = tmTotal.elapsed();
+                for (STATS* s: statsList) {
+                    successTotal += s->success.load();
+                    errorTotal += s->error.load();
+                    delete s;
+                }
+                statsList.clear();
+
+                printf("Total %" PRId64 ", Success %" PRId64 ", Error %" PRId64 ", Used: %s, Average: %s/call, %" PRId64 "call/s.\n\n",
+                       expectRspTotal, successTotal, errorTotal, TimeToHuman(totalUsed).c_str(),
+                       TimeToHuman((int64_t)((double)totalUsed / (double)expectRspTotal)).c_str(),
+                       (int64_t)(1000000.0 / ((double)totalUsed / (double)expectRspTotal)));
             }
 
             threadGroups.clear();

@@ -39,7 +39,17 @@ class Veigar {
     //       Channel name must be unique within the current computer scope.
     //       This uniqueness is guaranteed by the user and Veigar will not check it.
     //
-    bool init(const std::string& channelName);
+    // msgQueueCapacity:
+    //       The maximum number of messages in the message queue.
+    //       When push message to the queue, if the total number of messages is greater than this value, the first message will be discarded.
+    // 
+    // expectedMsgMaxSize
+    //       The maximum number of bytes expected for a single message.
+    //       The total shared memory size is msgQueueCapacity * expectedMsgMaxSize.
+    //       If the size of a single message is greater than expectedMsgMaxSize, the message can still be sent,
+    //       but if the size of a single message is greater than msgQueueCapacity * expectedMsgMaxSize, it will fail.
+    //
+    bool init(const std::string& channelName, uint32_t msgQueueCapacity = 200, uint32_t expectedMsgMaxSize = 10240);
 
     bool isInit() const;
 
@@ -63,7 +73,7 @@ class Veigar {
         Args... args);
 
     // Release resources.
-    // If using 'asyncCall' function, the caller must call the this function to release resources
+    // If using 'asyncCall' function with promise, the caller must call the this function to release resources
     //     when obtaining the 'CallResult' or when the call result is no longer related.
     void releaseCall(const std::string& callId);
 
