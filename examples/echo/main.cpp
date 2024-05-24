@@ -172,6 +172,7 @@ int main(int argc, char** argv) {
             int threadNum = 0;
             int callTimesEachThread = 0;
             int rwTimeout = 0;
+            bool allCallbackFinished = false;
             std::string targetChannels;
             std::vector<std::string> targetChannelList;
 
@@ -185,7 +186,7 @@ int main(int argc, char** argv) {
             if (targetChannelList.empty())
                 continue;
 
-            std::cout << "Async method(0/1): \n";
+            std::cout << "Call method(0 = Sync, 1 = Async with promise, 2 = Async with callback): \n";
             std::cin >> asyncMethod;
 
             std::cout << "Thread number for each target: \n";
@@ -199,13 +200,18 @@ int main(int argc, char** argv) {
 
             vg.setReadWriteTimeout(rwTimeout);
 
-            auto fn = [&vg, rwTimeout, channelName, asyncMethod, callTimesEachThread](std::size_t threadId, std::string targetChannel) {
-                int error = 0;
-                int success = 0;
-                int64_t totalUsed = 0;
+            auto fn = [&vg, &allCallbackFinished, rwTimeout, channelName, asyncMethod, callTimesEachThread](std::size_t threadId, std::string targetChannel) {
+                struct STATS {
+                    int error = 0;
+                    int success = 0;
+                    int64_t totalUsed = 0;
+                    int respTotal = 0;
+                };
+
+                STATS* stats = new STATS();
 
                 printf("[Thread %" PRId64 ", Target %s] Calling...\n", (int64_t)threadId, targetChannel.c_str());
-                
+
                 std::string msgPre = channelName + "_" + targetChannel + "_" + std::to_string(threadId) + "_";
                 for (int i = 0; i < callTimesEachThread; i++) {
                     std::string msg = msgPre + std::to_string(i);
@@ -216,7 +222,7 @@ int main(int argc, char** argv) {
                     if (asyncMethod == 0) {
                         ret = vg.syncCall(targetChannel, rwTimeout * 3, "echo", msg, i);
                     }
-                    else {
+                    else if (asyncMethod == 1) {
                         std::shared_ptr<veigar::AsyncCallResult> acr = vg.asyncCall(targetChannel, "echo", msg, i);
                         assert(acr);
                         if (acr) {
@@ -233,29 +239,69 @@ int main(int argc, char** argv) {
                             vg.releaseCall(acr->first);
                         }
                     }
+                    else if (asyncMethod == 2) {
+                        auto startCallTS = std::chrono::high_resolution_clock::now();
+                        vg.asyncCall(
+                            [&allCallbackFinished, threadId, targetChannel, callTimesEachThread, startCallTS, msg, i, stats](const veigar::CallResult& cr) {
+                                stats->respTotal++;
+                                int64_t used = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - startCallTS).count();
+                                stats->totalUsed += used;
 
-                    int64_t used = tm.elapsed();
-                    totalUsed += used;
+                                std::string expectResultStr = msg + "_" + std::to_string(i);
+                                if (cr.isSuccess() && cr.obj.get().as<std::string>() == expectResultStr) {
+                                    stats->success++;
+                                    if (used >= warnDelayMicroseconds) {
+                                        printf("[Thread %" PRId64 ", Target %s] Warning: call %d take long time: %" PRId64 "us >= %dus\n",
+                                               (int64_t)threadId, targetChannel.c_str(), i, stats->totalUsed, warnDelayMicroseconds);
+                                    }
+                                }
+                                else {
+                                    stats->error++;
+                                    std::cout << cr.errorMessage << std::endl;
+                                }
 
-                    std::string expectResultStr = msg + "_" + std::to_string(i);
-                    if (ret.isSuccess() && ret.obj.get().as<std::string>() == expectResultStr) {
-                        success++;
-                        if (used >= warnDelayMicroseconds) {
-                            printf("[Thread %" PRId64 ", Target %s] Warning: call %d take long time: %" PRId64 "us >= %dus\n",
-                                   (int64_t)threadId, targetChannel.c_str(), i, tm.elapsed(), warnDelayMicroseconds);
-                        }
+                                if (stats->respTotal == callTimesEachThread) {
+                                    printf("[Thread %" PRId64 ", Target %s] Total %d, Success %d, Error %d, Used: %" PRId64 "us, Average: %" PRId64 "us/call, %" PRId64 "call/s.\n\n",
+                                           (int64_t)threadId, targetChannel.c_str(),
+                                           callTimesEachThread, stats->success, stats->error, stats->totalUsed,
+                                           (int64_t)((double)stats->totalUsed / (double)callTimesEachThread),
+                                           (int64_t)(1000000.0 / ((double)stats->totalUsed / (double)callTimesEachThread)));
+
+                                    allCallbackFinished = true;
+                                }
+                            },
+                            targetChannel,
+                            "echo",
+                            msg,
+                            i);
                     }
-                    else {
-                        error++;
-                        std::cout << ret.errorMessage << std::endl;
+
+                    if (asyncMethod == 0 || asyncMethod == 1) {
+                        int64_t used = tm.elapsed();
+                        stats->totalUsed += used;
+
+                        std::string expectResultStr = msg + "_" + std::to_string(i);
+                        if (ret.isSuccess() && ret.obj.get().as<std::string>() == expectResultStr) {
+                            stats->success++;
+                            if (used >= warnDelayMicroseconds) {
+                                printf("[Thread %" PRId64 ", Target %s] Warning: call %d take long time: %" PRId64 "us >= %dus\n",
+                                       (int64_t)threadId, targetChannel.c_str(), i, tm.elapsed(), warnDelayMicroseconds);
+                            }
+                        }
+                        else {
+                            stats->error++;
+                            std::cout << ret.errorMessage << std::endl;
+                        }
                     }
                 }
 
-                printf("[Thread %" PRId64 ", Target %s] Total %d, Success %d, Error %d, Used: %" PRId64 "us, Average: %" PRId64 "us/call, %" PRId64 "call/s.\n\n",
-                       (int64_t)threadId, targetChannel.c_str(),
-                       callTimesEachThread, success, error, totalUsed,
-                       (int64_t)((double)totalUsed / (double)callTimesEachThread),
-                       (int64_t)(1000000.0 / ((double)totalUsed / (double)callTimesEachThread)));
+                if (asyncMethod == 0 || asyncMethod == 1) {
+                    printf("[Thread %" PRId64 ", Target %s] Total %d, Success %d, Error %d, Used: %" PRId64 "us, Average: %" PRId64 "us/call, %" PRId64 "call/s.\n\n",
+                           (int64_t)threadId, targetChannel.c_str(),
+                           callTimesEachThread, stats->success, stats->error, stats->totalUsed,
+                           (int64_t)((double)stats->totalUsed / (double)callTimesEachThread),
+                           (int64_t)(1000000.0 / ((double)stats->totalUsed / (double)callTimesEachThread)));
+                }
             };
 
             std::vector<std::shared_ptr<ThreadGroup>> threadGroups;
@@ -269,6 +315,12 @@ int main(int argc, char** argv) {
             for (auto tg : threadGroups) {
                 tg->joinAll();
             }
+
+            if (asyncMethod == 2) {
+                while (!allCallbackFinished)
+                    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            }
+
             threadGroups.clear();
         }
     }

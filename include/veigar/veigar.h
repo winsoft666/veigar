@@ -19,6 +19,7 @@
 #include "veigar/detail/meter.h"
 
 namespace veigar {
+
 class Veigar {
    public:
     Veigar() noexcept;
@@ -54,6 +55,13 @@ class Veigar {
         const std::string& funcName,
         Args... args);
 
+    template <typename... Args>
+    void asyncCall(
+        ResultCallback cb,
+        const std::string& targetChannel,
+        const std::string& funcName,
+        Args... args);
+
     // Release resources.
     // If using 'asyncCall' function, the caller must call the this function to release resources
     //     when obtaining the 'CallResult' or when the call result is no longer related.
@@ -65,8 +73,6 @@ class Veigar {
         uint32_t timeoutMS,
         const std::string& funcName,
         Args... args);
-
-    void waitAllResponse();
 
     // Set the timeout for reading and writing shared memory.
     // This timeout is different from the timeout in 'syncCall' function and it same as
@@ -93,12 +99,19 @@ class Veigar {
         const std::string& funcName,
         Args... args);
 
+    template <typename... Args>
+    void doAsyncCallWithCallback(
+        ResultCallback cb,
+        const std::string& targetChannel,
+        const std::string& funcName,
+        Args... args);
+
     bool sendCall(
         const std::string& channelName,
         std::shared_ptr<veigar_msgpack::sbuffer> buffer,
         const std::string& callId,
         const std::string& funcName,
-        std::shared_ptr<std::promise<CallResult>> p,
+        const ResultMeta& retMeta,
         std::string& errMsg);
 
    private:

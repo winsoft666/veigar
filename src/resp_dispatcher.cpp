@@ -80,9 +80,9 @@ void RespDispatcher::pushResp(const std::shared_ptr<veigar_msgpack::object_handl
     smh_->release();
 }
 
-void RespDispatcher::addOngoingCall(const std::string& callId, const std::shared_ptr<std::promise<CallResult>>& cr) {
+void RespDispatcher::addOngoingCall(const std::string& callId, const ResultMeta& retMeta) {
     ongoingCallsMutex_.lock();
-    ongoingCalls_[callId] = cr;
+    ongoingCalls_[callId] = retMeta;
     ongoingCallsMutex_.unlock();
 }
 
@@ -116,8 +116,9 @@ void RespDispatcher::dispatchRespThreadProc() {
             continue;
         }
 
-        std::shared_ptr<std::promise<CallResult>> callRetPromise = nullptr;
+        ResultMeta retMeta;
         CallResult callRet;
+        std::string callId;
         try {
             detail::Response::ResponseMsg r;
             obj->get().convert(r);
@@ -130,7 +131,7 @@ void RespDispatcher::dispatchRespThreadProc() {
                 continue;
             }
 
-            std::string callId = std::get<1>(r);
+            callId = std::get<1>(r);
             if (callId.empty()) {
                 veigar::log("Veigar: Warning: Call id is empty.\n");
                 continue;
@@ -138,12 +139,17 @@ void RespDispatcher::dispatchRespThreadProc() {
 
             ongoingCallsMutex_.lock();
             if (ongoingCalls_.find(callId) != ongoingCalls_.end()) {
-                callRetPromise = ongoingCalls_[callId];
+                retMeta = ongoingCalls_[callId];
+            }
+            else {
+                veigar::log("Veigar: Warning: Unable to find call: %s.\n", callId.c_str());
+                ongoingCallsMutex_.unlock();
+                continue;
             }
             ongoingCallsMutex_.unlock();
 
-            if (!callRetPromise) {
-                veigar::log("Veigar: Warning: Unable to find call: %s.\n", callId.c_str());
+            if (retMeta.metaType != 0 && retMeta.metaType != 1) {
+                veigar::log("Veigar: Warning: Invalid result meta type: %d.\n", retMeta.metaType);
                 continue;
             }
 
@@ -163,26 +169,20 @@ void RespDispatcher::dispatchRespThreadProc() {
             callRet.errorMessage = "An exception occurred during parsing response message.";
         }
 
-        if (callRetPromise) {
-            callRetPromise->set_value(std::move(callRet));
-        }
-    }
-}
-
-void RespDispatcher::waitAllResponse() {
-    std::lock_guard<std::mutex> lg(ongoingCallsMutex_);
-    try {
-        for (auto& c : ongoingCalls_) {
-            std::shared_ptr<std::promise<CallResult>> p = c.second;
-            if (p) {
-                auto future = p->get_future();
-                if (future.valid()) {
-                    future.wait();
-                }
+        if (retMeta.metaType == 0) {
+            assert(retMeta.p);
+            if (retMeta.p) {
+                retMeta.p->set_value(std::move(callRet));
             }
         }
-    } catch (std::exception& e) {
-        veigar::log("Veigar: Warning: An exception occurred during waiting all responses: %s.\n", e.what());
+        else if (retMeta.metaType == 1) {
+            assert(retMeta.cb);
+            if (retMeta.cb) {
+                retMeta.cb(callRet);
+            }
+
+            releaseCall(callId);
+        }
     }
 }
 }  // namespace veigar

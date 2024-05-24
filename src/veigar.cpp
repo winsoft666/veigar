@@ -542,12 +542,6 @@ std::vector<std::string> Veigar::bindNames() const {
     return callDisp_->names();
 }
 
-void Veigar::waitAllResponse() {
-    if (impl_->respDispatcher_) {
-        impl_->respDispatcher_->waitAllResponse();
-    }
-}
-
 bool Veigar::sendMessage(const std::string& targetChannel,
                          bool toCallQueue,
                          const uint8_t* buf,
@@ -579,14 +573,14 @@ bool Veigar::sendCall(const std::string& channelName,
                       std::shared_ptr<veigar_msgpack::sbuffer> buffer,
                       const std::string& callId,
                       const std::string& funcName,
-                      std::shared_ptr<std::promise<CallResult>> p,
+                      const ResultMeta& retMeta,
                       std::string& exceptionMsg) {
     assert(impl_);
     if (!impl_->respDispatcher_) {
         return false;
     }
 
-    impl_->respDispatcher_->addOngoingCall(callId, p);
+    impl_->respDispatcher_->addOngoingCall(callId, retMeta);
 
     return impl_->sendMessage(channelName,
                               true,
