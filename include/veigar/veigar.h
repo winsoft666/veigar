@@ -43,8 +43,8 @@ class Veigar {
     //       The maximum number of messages in the message queue.
     //       When push message to the queue, if the total number of messages is greater than this value, the first message will be discarded.
     // 
-    // expectedMsgMaxSize
-    //       The maximum number of bytes expected for a single message.
+    // expectedMsgMaxSize:
+    //       The maximum bytes expected for a single message.
     //       The total shared memory size is msgQueueCapacity * expectedMsgMaxSize.
     //       If the size of a single message is greater than expectedMsgMaxSize, the message can still be sent,
     //       but if the size of a single message is greater than msgQueueCapacity * expectedMsgMaxSize, it will fail.

@@ -96,14 +96,14 @@ class Veigar::Impl {
             }
 
             try {
-                recvCallThread_ = std::async(std::launch::async, &Impl::RecvCallThreadProc, this);
+                handleCallThread_ = std::async(std::launch::async, &Impl::HandleCallThreadProc, this);
             } catch (std::exception& e) {
                 veigar::log("Veigar: Error: An exception occurred during starting receive call thread: %s.\n", e.what());
                 break;
             }
 
             try {
-                recvRespThread_ = std::async(std::launch::async, &Impl::RecvReponseThreadProc, this);
+                handleRespThread_ = std::async(std::launch::async, &Impl::HandleReponseThreadProc, this);
             } catch (std::exception& e) {
                 veigar::log("Veigar: Error: An exception occurred during starting receive response thread: %s.\n", e.what());
                 break;
@@ -122,12 +122,12 @@ class Veigar::Impl {
                 respMsgQueue_->notifyRead();
             }
 
-            if (recvCallThread_.valid()) {
-                recvCallThread_.wait();
+            if (handleCallThread_.valid()) {
+                handleCallThread_.wait();
             }
 
-            if (recvRespThread_.valid()) {
-                recvRespThread_.wait();
+            if (handleRespThread_.valid()) {
+                handleRespThread_.wait();
             }
 
             if (callMsgQueue_) {
@@ -173,12 +173,12 @@ class Veigar::Impl {
             respMsgQueue_->notifyRead();
         }
 
-        if (recvCallThread_.valid()) {
-            recvCallThread_.wait();
+        if (handleCallThread_.valid()) {
+            handleCallThread_.wait();
         }
 
-        if (recvRespThread_.valid()) {
-            recvRespThread_.wait();
+        if (handleRespThread_.valid()) {
+            handleRespThread_.wait();
         }
 
         if (callMsgQueue_) {
@@ -279,10 +279,17 @@ class Veigar::Impl {
                 return false;
             }
 
-            if (!mq->pushBack(rwTimeout_.load(), buf, bufSize)) {
+            if (!mq->rwLock(rwTimeout_.load())) {
+                errMsg = "Get rw-lock timeout.";
+                return false;
+            }
+
+            if (!mq->pushBack(buf, bufSize)) {
+                mq->rwUnlock();
                 errMsg = "Unable to push message to queue.";
                 return false;
             }
+            mq->rwUnlock();
 
             return true;
         } catch (std::exception& e) {
@@ -292,7 +299,7 @@ class Veigar::Impl {
         }
     }
 
-    void RecvCallThreadProc() {
+    void HandleCallThreadProc() {
         void* recvBuf = malloc(recvCallBufSize_);
         if (!recvBuf) {
             veigar::log("Veigar: Error: Allocate receive call buffer(%d bytes) failed.\n", recvCallBufSize_);
@@ -310,8 +317,14 @@ class Veigar::Impl {
                 break;
             }
 
-            if (!callMsgQueue_->popFront(rwTimeout_.load(), recvBuf, recvCallBufSize_, written)) {
+            if (!callMsgQueue_->rwLock(rwTimeout_.load())) {
+                veigar::log("Veigar: Warning: Get rw-lock timeout when pop front from call message queue.\n");
+                continue;
+            }
+
+            if (!callMsgQueue_->popFront(recvBuf, recvCallBufSize_, written)) {
                 if (written <= 0) {
+                    callMsgQueue_->rwUnlock();
                     continue;
                 }
 
@@ -323,15 +336,19 @@ class Veigar::Impl {
 
                 recvBuf = malloc((size_t)written);
                 if (!recvBuf) {
+                    callMsgQueue_->rwUnlock();
                     veigar::log("Veigar: Error: Buffer size too small and reallocate %" PRId64 " bytes failed.\n", written);
                     continue;
                 }
 
                 recvCallBufSize_ = (uint32_t)written;
-                if (!callMsgQueue_->popFront(rwTimeout_.load(), recvBuf, recvCallBufSize_, written)) {
+                if (!callMsgQueue_->popFront(recvBuf, recvCallBufSize_, written)) {
+                    callMsgQueue_->rwUnlock();
                     continue;
                 }
             }
+
+            callMsgQueue_->rwUnlock();
 
             handleCallMessage(recvBuf, written);
         }
@@ -371,7 +388,7 @@ class Veigar::Impl {
         } while (true);
     }
 
-    void RecvReponseThreadProc() {
+    void HandleReponseThreadProc() {
         void* recvBuf = malloc(recvRespBufSize_);
         if (!recvBuf) {
             veigar::log("Veigar: Error: Allocate receive response buffer(%d bytes) failed.\n", recvRespBufSize_);
@@ -389,8 +406,14 @@ class Veigar::Impl {
                 break;
             }
 
-            if (!respMsgQueue_->popFront(rwTimeout_.load(), recvBuf, recvRespBufSize_, written)) {
+            if (!respMsgQueue_->rwLock(rwTimeout_.load())) {
+                veigar::log("Veigar: Warning: Get rw-lock timeout when pop front from response message queue.\n");
+                continue;
+            }
+
+            if (!respMsgQueue_->popFront(recvBuf, recvRespBufSize_, written)) {
                 if (written <= 0) {
+                    respMsgQueue_->rwUnlock();
                     continue;
                 }
 
@@ -402,15 +425,19 @@ class Veigar::Impl {
 
                 recvBuf = malloc((size_t)written);
                 if (!recvBuf) {
+                    respMsgQueue_->rwUnlock();
                     veigar::log("Veigar: Error: Buffer size too small and reallocate %" PRId64 " bytes failed.\n", written);
                     continue;
                 }
 
                 recvRespBufSize_ = (uint32_t)written;
-                if (!respMsgQueue_->popFront(rwTimeout_.load(), recvBuf, recvRespBufSize_, written)) {
+                if (!respMsgQueue_->popFront(recvBuf, recvRespBufSize_, written)) {
+                    respMsgQueue_->rwUnlock();
                     continue;
                 }
             }
+
+            respMsgQueue_->rwUnlock();
 
             handleReponseMessage(recvBuf, written);
         }
@@ -458,12 +485,16 @@ class Veigar::Impl {
     uint32_t recvCallBufSize_ = 0;
     uint32_t recvRespBufSize_ = 0;
 
-    std::atomic<uint32_t> rwTimeout_ = {260};  // ms
+    std::atomic<uint32_t> rwTimeout_ = 260;  // ms
 
-    std::atomic<uint32_t> callIndex_ = {0};
+    std::atomic<uint32_t> callIndex_ = 0;
     std::string channelName_;
     std::string uuid_;
 
+    // Each Veigar instance has a call queue and a response queue.
+    // If A need call B's function, A push the message to B's call message queue.
+    // If B has a response to A, B push the message to A's response message queue.
+    //
     std::shared_ptr<MessageQueue> callMsgQueue_;
     std::shared_ptr<MessageQueue> respMsgQueue_;
 
@@ -473,8 +504,8 @@ class Veigar::Impl {
     std::mutex targetRespMQsMutex_;
     std::unordered_map<std::string, std::shared_ptr<MessageQueue>> targetRespMsgQueues_;
 
-    std::shared_future<void> recvCallThread_;
-    std::shared_future<void> recvRespThread_;
+    std::shared_future<void> handleCallThread_;
+    std::shared_future<void> handleRespThread_;
     veigar_msgpack::unpacker callPac_;
     veigar_msgpack::unpacker respPac_;
 

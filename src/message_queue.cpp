@@ -130,11 +130,21 @@ bool MessageQueue::open(const std::string& path) {
     return result;
 }
 
+bool MessageQueue::rwLock(uint32_t timeoutMS) {
+    if (!rwLock_)
+        return false;
+    return rwLock_->lock(timeoutMS);
+}
+
+void MessageQueue::rwUnlock() {
+    rwLock_->unlock();
+}
+
 /*
 | Shm Total Size | Msg Number | Front Free Size | Msg 0 Size | Msg 1 Size | ... | Msg 0 Data | Msg 1 Data | ... |
 |      8         |      8     |       8         |    8       |    8       |     | Msg 0 Size | Msg 1 Size | ... |
 */
-bool MessageQueue::pushBack(uint32_t timeoutMS, const void* data, int64_t dataSize) {
+bool MessageQueue::pushBack(const void* data, int64_t dataSize) {
     bool ret = false;
 
     if (!data || dataSize <= 0) {
@@ -152,11 +162,6 @@ bool MessageQueue::pushBack(uint32_t timeoutMS, const void* data, int64_t dataSi
 #if (defined DEBUG) || (defined _DEBUG)
         assert(false);
 #endif
-    }
-
-    if (!rwLock_->lock(timeoutMS)) {
-        veigar::log("Veigar: Warning: Get rw-lock timeout when push back.\n");
-        return false;
     }
 
     do {
@@ -258,8 +263,6 @@ bool MessageQueue::pushBack(uint32_t timeoutMS, const void* data, int64_t dataSi
         ret = true;
     } while (false);
 
-    rwLock_->unlock();
-
     if (ret) {
         readSmp_->release();
     }
@@ -267,15 +270,10 @@ bool MessageQueue::pushBack(uint32_t timeoutMS, const void* data, int64_t dataSi
     return ret;
 }
 
-bool MessageQueue::popFront(uint32_t timeoutMS, void* buf, int64_t bufSize, int64_t& written) {
+bool MessageQueue::popFront(void* buf, int64_t bufSize, int64_t& written) {
     bool ret = false;
 
     if (!buf || bufSize <= 0) {
-        return false;
-    }
-
-    if (!rwLock_->lock(timeoutMS)) {
-        veigar::log("Veigar: Warning: Get rw-lock timeout when pop front.\n");
         return false;
     }
 
@@ -332,8 +330,6 @@ bool MessageQueue::popFront(uint32_t timeoutMS, void* buf, int64_t bufSize, int6
         ret = true;
     } while (false);
 
-    rwLock_->unlock();
-
     return ret;
 }
 
@@ -346,6 +342,10 @@ bool MessageQueue::wait(int64_t ms) {
 
 bool MessageQueue::isDiscardOldMsg() const {
     return discardOldMsg_;
+}
+
+bool MessageQueue::checkSpaceSufficient(int64_t dataSize) const {
+    return false;
 }
 
 void MessageQueue::close() {

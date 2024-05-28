@@ -31,3 +31,5 @@
 *.out
 *.app
 build/
+build-linux/
+build32/
