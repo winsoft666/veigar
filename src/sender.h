@@ -20,15 +20,15 @@ class Sender {
         ResultMeta resultMeta;
         uint8_t* data = nullptr;
         size_t dataSize = 0;
-        std::chrono::high_resolution_clock::time_point startCallTimePoint;
-        int64_t timeout = 0;  // microseconds
+        int64_t startCallTimePoint;  // microseconds
+        int64_t timeout = 0;         // microseconds
     };
     struct RespMeta {
         std::string channel;
         uint8_t* data = nullptr;
         size_t dataSize = 0;
-        std::chrono::high_resolution_clock::time_point startCallTimePoint;
-        int64_t timeout = 0;  // microseconds
+        int64_t startCallTimePoint;  // microseconds
+        int64_t timeout = 0;         // microseconds
     };
     Sender(Veigar* v) noexcept;
     ~Sender() noexcept = default;
@@ -53,7 +53,7 @@ class Sender {
 
     bool checkSpaceAndWait(std::shared_ptr<MessageQueue> mq,
                            int64_t needSize,
-                           const std::chrono::high_resolution_clock::time_point& startCallTimePoint,
+                           int64_t startCallTimePoint,
                            int64_t timeout);
 
    private:

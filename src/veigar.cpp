@@ -6,12 +6,14 @@
  * LICENSE file in the root directory of this source tree.
  */
 #include "veigar/veigar.h"
+#include <cstdlib>
 #include "uuid.h"
 #include "log.h"
 #include "message_queue.h"
 #include "time_util.h"
 #include "resp_dispatcher.h"
 #include "sender.h"
+#include "time_util.h"
 
 namespace veigar {
 class Veigar::Impl {
@@ -523,7 +525,8 @@ uint32_t Veigar::timeoutOfRWLock() const {
 std::string Veigar::getNextCallId(const std::string& funcName) const {
     assert(impl_);
     uint32_t idx = impl_->callIndex_.fetch_add(1);
-    return (impl_->uuid_ + "_" + funcName + "_" + std::to_string(idx));
+    std::string callId = impl_->uuid_ + funcName + std::to_string((unsigned long)idx);
+    return callId;
 }
 
 bool Veigar::sendCall(const std::string& channelName,
@@ -542,16 +545,19 @@ bool Veigar::sendCall(const std::string& channelName,
     cm.channel = channelName;
     cm.callId = callId;
     cm.resultMeta = retMeta;
-    cm.dataSize = buffer->size();
-    cm.data = (uint8_t*)malloc(buffer->size());
+    cm.dataSize = buffer ? buffer->size() : 0;
+    cm.data = (uint8_t*)malloc(cm.dataSize);
     if (!cm.data) {
         exceptionMsg = "Unable to allocate memory.";
         return false;
     }
-    memcpy(cm.data, buffer->data(), buffer->size());
+
+    if (buffer) {
+        memcpy(cm.data, buffer->data(), cm.dataSize);
+    }
 
     cm.timeout = timeoutMS * 1000;
-    cm.startCallTimePoint = std::chrono::high_resolution_clock::now();
+    cm.startCallTimePoint = TimeUtil::GetCurrentTimestamp();
 
     impl_->sender_->addCall(cm);
 
@@ -578,7 +584,7 @@ bool Veigar::sendResponse(const std::string& targetChannel,
     memcpy(rm.data, buf, bufSize);
 
     rm.timeout = VEIGAR_WRITE_RESPONSE_QUEUE_TIMEOUT * 1000;
-    rm.startCallTimePoint = std::chrono::high_resolution_clock::now();
+    rm.startCallTimePoint = TimeUtil::GetCurrentTimestamp();
 
     impl_->sender_->addResp(rm);
 

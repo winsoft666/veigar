@@ -1,8 +1,8 @@
 #include "sender.h"
-#include <chrono>
 #include "log.h"
 #include "string_helper.h"
 #include "veigar/veigar.h"
+#include "time_util.h"
 
 namespace veigar {
 Sender::Sender(Veigar* v) noexcept :
@@ -152,7 +152,7 @@ std::shared_ptr<MessageQueue> Sender::getTargetRespMessageQueue(const std::strin
 
 void Sender::callSendThreadProc() {
     std::string errMsg;
-    while (!stopEvent_.wait(30)) {
+    while (!stopEvent_.wait(5)) {
         CallMeta cm;
         callListMutex_.lock();
         if (callList_.empty()) {
@@ -243,7 +243,7 @@ void Sender::callSendThreadProc() {
 
 void Sender::respSendThreadProc() {
     std::string errMsg;
-    while (!stopEvent_.wait(30)) {
+    while (!stopEvent_.wait(5)) {
         RespMeta rm;
         respListMutex_.lock();
         if (respList_.empty()) {
@@ -295,17 +295,16 @@ void Sender::respSendThreadProc() {
             if (mq) {
                 mq->rwUnlock();  // always try to unlock again
             }
-            veigar::log("Veigar: Error: An exception occurred during pushing message to response queue: %s.\n", e.what());
             errMsg = StringHelper::StringPrintf("An exception occurred during pushing message to response queue: %s.", e.what());
         } catch (...) {
             if (mq) {
                 mq->rwUnlock();  // always try to unlock again
             }
-            veigar::log("Veigar: Error: An exception occurred during pushing message to response queue.\n");
             errMsg = "An exception occurred during parsing pushing message to response queue.";
         }
 
         if (ec != ErrorCode::SUCCESS) {
+            veigar::log("Veigar: Error: Send response failed: %s\n", errMsg.c_str());
         }
 
         if (rm.data) {
@@ -316,7 +315,7 @@ void Sender::respSendThreadProc() {
 
 bool Sender::checkSpaceAndWait(std::shared_ptr<MessageQueue> mq,
                                int64_t needSize,
-                               const std::chrono::high_resolution_clock::time_point& startCallTimePoint,
+                               int64_t startCallTimePoint,
                                int64_t timeout) {
     bool result = false;
     do {
@@ -330,7 +329,7 @@ bool Sender::checkSpaceAndWait(std::shared_ptr<MessageQueue> mq,
             break;
         }
 
-        int64_t used = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - startCallTimePoint).count();
+        int64_t used = TimeUtil::GetCurrentTimestamp() - startCallTimePoint;
         if (used >= timeout) {
             break;
         }

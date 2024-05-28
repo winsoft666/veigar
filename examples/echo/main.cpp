@@ -79,7 +79,6 @@ gVsPnzU5oqkOD3aNUCEs74gxRWQGR0iv9A17Fsnwgd44UBxOnAIlFXaNLZyn3reVSQJQnWpag8Wa)";
 const uint32_t warnDelayMicroseconds = 6000000;  // 6000ms
 
 std::string TimeToHuman(int64_t microseconds) {
-    //printf("TimeToHuman %d\n", microseconds);
     int64_t hour = microseconds / 3600000000;
     int64_t min = (microseconds % 3600000000) / 60000000;
     int64_t sec = (microseconds % 60000000) / 1000000;
@@ -119,22 +118,6 @@ std::vector<std::string> StringSplit(const std::string& src, const std::string& 
     return fields;
 }
 
-std::string genRandomString(const uint32_t len) {
-    srand((uint32_t)time(nullptr) + len);
-    static const char alphanum[] =
-        "0123456789"
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        "abcdefghijklmnopqrstuvwxyz";
-    std::string ret;
-    ret.reserve(len);
-
-    for (uint32_t i = 0; i < len; ++i) {
-        ret += alphanum[rand() % (sizeof(alphanum) - 1)];
-    }
-
-    return ret;
-}
-
 struct STATS {
     std::atomic<int64_t> error = 0;
     std::atomic<int64_t> success = 0;
@@ -160,7 +143,7 @@ int main(int argc, char** argv) {
 
     while (true) {
         if (channelName.empty()) {
-            std::cout << "Channel Name:";
+            std::cout << "Channel Name: ";
             std::cin >> channelName;
 
             if (channelName.empty()) {
@@ -183,7 +166,8 @@ int main(int argc, char** argv) {
                     if (outputRecv != 0) {
                         std::cout << "RECV:" << msg << std::endl;
                     }
-                    return msg + "_" + std::to_string(id);
+                    return msg;
+                    //return msg + "_" + std::to_string(id);
                 })) {
                 printf("Bind echo function failed.\n");
                 continue;
@@ -204,7 +188,7 @@ int main(int argc, char** argv) {
             std::atomic<int64_t> respTotal = 0;
             std::vector<STATS*> statsList;
 
-            std::cout << "Target channel names (Split by comma):\n";
+            std::cout << "Target channel names (Split by comma): ";
             std::cin >> targetChannels;
 
             if (targetChannels == "quit")
@@ -214,16 +198,16 @@ int main(int argc, char** argv) {
             if (targetChannelList.empty())
                 continue;
 
-            std::cout << "Timeout(ms):\n";
+            std::cout << "Timeout (ms):";
             std::cin >> callTimeout;
 
-            std::cout << "Call method(0 = Sync, 1 = Async with promise, 2 = Async with callback): \n";
+            std::cout << "Call method (0 = Sync, 1 = Async with promise, 2 = Async with callback): ";
             std::cin >> callMethod;
 
-            std::cout << "Thread number for each target: \n";
+            std::cout << "The number of threads calling the target function: ";
             std::cin >> threadNum;
 
-            std::cout << "Call times each of thread: \n";
+            std::cout << "The number of calls per thread: ";
             std::cin >> callTimesEachThread;
 
             auto fn = [&vg, &statsList, &respTotal, callTimeout, channelName, callMethod, callTimesEachThread](std::size_t threadId, std::string targetChannel) {
@@ -232,18 +216,15 @@ int main(int argc, char** argv) {
 
                 printf("[Thread %" PRId64 ", Target %s] Calling...\n", (int64_t)threadId, targetChannel.c_str());
 
-                std::string msgPre = channelName + "_" + targetChannel + "_" + std::to_string(threadId) + "_";
                 for (int i = 0; i < callTimesEachThread; i++) {
-                    std::string msg = msgPre + std::to_string(i);
-
                     veigar::detail::TimeMeter tm;
                     veigar::CallResult ret;
 
                     if (callMethod == 0) {
-                        ret = vg.syncCall(targetChannel, callTimeout, "echo", msg, i);
+                        ret = vg.syncCall(targetChannel, callTimeout, "echo", str1046, i);
                     }
                     else if (callMethod == 1) {  // Async with promise
-                        std::shared_ptr<veigar::AsyncCallResult> acr = vg.asyncCall(targetChannel, callTimeout, "echo", msg, i);
+                        std::shared_ptr<veigar::AsyncCallResult> acr = vg.asyncCall(targetChannel, callTimeout, "echo", str1046, i);
                         assert(acr);
                         if (acr) {
                             if (acr->second.valid()) {
@@ -260,12 +241,11 @@ int main(int argc, char** argv) {
                         }
                     }
                     else if (callMethod == 2) {  // Async with callback
-                        std::string expectResultStr = msg + "_" + std::to_string(i);
                         auto startCallTS = std::chrono::high_resolution_clock::now();
                         vg.asyncCall(
-                            [&respTotal, threadId, targetChannel, callTimesEachThread, startCallTS, i, expectResultStr, stats](const veigar::CallResult& cr) {
+                            [&respTotal, threadId, targetChannel, callTimesEachThread, startCallTS, i, stats](const veigar::CallResult& cr) {
                                 int64_t used = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - startCallTS).count();
-                                if (cr.isSuccess() && cr.obj.get().as<std::string>() == expectResultStr) {
+                                if (cr.isSuccess() && cr.obj.get().as<std::string>() == str1046) {
                                     stats->success++;
                                     if (used >= warnDelayMicroseconds) {
                                         printf("[Thread %" PRId64 ", Target %s] Warning: call %d take long time: %s >= %s\n",
@@ -280,15 +260,14 @@ int main(int argc, char** argv) {
 
                                 respTotal++;
                             },
-                            targetChannel, callTimeout, "echo", msg, i);
+                            targetChannel, callTimeout, "echo", str1046, i);
                     }
 
                     if (callMethod == 0 || callMethod == 1) {
                         int64_t used = tm.elapsed();
                         stats->totalUsed += used;
 
-                        std::string expectResultStr = msg + "_" + std::to_string(i);
-                        if (ret.isSuccess() && ret.obj.get().as<std::string>() == expectResultStr) {
+                        if (ret.isSuccess() && ret.obj.get().as<std::string>() == str1046) {
                             stats->success++;
                             if (used >= warnDelayMicroseconds) {
                                 printf("[Thread %" PRId64 ", Target %s] Warning: call %d take long time: %s >= %s\n",
