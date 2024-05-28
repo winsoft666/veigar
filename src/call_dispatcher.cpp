@@ -216,7 +216,8 @@ void CallDispatcher::dispatchThreadProc() {
             }
 
             errMsg.clear();
-            if (!parent_->sendMessage(callerChannelName, false, (const uint8_t*)respBuf.data(), respBuf.size(), errMsg)) {
+
+            if (!parent_->sendResponse(callerChannelName, (const uint8_t*)respBuf.data(), respBuf.size(), errMsg)) {
                 veigar::log("Veigar: Error: Send response to caller failed, caller: %s, error: %s.\n",
                             callerChannelName.c_str(), errMsg.c_str());
             }

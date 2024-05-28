@@ -71,7 +71,7 @@ using AsyncCallResult = std::pair<std::string /* call id*/, std::future<CallResu
 
 typedef std::function<void(const CallResult&)> ResultCallback;
 struct ResultMeta {
-    int8_t metaType = 0;  // 0 = promise 1 = callback
+    int8_t metaType = 0;  // 0 = promise, 1 = callback
     std::shared_ptr<std::promise<CallResult>> p;
     ResultCallback cb;
 };

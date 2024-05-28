@@ -42,7 +42,7 @@ class Veigar {
     // msgQueueCapacity:
     //       The maximum number of messages in the message queue.
     //       When push message to the queue, if the total number of messages is greater than this value, the first message will be discarded.
-    // 
+    //
     // expectedMsgMaxSize:
     //       The maximum bytes expected for a single message.
     //       The total shared memory size is msgQueueCapacity * expectedMsgMaxSize.
@@ -55,6 +55,10 @@ class Veigar {
 
     void uninit();
 
+    uint32_t msgQueueCapacity() const;
+
+    uint32_t expectedMsgMaxSize() const;
+
     std::string channelName() const;
 
     std::vector<std::string> bindNames() const;
@@ -62,6 +66,7 @@ class Veigar {
     template <typename... Args>
     std::shared_ptr<AsyncCallResult> asyncCall(
         const std::string& targetChannel,
+        uint32_t timeoutMS,
         const std::string& funcName,
         Args... args);
 
@@ -69,6 +74,7 @@ class Veigar {
     void asyncCall(
         ResultCallback cb,
         const std::string& targetChannel,
+        uint32_t timeoutMS,
         const std::string& funcName,
         Args... args);
 
@@ -84,20 +90,12 @@ class Veigar {
         const std::string& funcName,
         Args... args);
 
-    // Set the timeout for reading and writing shared memory.
-    // This timeout is different from the timeout in 'syncCall' function and it same as
-    //    the timeout in 'sendMessage' function.
+    // Set the timeout for obtaining read/write locks.
+    // This timeout is different from the timeout in 'syncCall' or 'asyncCall' functions.
     //
     // Default is 260ms.
-    void setReadWriteTimeout(uint32_t ms);
-    uint32_t readWriteTimeout() const;
-
-    bool sendMessage(
-        const std::string& targetChannel,
-        bool toCallQueue,
-        const uint8_t* buf,
-        size_t bufSize,
-        std::string& errMsg);
+    void setTimeoutOfRWLock(uint32_t ms);
+    uint32_t timeoutOfRWLock() const;
 
    private:
     std::string getNextCallId(const std::string& funcName) const;
@@ -106,6 +104,7 @@ class Veigar {
     template <typename... Args>
     std::shared_ptr<AsyncCallResult> doAsyncCall(
         const std::string& targetChannel,
+        uint32_t timeoutMS,
         const std::string& funcName,
         Args... args);
 
@@ -113,21 +112,31 @@ class Veigar {
     void doAsyncCallWithCallback(
         ResultCallback cb,
         const std::string& targetChannel,
+        uint32_t timeoutMS,
         const std::string& funcName,
         Args... args);
 
     bool sendCall(
         const std::string& channelName,
+        uint32_t timeoutMS,
         std::shared_ptr<veigar_msgpack::sbuffer> buffer,
         const std::string& callId,
         const std::string& funcName,
         const ResultMeta& retMeta,
         std::string& errMsg);
 
+    bool sendResponse(
+        const std::string& targetChannel,
+        const uint8_t* buf,
+        size_t bufSize,
+        std::string& errMsg);
+
    private:
     class Impl;
     Impl* impl_ = nullptr;
     std::shared_ptr<detail::CallDispatcher> callDisp_;
+
+    friend class detail::CallDispatcher;
 };
 }  // namespace veigar
 

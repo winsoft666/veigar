@@ -344,8 +344,53 @@ bool MessageQueue::isDiscardOldMsg() const {
     return discardOldMsg_;
 }
 
-bool MessageQueue::checkSpaceSufficient(int64_t dataSize) const {
-    return false;
+bool MessageQueue::checkSpaceSufficient(int64_t dataSize, bool& waitable) const {
+    assert(msgMaxNumber_ > 0);
+    if (msgMaxNumber_ * msgExpectedMaxSize_ < dataSize) {
+        waitable = false;
+        veigar::log("Veigar: Error: The data size has exceeded the total size of the message queue. Please adjust the parameters of the message queue.\n");
+        return false;
+    }
+
+    bool result = false;
+    waitable = true;
+
+    do {
+        uint8_t* const shmData = shm_->data();
+        assert(shmData);
+        if (!shmData) {
+            break;
+        }
+
+        int64_t* const p64 = (int64_t*)shmData;
+        if (!p64) {
+            break;
+        }
+
+        int64_t* const pShmSize = p64;
+        int64_t* const pCurMsgNumber = p64 + 1;
+        int64_t* const pFrontFree = p64 + 2;
+        int64_t* const pFirstMsgDataSize = p64 + 3;
+
+        int64_t msgSizeHeaderTotalSize = msgMaxNumber_ * sizeof(int64_t);
+        uint8_t* const pFirstMsgData = shmData + msgSizeHeaderTotalSize + sizeof(int64_t) * 3;
+
+        int64_t msgDataTotalSize = 0L;
+        if (*pCurMsgNumber > 0) {
+            for (int64_t i = 0; i < *pCurMsgNumber; i++) {
+                msgDataTotalSize += *(pFirstMsgDataSize + i);
+            }
+        }
+
+        int64_t totalFree = *pShmSize - msgSizeHeaderTotalSize - sizeof(int64_t) * 3 - msgDataTotalSize;
+        if (totalFree < dataSize) {
+            break;
+        }
+
+        result = true;
+    } while (false);
+
+    return result;
 }
 
 void MessageQueue::close() {

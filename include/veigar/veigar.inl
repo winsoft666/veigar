@@ -16,18 +16,20 @@ bool Veigar::bind(const std::string& funcName, F func) {
 
 template <typename... Args>
 std::shared_ptr<AsyncCallResult> Veigar::asyncCall(const std::string& targetChannel,
+                                                   uint32_t timeoutMS,
                                                    const std::string& funcName,
                                                    Args... args) {
-    return doAsyncCall(targetChannel, funcName, std::forward<Args>(args)...);
+    return doAsyncCall(targetChannel, timeoutMS, funcName, std::forward<Args>(args)...);
 }
 
 template <typename... Args>
 void Veigar::asyncCall(
     ResultCallback cb,
     const std::string& targetChannel,
+    uint32_t timeoutMS,
     const std::string& funcName,
     Args... args) {
-    doAsyncCallWithCallback(cb, targetChannel, funcName, std::forward<Args>(args)...);
+    doAsyncCallWithCallback(cb, targetChannel, timeoutMS, funcName, std::forward<Args>(args)...);
 }
 
 template <typename... Args>
@@ -35,28 +37,16 @@ CallResult Veigar::syncCall(const std::string& targetChannel,
                             uint32_t timeoutMS,
                             const std::string& funcName,
                             Args... args) {
-    std::shared_ptr<AsyncCallResult> acr = doAsyncCall(targetChannel, funcName, std::forward<Args>(args)...);
+    std::shared_ptr<AsyncCallResult> acr = doAsyncCall(targetChannel, timeoutMS, funcName, std::forward<Args>(args)...);
     if (!acr || !acr->second.valid()) {
         if (acr) {
             releaseCall(acr->first);
         }
 
-        CallResult callRet;
-        callRet.errCode = ErrorCode::FAILED;
-        callRet.errorMessage = "Unknown Error.";
-        return callRet;
-    }
-
-    if (timeoutMS > 0) {
-        auto waitResult = acr->second.wait_for(std::chrono::milliseconds(timeoutMS));
-        if (waitResult == std::future_status::timeout) {
-            releaseCall(acr->first);
-
-            CallResult callRet;
-            callRet.errCode = ErrorCode::TIMEOUT;
-            callRet.errorMessage = "Timeout.";
-            return callRet;
-        }
+        CallResult cr;
+        cr.errCode = ErrorCode::FAILED;
+        cr.errorMessage = "Unknown Error.";
+        return cr;
     }
 
     CallResult callRet = acr->second.get();
@@ -68,6 +58,7 @@ CallResult Veigar::syncCall(const std::string& targetChannel,
 
 template <typename... Args>
 std::shared_ptr<AsyncCallResult> Veigar::doAsyncCall(const std::string& targetChannel,
+                                                     uint32_t timeoutMS,
                                                      const std::string& funcName,
                                                      Args... args) {
     CallResult failedRet;
@@ -98,7 +89,7 @@ std::shared_ptr<AsyncCallResult> Veigar::doAsyncCall(const std::string& targetCh
         retMeta.p = p;
 
         std::string errMsg;
-        if (!sendCall(targetChannel, buffer, callId, funcName, retMeta, errMsg)) {
+        if (!sendCall(targetChannel, timeoutMS, buffer, callId, funcName, retMeta, errMsg)) {
             if (errMsg.empty()) {
                 failedRet.errorMessage = "Send failed: Unknown.";
             }
@@ -122,6 +113,7 @@ template <typename... Args>
 void Veigar::doAsyncCallWithCallback(
     ResultCallback cb,
     const std::string& targetChannel,
+    uint32_t timeoutMS,
     const std::string& funcName,
     Args... args) {
     CallResult failedRet;
@@ -150,7 +142,7 @@ void Veigar::doAsyncCallWithCallback(
         retMeta.cb = cb;
 
         std::string errMsg;
-        if (!sendCall(targetChannel, buffer, callId, funcName, retMeta, errMsg)) {
+        if (!sendCall(targetChannel, timeoutMS, buffer, callId, funcName, retMeta, errMsg)) {
             if (errMsg.empty()) {
                 failedRet.errorMessage = "Send failed: Unknown.";
             }

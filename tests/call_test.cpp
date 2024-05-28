@@ -113,14 +113,14 @@ TEST_CASE("call-async-1") {
 
     veigar::Veigar vg2;
     CHECK(vg2.init("109F8B35-2"));
-    std::shared_ptr<veigar::AsyncCallResult> acr1 = vg2.asyncCall("109F8B35-1", "func1", "s1", "s2");
+    std::shared_ptr<veigar::AsyncCallResult> acr1 = vg2.asyncCall("109F8B35-1", 100, "func1", "s1", "s2");
     CHECK(acr1);
     CHECK(acr1->second.valid());
     CHECK(acr1->second.wait_for(std::chrono::milliseconds(100)) != std::future_status::timeout);
     CHECK(acr1->second.get().obj.get().as<int>() == 4);
     vg2.releaseCall(acr1->first);
 
-    std::shared_ptr<veigar::AsyncCallResult> acr2 = vg2.asyncCall("109F8B35-1-not-exist", "func1", "s1", "s2");
+    std::shared_ptr<veigar::AsyncCallResult> acr2 = vg2.asyncCall("109F8B35-1-not-exist", 100, "func1", "s1", "s2");
     CHECK(acr2);
     CHECK(acr2->second.valid());
     CHECK(acr2->second.wait_for(std::chrono::milliseconds(100)) != std::future_status::timeout);
@@ -142,7 +142,7 @@ TEST_CASE("call-async-2") {
     veigar::Veigar vg2;
     CHECK(vg2.init("109F8B35-4"));
 
-    std::shared_ptr<veigar::AsyncCallResult> acr = vg2.asyncCall("109F8B35-3", "func1", "s1", "s2");
+    std::shared_ptr<veigar::AsyncCallResult> acr = vg2.asyncCall("109F8B35-3", 100, "func1", "s1", "s2");
     CHECK(acr);
     CHECK(acr->second.valid());
     CHECK(acr->second.wait_for(std::chrono::milliseconds(2000)) != std::future_status::timeout);
@@ -166,7 +166,7 @@ TEST_CASE("call-async-3") {
     veigar::Veigar vg2;
     CHECK(vg2.init("109F8B35-6"));
 
-    std::shared_ptr<veigar::AsyncCallResult> acr = vg2.asyncCall("109F8B35-5", "func1", "s1", "s2");
+    std::shared_ptr<veigar::AsyncCallResult> acr = vg2.asyncCall("109F8B35-5", 100, "func1", "s1", "s2");
     CHECK(acr);
     CHECK(acr->second.valid());
     CHECK(acr->second.wait_for(std::chrono::milliseconds(500)) == std::future_status::timeout);
@@ -179,7 +179,7 @@ TEST_CASE("call-async-3") {
 TEST_CASE("call-async-recursion") {
     veigar::Veigar vg1;
     vg1.bind("vg1-func", [&vg1](std::string s1, std::string s2) {
-        std::shared_ptr<veigar::AsyncCallResult> acr1 = vg1.asyncCall("109F8B35-8", "vg2-func", "ss1", "ss2");
+        std::shared_ptr<veigar::AsyncCallResult> acr1 = vg1.asyncCall("109F8B35-8", 100, "vg2-func", "ss1", "ss2");
         CHECK(acr1);
         CHECK(acr1->second.valid());
         CHECK(acr1->second.wait_for(std::chrono::milliseconds(500)) != std::future_status::timeout);
@@ -201,7 +201,7 @@ TEST_CASE("call-async-recursion") {
     });
     CHECK(vg2.init("109F8B35-8"));
 
-    std::shared_ptr<veigar::AsyncCallResult> acr2 = vg2.asyncCall("109F8B35-7", "vg1-func", "s1", "s2");
+    std::shared_ptr<veigar::AsyncCallResult> acr2 = vg2.asyncCall("109F8B35-7", 100, "vg1-func", "s1", "s2");
     CHECK(acr2);
     CHECK(acr2->second.valid());
     CHECK(acr2->second.wait_for(std::chrono::milliseconds(500)) != std::future_status::timeout);

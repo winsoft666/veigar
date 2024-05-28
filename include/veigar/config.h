@@ -13,7 +13,7 @@
 namespace veigar {
 
 static constexpr unsigned VERSION_MAJOR = 1;
-static constexpr unsigned VERSION_MINOR = 3;
+static constexpr unsigned VERSION_MINOR = 5;
 
 }  // namespace veigar
 
@@ -21,8 +21,28 @@ static constexpr unsigned VERSION_MINOR = 3;
 #define MSGPACK_NO_BOOST
 #endif
 
+#ifndef VEIGAR_CALL_QUEUE_NAME_SUFFIX
+#define VEIGAR_CALL_QUEUE_NAME_SUFFIX "_call"
+#endif
+
+#ifndef VEIGAR_RESPONSE_QUEUE_NAME_SUFFIX
+#define VEIGAR_RESPONSE_QUEUE_NAME_SUFFIX "_resp"
+#endif
+
 #ifndef VEIGAR_DISPATCHER_THREAD_NUMBER
-#define VEIGAR_DISPATCHER_THREAD_NUMBER 6
+#define VEIGAR_DISPATCHER_THREAD_NUMBER 3
+#endif
+
+#ifndef VEIGAR_SEND_CALL_THREAD_NUMBER
+#define VEIGAR_SEND_CALL_THREAD_NUMBER 3
+#endif
+
+#ifndef VEIGAR_SEND_RESPONSE_THREAD_NUMBER
+#define VEIGAR_SEND_RESPONSE_THREAD_NUMBER 3
+#endif
+
+#ifndef VEIGAR_WRITE_RESPONSE_QUEUE_TIMEOUT
+#define VEIGAR_WRITE_RESPONSE_QUEUE_TIMEOUT 1500 // ms
 #endif
 
 #endif  // !VEIGAR_CONFIG_H_

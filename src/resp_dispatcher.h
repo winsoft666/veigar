@@ -24,6 +24,7 @@
 namespace veigar {
 class Veigar;
 
+// Return the response message to the corresponding caller.
 class RespDispatcher {
    public:
     RespDispatcher(Veigar* parent) noexcept;
@@ -52,7 +53,7 @@ class RespDispatcher {
     std::queue<std::shared_ptr<veigar_msgpack::object_handle>> objs_;
     std::mutex objsMutex_;
 
-    std::atomic_bool stop_ = {false};
+    std::atomic_bool stop_ = false;
     std::shared_ptr<Semaphore> smh_ = nullptr;
 };
 }  // namespace veigar

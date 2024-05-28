@@ -11,21 +11,16 @@
 #include "message_queue.h"
 #include "time_util.h"
 #include "resp_dispatcher.h"
+#include "sender.h"
 
 namespace veigar {
-const std::string kCallQueueSuffix = "_call";
-const std::string kRespQueueSuffix = "_resp";
-
 class Veigar::Impl {
    public:
-    Impl(Veigar* parent) :
-        parent_(parent) {
-        respDispatcher_ = std::make_shared<RespDispatcher>(parent_);
+    Impl(Veigar* veigar) noexcept :
+        veigar_(veigar) {
     }
 
-    ~Impl() {
-        respDispatcher_.reset();
-    }
+    ~Impl() noexcept = default;
 
     bool init(const std::string& channelName, uint32_t msgQueueCapacity, uint32_t expectedMsgMaxSize) {
         if (isInit_) {
@@ -54,8 +49,11 @@ class Veigar::Impl {
                 break;
             }
 
-            assert(parent_->callDisp_);
-            if (!parent_->callDisp_->init()) {
+            respDispatcher_ = std::make_shared<RespDispatcher>(veigar_);
+            sender_ = std::make_shared<Sender>(veigar_);
+
+            assert(veigar_->callDisp_);
+            if (!veigar_->callDisp_->init()) {
                 veigar::log("Veigar: Error: Init call dispatcher failed.\n");
                 break;
             }
@@ -67,14 +65,20 @@ class Veigar::Impl {
             }
 
             callMsgQueue_ = std::make_shared<MessageQueue>(true, msgQueueCapacity, expectedMsgMaxSize);
-            if (!callMsgQueue_->create(channelName_ + kCallQueueSuffix)) {
+            if (!callMsgQueue_->create(channelName_ + VEIGAR_CALL_QUEUE_NAME_SUFFIX)) {
                 veigar::log("Veigar: Error: Create call message queue(%s) failed.\n", channelName_.c_str());
                 break;
             }
 
             respMsgQueue_ = std::make_shared<MessageQueue>(true, msgQueueCapacity, expectedMsgMaxSize);
-            if (!respMsgQueue_->create(channelName_ + kRespQueueSuffix)) {
+            if (!respMsgQueue_->create(channelName_ + VEIGAR_RESPONSE_QUEUE_NAME_SUFFIX)) {
                 veigar::log("Veigar: Error: Create response message queue(%s) failed.\n", channelName_.c_str());
+                break;
+            }
+
+            assert(sender_);
+            if (!sender_->init(respDispatcher_, callMsgQueue_, respMsgQueue_)) {
+                veigar::log("Veigar: Error: Init sender failed.\n");
                 break;
             }
 
@@ -140,16 +144,23 @@ class Veigar::Impl {
                 respMsgQueue_.reset();
             }
 
-            if (parent_->callDisp_->isInit()) {
-                parent_->callDisp_->uninit();
+            if (veigar_->callDisp_->isInit()) {
+                veigar_->callDisp_->uninit();
             }
 
             if (respDispatcher_->isInit()) {
                 respDispatcher_->uninit();
             }
 
+            if (sender_->isInit()) {
+                sender_->uninit();
+            }
+
             uuid_.clear();
             channelName_.clear();
+
+            sender_.reset();
+            respDispatcher_.reset();
         }
         else {
             veigar::log("Veigar: Init success, channel: %s, uuid: %s.\n", channelName_.c_str(), uuid_.c_str());
@@ -191,112 +202,28 @@ class Veigar::Impl {
             respMsgQueue_.reset();
         }
 
-        targetCallMQsMutex_.lock();
-        for (auto it : targetCallMsgQueues_) {
-            if (it.second) {
-                it.second->close();
+        assert(sender_);
+        if (sender_) {
+            if (sender_->isInit()) {
+                sender_->uninit();
             }
+            sender_.reset();
         }
-        targetCallMsgQueues_.clear();
-        targetCallMQsMutex_.unlock();
 
-        targetRespMQsMutex_.lock();
-        for (auto it : targetRespMsgQueues_) {
-            if (it.second) {
-                it.second->close();
-            }
-        }
-        targetRespMsgQueues_.clear();
-        targetRespMQsMutex_.unlock();
-
-        assert(parent_ && parent_->callDisp_);
-        if (parent_->callDisp_->isInit()) {
-            parent_->callDisp_->uninit();
+        assert(veigar_ && veigar_->callDisp_);
+        if (veigar_->callDisp_->isInit()) {
+            veigar_->callDisp_->uninit();
         }
 
         assert(respDispatcher_);
-        if (respDispatcher_->isInit()) {
-            respDispatcher_->uninit();
+        if (respDispatcher_) {
+            if (respDispatcher_->isInit()) {
+                respDispatcher_->uninit();
+            }
+            respDispatcher_.reset();
         }
 
         isInit_ = false;
-    }
-
-    std::shared_ptr<MessageQueue> getTargetCallMessageQueue(const std::string& channelName) {
-        std::lock_guard<std::mutex> lg(targetCallMQsMutex_);
-        std::shared_ptr<MessageQueue> queue = nullptr;
-        auto it = targetCallMsgQueues_.find(channelName);
-        if (it != targetCallMsgQueues_.cend()) {
-            return it->second;
-        }
-
-        queue = std::make_shared<MessageQueue>(true, msgQueueCapacity_, expectedMsgMaxSize_);
-        if (!queue->open(channelName + kCallQueueSuffix)) {
-            queue.reset();
-            veigar::log("Veigar: Error: Open call message queue(%s) failed.\n", channelName.c_str());
-            return nullptr;
-        }
-
-        targetCallMsgQueues_[channelName] = queue;
-        return queue;
-    }
-
-    std::shared_ptr<MessageQueue> getTargetRespMessageQueue(const std::string& channelName) {
-        std::lock_guard<std::mutex> lg(targetRespMQsMutex_);
-        std::shared_ptr<MessageQueue> queue = nullptr;
-        auto it = targetRespMsgQueues_.find(channelName);
-        if (it != targetRespMsgQueues_.cend()) {
-            return it->second;
-        }
-
-        queue = std::make_shared<MessageQueue>(true, msgQueueCapacity_, expectedMsgMaxSize_);
-        if (!queue->open(channelName + kRespQueueSuffix)) {
-            queue.reset();
-            veigar::log("Veigar: Error: Open response message queue(%s) failed.\n", channelName.c_str());
-            return nullptr;
-        }
-
-        targetRespMsgQueues_[channelName] = queue;
-        return queue;
-    }
-
-    bool sendMessage(const std::string& channelName,
-                     bool isCall,
-                     const uint8_t* buf,
-                     size_t bufSize,
-                     std::string& errMsg) noexcept {
-        try {
-            std::shared_ptr<MessageQueue> mq = nullptr;
-            if (channelName == channelName_) {
-                mq = isCall ? callMsgQueue_ : respMsgQueue_;
-            }
-            else {
-                mq = isCall ? getTargetCallMessageQueue(channelName) : getTargetRespMessageQueue(channelName);
-            }
-
-            if (!mq) {
-                errMsg = "Unable to get target message queue. It seems that the channel not started.";
-                return false;
-            }
-
-            if (!mq->rwLock(rwTimeout_.load())) {
-                errMsg = "Get rw-lock timeout.";
-                return false;
-            }
-
-            if (!mq->pushBack(buf, bufSize)) {
-                mq->rwUnlock();
-                errMsg = "Unable to push message to queue.";
-                return false;
-            }
-            mq->rwUnlock();
-
-            return true;
-        } catch (std::exception& e) {
-            veigar::log("Veigar: Error: An exception occurred during sending message: %s.\n", e.what());
-            errMsg = e.what();
-            return false;
-        }
     }
 
     void HandleCallThreadProc() {
@@ -381,9 +308,9 @@ class Veigar::Impl {
                 break;
             }
 
-            assert(parent_ && parent_->callDisp_);
-            if (parent_->callDisp_) {
-                parent_->callDisp_->pushCall(result);
+            assert(veigar_ && veigar_->callDisp_);
+            if (veigar_->callDisp_) {
+                veigar_->callDisp_->pushCall(result);
             }
         } while (true);
     }
@@ -477,8 +404,8 @@ class Veigar::Impl {
         } while (true);
     }
 
-    Veigar* parent_ = nullptr;
-    std::atomic_bool quit_ = {false};
+    Veigar* veigar_ = nullptr;
+    std::atomic_bool quit_ = false;
     bool isInit_ = false;
     uint32_t msgQueueCapacity_ = 0;
     uint32_t expectedMsgMaxSize_ = 0;
@@ -498,18 +425,13 @@ class Veigar::Impl {
     std::shared_ptr<MessageQueue> callMsgQueue_;
     std::shared_ptr<MessageQueue> respMsgQueue_;
 
-    std::mutex targetCallMQsMutex_;
-    std::unordered_map<std::string, std::shared_ptr<MessageQueue>> targetCallMsgQueues_;
-
-    std::mutex targetRespMQsMutex_;
-    std::unordered_map<std::string, std::shared_ptr<MessageQueue>> targetRespMsgQueues_;
-
     std::shared_future<void> handleCallThread_;
     std::shared_future<void> handleRespThread_;
     veigar_msgpack::unpacker callPac_;
     veigar_msgpack::unpacker respPac_;
 
     std::shared_ptr<RespDispatcher> respDispatcher_;
+    std::shared_ptr<Sender> sender_;
 };
 
 Veigar::Veigar() noexcept :
@@ -531,10 +453,9 @@ Veigar& Veigar::operator=(Veigar&& other) noexcept {
 
 Veigar::~Veigar() noexcept {
     assert(!isInit());
-    if (isInit()) {
-        uninit();
-    }
+
     if (callDisp_) {
+        assert(!callDisp_->isInit());
         callDisp_.reset();
     }
 
@@ -559,6 +480,16 @@ void Veigar::uninit() {
     impl_->uninit();
 }
 
+uint32_t Veigar::msgQueueCapacity() const {
+    assert(impl_);
+    return impl_->msgQueueCapacity_;
+}
+
+uint32_t Veigar::expectedMsgMaxSize() const {
+    assert(impl_);
+    return impl_->expectedMsgMaxSize_;
+}
+
 std::string Veigar::channelName() const {
     assert(impl_);
     return impl_->channelName_;
@@ -577,23 +508,14 @@ std::vector<std::string> Veigar::bindNames() const {
     return callDisp_->names();
 }
 
-bool Veigar::sendMessage(const std::string& targetChannel,
-                         bool toCallQueue,
-                         const uint8_t* buf,
-                         size_t bufSize,
-                         std::string& errMsg) {
-    assert(impl_);
-    return impl_->sendMessage(targetChannel, toCallQueue, buf, bufSize, errMsg);
-}
-
-void Veigar::setReadWriteTimeout(uint32_t ms) {
+void Veigar::setTimeoutOfRWLock(uint32_t ms) {
     assert(impl_);
     if (ms > 0) {
         impl_->rwTimeout_.store(ms);
     }
 }
 
-uint32_t Veigar::readWriteTimeout() const {
+uint32_t Veigar::timeoutOfRWLock() const {
     assert(impl_);
     return impl_->rwTimeout_.load();
 }
@@ -605,23 +527,62 @@ std::string Veigar::getNextCallId(const std::string& funcName) const {
 }
 
 bool Veigar::sendCall(const std::string& channelName,
+                      uint32_t timeoutMS,
                       std::shared_ptr<veigar_msgpack::sbuffer> buffer,
                       const std::string& callId,
                       const std::string& funcName,
                       const ResultMeta& retMeta,
                       std::string& exceptionMsg) {
     assert(impl_);
-    if (!impl_->respDispatcher_) {
+    if (!impl_->sender_) {
         return false;
     }
 
-    impl_->respDispatcher_->addOngoingCall(callId, retMeta);
+    Sender::CallMeta cm;
+    cm.channel = channelName;
+    cm.callId = callId;
+    cm.resultMeta = retMeta;
+    cm.dataSize = buffer->size();
+    cm.data = (uint8_t*)malloc(buffer->size());
+    if (!cm.data) {
+        exceptionMsg = "Unable to allocate memory.";
+        return false;
+    }
+    memcpy(cm.data, buffer->data(), buffer->size());
 
-    return impl_->sendMessage(channelName,
-                              true,
-                              (const uint8_t*)buffer->data(),
-                              buffer->size(),
-                              exceptionMsg);
+    cm.timeout = timeoutMS * 1000;
+    cm.startCallTimePoint = std::chrono::high_resolution_clock::now();
+
+    impl_->sender_->addCall(cm);
+
+    return true;
+}
+
+bool Veigar::sendResponse(const std::string& targetChannel,
+                          const uint8_t* buf,
+                          size_t bufSize,
+                          std::string& errMsg) {
+    assert(impl_);
+    if (!impl_->sender_) {
+        return false;
+    }
+
+    Sender::RespMeta rm;
+    rm.channel = targetChannel;
+    rm.dataSize = bufSize;
+    rm.data = (uint8_t*)malloc(bufSize);
+    if (!rm.data) {
+        errMsg = "Unable to allocate memory.";
+        return false;
+    }
+    memcpy(rm.data, buf, bufSize);
+
+    rm.timeout = VEIGAR_WRITE_RESPONSE_QUEUE_TIMEOUT * 1000;
+    rm.startCallTimePoint = std::chrono::high_resolution_clock::now();
+
+    impl_->sender_->addResp(rm);
+
+    return true;
 }
 
 void Veigar::releaseCall(const std::string& callId) {

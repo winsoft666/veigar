@@ -156,6 +156,7 @@ int main(int argc, char** argv) {
     int outputRecv = 0;
 
     veigar::Veigar vg;
+    vg.setTimeoutOfRWLock(200);
 
     while (true) {
         if (channelName.empty()) {
@@ -197,7 +198,7 @@ int main(int argc, char** argv) {
             int callMethod = 0;
             int threadNum = 0;
             int callTimesEachThread = 0;
-            int rwTimeout = 0;
+            int callTimeout = 0;
             std::string targetChannels;
             std::vector<std::string> targetChannelList;
             std::atomic<int64_t> respTotal = 0;
@@ -213,6 +214,9 @@ int main(int argc, char** argv) {
             if (targetChannelList.empty())
                 continue;
 
+            std::cout << "Timeout(ms):\n";
+            std::cin >> callTimeout;
+
             std::cout << "Call method(0 = Sync, 1 = Async with promise, 2 = Async with callback): \n";
             std::cin >> callMethod;
 
@@ -222,12 +226,7 @@ int main(int argc, char** argv) {
             std::cout << "Call times each of thread: \n";
             std::cin >> callTimesEachThread;
 
-            std::cout << "Read/Write Timeout(ms):\n";
-            std::cin >> rwTimeout;
-
-            vg.setReadWriteTimeout(rwTimeout);
-
-            auto fn = [&vg, &statsList, &respTotal, rwTimeout, channelName, callMethod, callTimesEachThread](std::size_t threadId, std::string targetChannel) {
+            auto fn = [&vg, &statsList, &respTotal, callTimeout, channelName, callMethod, callTimesEachThread](std::size_t threadId, std::string targetChannel) {
                 STATS* stats = new STATS();
                 statsList.push_back(stats);
 
@@ -241,14 +240,14 @@ int main(int argc, char** argv) {
                     veigar::CallResult ret;
 
                     if (callMethod == 0) {
-                        ret = vg.syncCall(targetChannel, rwTimeout * 3, "echo", msg, i);
+                        ret = vg.syncCall(targetChannel, callTimeout, "echo", msg, i);
                     }
                     else if (callMethod == 1) {  // Async with promise
-                        std::shared_ptr<veigar::AsyncCallResult> acr = vg.asyncCall(targetChannel, "echo", msg, i);
+                        std::shared_ptr<veigar::AsyncCallResult> acr = vg.asyncCall(targetChannel, callTimeout, "echo", msg, i);
                         assert(acr);
                         if (acr) {
                             if (acr->second.valid()) {
-                                auto waitResult = acr->second.wait_for(std::chrono::milliseconds(rwTimeout * 3));
+                                auto waitResult = acr->second.wait_for(std::chrono::milliseconds(callTimeout));
                                 if (waitResult == std::future_status::timeout) {
                                     ret.errCode = veigar::ErrorCode::TIMEOUT;
                                     ret.errorMessage = "Timeout";
@@ -281,7 +280,7 @@ int main(int argc, char** argv) {
 
                                 respTotal++;
                             },
-                            targetChannel, "echo", msg, i);
+                            targetChannel, callTimeout, "echo", msg, i);
                     }
 
                     if (callMethod == 0 || callMethod == 1) {
@@ -334,7 +333,7 @@ int main(int argc, char** argv) {
 
                 int64_t successTotal = 0, errorTotal = 0, totalUsed = 0;
                 totalUsed = tmTotal.elapsed();
-                for (STATS* s: statsList) {
+                for (STATS* s : statsList) {
                     successTotal += s->success.load();
                     errorTotal += s->error.load();
                     delete s;
