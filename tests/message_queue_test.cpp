@@ -19,10 +19,10 @@
 TEST_CASE("mq-create-open") {
     std::string mqPath = "mq-create-open-641EC1C27FE244C9B";
 
-    veigar::MessageQueue mq1(false, 6, 10);
+    veigar::MessageQueue mq1(6, 10);
     REQUIRE(mq1.create(mqPath));
 
-    veigar::MessageQueue mq2(false, 6, 10);
+    veigar::MessageQueue mq2(6, 10);
     REQUIRE(mq2.open(mqPath));
 
     mq1.close();
@@ -39,7 +39,7 @@ TEST_CASE("mq-push-pop-no-discard") {
     std::string mqPath = "mq-create-open-641EC1C27FE244C9B";
     std::string data = "hello-123456";  // size = 12
 
-    veigar::MessageQueue mq1(false, 3, 10);  // max size = 30
+    veigar::MessageQueue mq1(3, 10);  // max size = 30
     REQUIRE(mq1.create(mqPath));
 
     REQUIRE(mq1.pushBack(data.c_str(), data.size()));
@@ -91,7 +91,7 @@ TEST_CASE("mq-push-pop-no-discard") {
 TEST_CASE("mq-push-pop-discard") {
     std::string mqPath = "mq-create-open-641EC1C27FE244C9B";
 
-    veigar::MessageQueue mq1(true, 3, 10);  // max size = 30
+    veigar::MessageQueue mq1(3, 10);  // max size = 30
     REQUIRE(mq1.create(mqPath));
 
     std::string data1 = "hello-123451";  // size = 12
@@ -148,7 +148,7 @@ TEST_CASE("mq-push-pop-discard") {
 TEST_CASE("mq-multi-thread-push-pop") {
     std::string mqPath = "mq-multi-thread-push-pop-641EC1C27FE244C9B";
 
-    veigar::MessageQueue mq(true, 10000, 20);  // max size = 30
+    veigar::MessageQueue mq(10000, 20);  // max size = 30
     REQUIRE(mq.create(mqPath));
 
     int pushFailed = 0;

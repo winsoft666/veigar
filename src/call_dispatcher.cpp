@@ -43,7 +43,7 @@ bool CallDispatcher::init() {
         return true;
     }
 
-    impl_->callMsgQueue_ = std::make_shared<MessageQueue>(false, veigar_->msgQueueCapacity(), veigar_->expectedMsgMaxSize());
+    impl_->callMsgQueue_ = std::make_shared<MessageQueue>(veigar_->msgQueueCapacity(), veigar_->expectedMsgMaxSize());
     if (!impl_->callMsgQueue_->create(veigar_->channelName() + VEIGAR_CALL_QUEUE_NAME_SUFFIX)) {
         veigar::log("Veigar: Error: Create call message queue(%s) failed.\n", veigar_->channelName().c_str());
         return false;
@@ -160,8 +160,6 @@ Response CallDispatcher::dispatchCall(veigar_msgpack::object const& msg, std::st
 }
 
 void CallDispatcher::dispatchThreadProc() {
-    //uint32_t recvCallBufSize = veigar_->expectedMsgMaxSize();
-
     veigar_msgpack::unpacker callPac;
     try {
         callPac.reserve_buffer(veigar_->expectedMsgMaxSize());
@@ -188,24 +186,27 @@ void CallDispatcher::dispatchThreadProc() {
 
         if (!impl_->callMsgQueue_->popFront(callPac.buffer(), callPac.buffer_capacity(), written)) {
             if (written <= 0) {
+                veigar::log("Veigar: Error: Pop front from call message queue failed.\n");
                 impl_->callMsgQueue_->rwUnlock();
                 continue;
             }
 
             try {
-                callPac.reserve_buffer(written);
+                callPac.reserve_buffer((size_t)written);
             } catch (std::bad_alloc& e) {
                 veigar::log("Veigar: Error: Pre-alloc call memory(%u bytes) failed: %s.\n", written, e.what());
+                impl_->callMsgQueue_->rwUnlock();
                 continue;
             }
 
             if (!impl_->callMsgQueue_->popFront(callPac.buffer(), callPac.buffer_capacity(), written)) {
+                veigar::log("Veigar: Error: Pop front from call message queue failed.\n");
                 impl_->callMsgQueue_->rwUnlock();
                 continue;
             }
         }
 
-        callPac.buffer_consumed(written);
+        callPac.buffer_consumed((size_t)written);
 
         impl_->callMsgQueue_->rwUnlock();
 

@@ -120,7 +120,7 @@ std::shared_ptr<MessageQueue> Sender::getTargetCallMessageQueue(const std::strin
         return it->second;
     }
 
-    queue = std::make_shared<MessageQueue>(true, veigar_->msgQueueCapacity(), veigar_->expectedMsgMaxSize());
+    queue = std::make_shared<MessageQueue>(veigar_->msgQueueCapacity(), veigar_->expectedMsgMaxSize());
     if (!queue->open(channelName + VEIGAR_CALL_QUEUE_NAME_SUFFIX)) {
         queue.reset();
         veigar::log("Veigar: Error: Open call message queue(%s) failed.\n", channelName.c_str());
@@ -139,7 +139,7 @@ std::shared_ptr<MessageQueue> Sender::getTargetRespMessageQueue(const std::strin
         return it->second;
     }
 
-    queue = std::make_shared<MessageQueue>(true, veigar_->msgQueueCapacity(), veigar_->expectedMsgMaxSize());
+    queue = std::make_shared<MessageQueue>(veigar_->msgQueueCapacity(), veigar_->expectedMsgMaxSize());
     if (!queue->open(channelName + VEIGAR_RESPONSE_QUEUE_NAME_SUFFIX)) {
         queue.reset();
         veigar::log("Veigar: Error: Open response message queue(%s) failed.\n", channelName.c_str());

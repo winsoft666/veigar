@@ -10,8 +10,7 @@
 #include <assert.h>
 
 namespace veigar {
-MessageQueue::MessageQueue(bool discardOldMsg, int32_t msgMaxNumber, int32_t msgExpectedMaxSize) noexcept :
-    discardOldMsg_(discardOldMsg),
+MessageQueue::MessageQueue(int32_t msgMaxNumber, int32_t msgExpectedMaxSize) noexcept :
     msgMaxNumber_(msgMaxNumber),
     msgExpectedMaxSize_(msgExpectedMaxSize) {
 }
@@ -147,6 +146,8 @@ void MessageQueue::rwUnlock() {
 bool MessageQueue::pushBack(const void* data, int64_t dataSize) {
     bool ret = false;
 
+    assert(data);
+    assert(dataSize > 0);
     if (!data || dataSize <= 0) {
         return false;
     }
@@ -193,44 +194,13 @@ bool MessageQueue::pushBack(const void* data, int64_t dataSize) {
 
         int64_t totalFree = *pShmSize - msgSizeHeaderTotalSize - sizeof(int64_t) * 3 - msgDataTotalSize;
         int64_t tailFree = totalFree - *pFrontFree;
-        if ((totalFree < dataSize || *pCurMsgNumber == msgMaxNumber_) && !discardOldMsg_) {
+        if (totalFree < dataSize || *pCurMsgNumber == msgMaxNumber_) {
+            veigar::log("Veigar: Warning: Message queue is full. Please adjust the parameters of the message queue.\n");
             break;
         }
 
         uint8_t* pCopyBegin = nullptr;
-        if (*pCurMsgNumber == msgMaxNumber_ || totalFree < dataSize) {
-            // discard old message data
-            int64_t shortfall = dataSize - totalFree;
-            int64_t discardMsgSize = 0L;
-            int64_t discardMsgNum = 0L;
-            uint8_t* msgDataEnd = nullptr;
-            for (int64_t i = 0; i < *pCurMsgNumber; i++) {
-                discardMsgNum++;
-                discardMsgSize += *(pFirstMsgDataSize + i);
-                if (discardMsgSize >= shortfall) {
-                    break;
-                }
-            }
-            veigar::log("Veigar: Warning: Message queue is full, discard %" PRId64 " old message(s). Please adjust the parameters of the message queue.\n", discardMsgNum);
-
-            // copy remaining data to offset 0, discard the first discardMsgSize bytes of data.
-            memcpy(pFirstMsgData, pFirstMsgData + *pFrontFree + discardMsgSize, (size_t)(msgDataTotalSize - discardMsgSize));
-
-            // set front free to 0
-            *pFrontFree = 0L;
-
-            // pop a element from data size list
-            memcpy(pFirstMsgDataSize, pFirstMsgDataSize + discardMsgNum, (size_t)(sizeof(int64_t) * (msgMaxNumber_ - discardMsgNum)));
-
-            *pCurMsgNumber = *pCurMsgNumber - discardMsgNum + 1;
-
-            // record data size
-            *(pFirstMsgDataSize + (*pCurMsgNumber - 1)) = dataSize;
-
-            // append data
-            pCopyBegin = pFirstMsgData + msgDataTotalSize - discardMsgSize;
-        }
-        else if (tailFree >= dataSize) {
+        if (tailFree >= dataSize) {
             *pCurMsgNumber += 1;
 
             // record data size
@@ -238,7 +208,7 @@ bool MessageQueue::pushBack(const void* data, int64_t dataSize) {
 
             pCopyBegin = pFirstMsgData + msgDataTotalSize + *pFrontFree;
         }
-        else if (totalFree >= dataSize) {
+        else {
             *pCurMsgNumber += 1;
 
             // record data size
@@ -252,9 +222,6 @@ bool MessageQueue::pushBack(const void* data, int64_t dataSize) {
             *pFrontFree = 0;
 
             pCopyBegin = pFirstMsgData + msgDataTotalSize;
-        }
-        else {
-            assert(false);
         }
 
         assert(pCopyBegin);
@@ -272,10 +239,6 @@ bool MessageQueue::pushBack(const void* data, int64_t dataSize) {
 
 bool MessageQueue::popFront(void* buf, int64_t bufSize, int64_t& written) {
     bool ret = false;
-
-    if (!buf || bufSize <= 0) {
-        return false;
-    }
 
     do {
         written = 0;
@@ -299,7 +262,7 @@ bool MessageQueue::popFront(void* buf, int64_t bufSize, int64_t& written) {
         int64_t* const pFrontFree = p64 + 2;
         int64_t* const pFirstMsgDataSize = p64 + 3;
 
-        if (*pFirstMsgDataSize > bufSize) {
+        if (*pFirstMsgDataSize > bufSize || !buf) {
             written = *pFirstMsgDataSize;
             break;
         }
@@ -340,10 +303,6 @@ bool MessageQueue::wait(int64_t ms) {
     return false;
 }
 
-bool MessageQueue::isDiscardOldMsg() const {
-    return discardOldMsg_;
-}
-
 bool MessageQueue::checkSpaceSufficient(int64_t dataSize, bool& waitable) const {
     assert(msgMaxNumber_ > 0);
     if (msgMaxNumber_ * msgExpectedMaxSize_ < dataSize) {
@@ -369,6 +328,9 @@ bool MessageQueue::checkSpaceSufficient(int64_t dataSize, bool& waitable) const 
 
         int64_t* const pShmSize = p64;
         int64_t* const pCurMsgNumber = p64 + 1;
+        if (*pCurMsgNumber >= msgMaxNumber_) {
+            break;
+        }
         int64_t* const pFrontFree = p64 + 2;
         int64_t* const pFirstMsgDataSize = p64 + 3;
 

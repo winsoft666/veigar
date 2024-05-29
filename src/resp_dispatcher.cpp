@@ -23,7 +23,7 @@ bool RespDispatcher::init() {
 
     stop_.store(false);
 
-    respMsgQueue_ = std::make_shared<MessageQueue>(false, veigar_->msgQueueCapacity(), veigar_->expectedMsgMaxSize());
+    respMsgQueue_ = std::make_shared<MessageQueue>(veigar_->msgQueueCapacity(), veigar_->expectedMsgMaxSize());
     if (!respMsgQueue_->create(veigar_->channelName() + VEIGAR_RESPONSE_QUEUE_NAME_SUFFIX)) {
         veigar::log("Veigar: Error: Create response message queue(%s) failed.\n", veigar_->channelName().c_str());
         return false;
@@ -100,24 +100,27 @@ void RespDispatcher::dispatchRespThreadProc() {
 
         if (!respMsgQueue_->popFront(respPac.buffer(), respPac.buffer_capacity(), written)) {
             if (written <= 0) {
+                veigar::log("Veigar: Error: Pop front from response message queue failed.\n");
                 respMsgQueue_->rwUnlock();
                 continue;
             }
 
             try {
-                respPac.reserve_buffer(written);
+                respPac.reserve_buffer((size_t)written);
             } catch (std::bad_alloc& e) {
                 veigar::log("Veigar: Error: Pre-alloc response memory(%d bytes) failed: %s.\n", written, e.what());
+                respMsgQueue_->rwUnlock();
                 continue;
             }
 
             if (!respMsgQueue_->popFront(respPac.buffer(), respPac.buffer_capacity(), written)) {
+                veigar::log("Veigar: Error: Pop front from response message queue failed.\n");
                 respMsgQueue_->rwUnlock();
                 continue;
             }
         }
 
-        respPac.buffer_consumed(written);
+        respPac.buffer_consumed((size_t)written);
 
         respMsgQueue_->rwUnlock();
 

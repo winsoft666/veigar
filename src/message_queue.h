@@ -18,7 +18,7 @@
 namespace veigar {
 class MessageQueue {
    public:
-    MessageQueue(bool discardOldMsg, int32_t msgMaxNumber, int32_t msgExpectedMaxSize) noexcept;
+    MessageQueue(int32_t msgMaxNumber, int32_t msgExpectedMaxSize) noexcept;
     ~MessageQueue() noexcept = default;
 
     bool create(const std::string& path);
@@ -39,14 +39,11 @@ class MessageQueue {
 
     bool wait(int64_t ms);
 
-    bool isDiscardOldMsg() const;
-
     void close();
 
     void notifyRead();
 
    private:
-    bool discardOldMsg_ = false;
     int32_t msgMaxNumber_ = 0;
     int32_t msgExpectedMaxSize_ = 0;
     std::shared_ptr<SharedMemory> shm_ = nullptr;

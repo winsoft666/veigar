@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <iostream>
-#include <mutex>
+#include <atomic>
 #include <cstdlib>  //std::system
 #include <inttypes.h>
 #include "thread_group.h"
@@ -89,9 +89,10 @@ veigar::Veigar vg;
 std::string channelName;
 std::string targetChannel;
 const std::string strHello = "hello";
-const int64_t totalCall = 100000;
-int64_t success = 0;
-int64_t failed = 0;
+const int64_t totalCall = 1000;
+std::atomic<int64_t> success = 0;
+std::atomic<int64_t> timeout = 0;
+std::atomic<int64_t> failed = 0;
 
 void CallThreadProc(std::size_t threadId, std::string targetChannel) {
     for (int i = 0; i < totalCall; i++) {
@@ -101,10 +102,13 @@ void CallThreadProc(std::size_t threadId, std::string targetChannel) {
                     success++;
                 }
                 else {
-                    failed++;
+                    if (cr.errCode == veigar::ErrorCode::TIMEOUT)
+                        timeout++;
+                    else
+                        failed++;
                 }
             },
-            targetChannel, 100, "echo", strHello);
+            targetChannel, 200, "echo", strHello);
     }
 }
 
@@ -152,16 +156,20 @@ int main(int argc, char** argv) {
             std::cout << "Target channel names: ";
             std::cin >> targetChannel;
 
+            success.store(0);
+            timeout.store(0);
+            failed.store(0);
+
             auto tg = std::make_shared<ThreadGroup>();
             veigar::detail::TimeMeter tm;
             tg->createThreads(1, targetChannel, CallThreadProc);
             tg->joinAll();
 
             while (true) {
-                if (success + failed == totalCall) {
+                if (success.load() + failed.load() + timeout.load() == totalCall) {
                     int64_t used = tm.elapsed();
-                    printf("Used: %s, Total: %" PRId64 " Success: %" PRId64 ", Failed: %" PRId64 ", Average: %s/call.\n",
-                           TimeToHuman(used).c_str(), totalCall, success, failed, TimeToHuman(used / totalCall).c_str());
+                    printf("Used: %s, Total: %" PRId64 " Success: %" PRId64 ", Timeout: %" PRId64 ", Failed: %" PRId64 ", Average: %s/call.\n",
+                           TimeToHuman(used).c_str(), totalCall, success.load(), timeout.load(), failed.load(), TimeToHuman(used / totalCall).c_str());
                     break;
                 }
                 std::this_thread::sleep_for(std::chrono::milliseconds(5));
