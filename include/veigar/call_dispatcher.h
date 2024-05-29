@@ -23,6 +23,8 @@
 
 namespace veigar {
 class Veigar;
+class MessageQueue;
+
 namespace detail {
 
 // This class maintains a registry of functors associated with their names,
@@ -33,12 +35,14 @@ class CallDispatcher {
     using AdaptorType =
         std::function<std::unique_ptr<veigar_msgpack::object_handle>(veigar_msgpack::object const&)>;
 
-    CallDispatcher(Veigar* parent) noexcept;
+    CallDispatcher(Veigar* veigar) noexcept;
     ~CallDispatcher() noexcept;
 
     bool init();
     bool isInit() const;
     void uninit();
+
+    std::shared_ptr<MessageQueue> messageQueue();
 
     // This is the type of messages as per the msgpack-rpc spec.
     // flag(0) - callId - callerChannelName - funcName - args
@@ -78,8 +82,6 @@ class CallDispatcher {
         return names;
     }
 
-    void pushCall(std::shared_ptr<veigar_msgpack::object_handle> result);
-
    private:
     // Processes a message that contains a call according to the Msgpack-RPC spec.
     // msg: The messagepack object that contains the call.
@@ -93,7 +95,7 @@ class CallDispatcher {
     void dispatchThreadProc();
 
    private:
-    Veigar* parent_ = nullptr;
+    Veigar* veigar_ = nullptr;
     bool init_ = false;
 
     std::unordered_map<std::string, AdaptorType> funcs_;

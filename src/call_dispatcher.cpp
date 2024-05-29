@@ -11,9 +11,9 @@
 #include "log.h"
 #include "veigar/veigar.h"
 #include "time_util.h"
-#include "semaphore.h"
 #include <atomic>
 #include <queue>
+#include "message_queue.h"
 
 namespace veigar {
 namespace detail {
@@ -22,28 +22,17 @@ using detail::Response;
 class CallDispatcher::Impl {
    public:
     std::vector<std::thread> workers_;
-    std::queue<std::shared_ptr<veigar_msgpack::object_handle>> objs_;
-    std::mutex objsMutex_;
-
-    std::atomic_bool stop_ = {false};
-    std::shared_ptr<Semaphore> smh_ = nullptr;
+    std::atomic_bool stop_ = false;
+    std::shared_ptr<MessageQueue> callMsgQueue_;
 };
 
-CallDispatcher::CallDispatcher(Veigar* parent) noexcept :
-    parent_(parent),
+CallDispatcher::CallDispatcher(Veigar* veigar) noexcept :
+    veigar_(veigar),
     impl_(new Impl()) {
-    impl_->smh_ = std::make_shared<Semaphore>();
 }
 
 CallDispatcher::~CallDispatcher() noexcept {
     if (impl_) {
-        if (impl_->smh_) {
-            if (impl_->smh_->valid()) {
-                impl_->smh_->close();
-            }
-            impl_->smh_.reset();
-        }
-
         delete impl_;
         impl_ = nullptr;
     }
@@ -54,11 +43,13 @@ bool CallDispatcher::init() {
         return true;
     }
 
-    impl_->stop_.store(false);
-
-    if (!impl_->smh_->open("")) {
+    impl_->callMsgQueue_ = std::make_shared<MessageQueue>(false, veigar_->msgQueueCapacity(), veigar_->expectedMsgMaxSize());
+    if (!impl_->callMsgQueue_->create(veigar_->channelName() + VEIGAR_CALL_QUEUE_NAME_SUFFIX)) {
+        veigar::log("Veigar: Error: Create call message queue(%s) failed.\n", veigar_->channelName().c_str());
         return false;
     }
+
+    impl_->stop_.store(false);
 
     for (size_t i = 0; i < VEIGAR_DISPATCHER_THREAD_NUMBER; ++i) {
         impl_->workers_.emplace_back(std::thread(&CallDispatcher::dispatchThreadProc, this));
@@ -80,23 +71,16 @@ void CallDispatcher::uninit() {
 
     impl_->stop_.store(true);
 
-    if (impl_->smh_) {
-        const size_t releaseNum = impl_->workers_.size() * 2;
-        for (size_t i = 0; i < releaseNum; i++) {
-            impl_->smh_->release();
-        }
-    }
-
     for (std::thread& worker : impl_->workers_) {
         if (worker.joinable()) {
+            impl_->callMsgQueue_->notifyRead();
             worker.join();
         }
     }
 
-    if (impl_->smh_) {
-        if (impl_->smh_->valid()) {
-            impl_->smh_->close();
-        }
+    if (impl_->callMsgQueue_) {
+        impl_->callMsgQueue_->close();
+        impl_->callMsgQueue_.reset();
     }
 
     funcs_.clear();
@@ -104,19 +88,15 @@ void CallDispatcher::uninit() {
     init_ = false;
 }
 
+std::shared_ptr<veigar::MessageQueue> CallDispatcher::messageQueue() {
+    return impl_->callMsgQueue_;
+}
+
 void CallDispatcher::unbind(std::string const& name) {
     auto it = funcs_.find(name);
     if (it != funcs_.end()) {
         funcs_.erase(it);
     }
-}
-
-void CallDispatcher::pushCall(std::shared_ptr<veigar_msgpack::object_handle> result) {
-    impl_->objsMutex_.lock();
-    impl_->objs_.emplace(result);
-    impl_->objsMutex_.unlock();
-
-    impl_->smh_->release();
 }
 
 Response CallDispatcher::dispatch(veigar_msgpack::object const& msg, std::string& callerChannelName) {
@@ -180,50 +160,100 @@ Response CallDispatcher::dispatchCall(veigar_msgpack::object const& msg, std::st
 }
 
 void CallDispatcher::dispatchThreadProc() {
-    std::string errMsg;
-    while (true) {
-        impl_->smh_->wait();
+    //uint32_t recvCallBufSize = veigar_->expectedMsgMaxSize();
+
+    veigar_msgpack::unpacker callPac;
+    try {
+        callPac.reserve_buffer(veigar_->expectedMsgMaxSize());
+    } catch (std::bad_alloc& e) {
+        veigar::log("Veigar: Error: Pre-alloc call memory(%u bytes) failed: %s.\n", veigar_->expectedMsgMaxSize(), e.what());
+        return;
+    }
+
+    int64_t written = 0L;
+    while (!impl_->stop_.load()) {
+        written = 0L;
+        if (!impl_->callMsgQueue_->wait(-1)) {
+            continue;
+        }
+
         if (impl_->stop_.load()) {
             break;
         }
 
-        std::shared_ptr<veigar_msgpack::object_handle> obj = nullptr;
-        do {
-            std::lock_guard<std::mutex> lock(impl_->objsMutex_);
-            if (!impl_->objs_.empty()) {
-                obj = std::move(impl_->objs_.front());
-                impl_->objs_.pop();
-            }
-        } while (false);
-
-        if (!obj) {
+        if (!impl_->callMsgQueue_->rwLock(veigar_->timeoutOfRWLock())) {
+            veigar::log("Veigar: Warning: Get rw-lock timeout when pop front from call message queue.\n");
             continue;
         }
 
-        try {
-            auto msg = obj->get();
-
-            std::string callerChannelName;
-            Response resp = dispatch(msg, callerChannelName);
-            if (callerChannelName.empty()) {
+        if (!impl_->callMsgQueue_->popFront(callPac.buffer(), callPac.buffer_capacity(), written)) {
+            if (written <= 0) {
+                impl_->callMsgQueue_->rwUnlock();
                 continue;
             }
 
-            veigar_msgpack::sbuffer respBuf = resp.getData();
-            if (respBuf.size() == 0) {
-                veigar::log("Veigar: Warning: The size of response data is zero.\n");
+            try {
+                callPac.reserve_buffer(written);
+            } catch (std::bad_alloc& e) {
+                veigar::log("Veigar: Error: Pre-alloc call memory(%u bytes) failed: %s.\n", written, e.what());
                 continue;
             }
 
-            errMsg.clear();
-
-            if (!parent_->sendResponse(callerChannelName, (const uint8_t*)respBuf.data(), respBuf.size(), errMsg)) {
-                veigar::log("Veigar: Error: Send response to caller failed, caller: %s, error: %s.\n",
-                            callerChannelName.c_str(), errMsg.c_str());
+            if (!impl_->callMsgQueue_->popFront(callPac.buffer(), callPac.buffer_capacity(), written)) {
+                impl_->callMsgQueue_->rwUnlock();
+                continue;
             }
-        } catch (std::exception& e) {
-            veigar::log("Veigar: Error: An exception occurred during handling dispatch call: %s.\n", e.what());
         }
+
+        callPac.buffer_consumed(written);
+
+        impl_->callMsgQueue_->rwUnlock();
+
+        do {
+            veigar_msgpack::object_handle obj;
+            bool nextRet = false;
+            try {
+                nextRet = callPac.next(obj);
+            } catch (std::exception& e) {
+                veigar::log("Veigar: Error: An exception occurred during parsing received call data: %s.\n", e.what());
+                nextRet = false;
+            } catch (...) {
+                veigar::log(
+                    "Veigar: Error: An exception occurred during parsing received call data. The exception is not derived from std::exception. "
+                    "No further information available.\n");
+                nextRet = false;
+            }
+
+            if (!nextRet) {
+                break;
+            }
+
+            try {
+                auto msg = obj.get();
+
+                std::string callerChannelName;
+                Response resp = dispatch(msg, callerChannelName);
+                if (callerChannelName.empty()) {
+                    veigar::log("Veigar: Warning: Unable to parse caller's channel name.\n");
+                    continue;
+                }
+
+                veigar_msgpack::sbuffer respBuf = resp.getData();
+                if (respBuf.size() == 0) {
+                    veigar::log("Veigar: Warning: The size of response data is zero.\n");
+                    continue;
+                }
+
+                std::string errMsg;
+                if (!veigar_->sendResponse(callerChannelName, (const uint8_t*)respBuf.data(), respBuf.size(), errMsg)) {
+                    veigar::log("Veigar: Error: Send response to caller failed, caller: %s, error: %s.\n",
+                                callerChannelName.c_str(), errMsg.c_str());
+                }
+            } catch (std::exception& e) {
+                veigar::log("Veigar: Error: An exception occurred during handling dispatch call: %s.\n", e.what());
+            }
+
+        } while (true);
     }
 }
 

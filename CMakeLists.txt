@@ -43,6 +43,7 @@ add_subdirectory(src)
 
 if(VEIGAR_BUILD_EXAMPLES)
 	add_subdirectory(examples/echo)
+	add_subdirectory(examples/performance-test)
 endif()
 
 if(VEIGAR_BUILD_TESTS)

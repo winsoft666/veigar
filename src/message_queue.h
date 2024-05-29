@@ -29,7 +29,12 @@ class MessageQueue {
 
     // Need protect by rw-lock
     bool pushBack(const void* data, int64_t dataSize);
+
+    // Need protect by rw-lock
+    // popFront will set 'written' to message size.
     bool popFront(void* buf, int64_t bufSize, int64_t& written);
+    
+    // Need protect by rw-lock
     bool checkSpaceSufficient(int64_t dataSize, bool& waitable) const;
 
     bool wait(int64_t ms);

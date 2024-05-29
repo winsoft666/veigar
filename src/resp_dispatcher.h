@@ -23,18 +23,19 @@
 
 namespace veigar {
 class Veigar;
+class MessageQueue;
 
 // Return the response message to the corresponding caller.
 class RespDispatcher {
    public:
-    RespDispatcher(Veigar* parent) noexcept;
+    RespDispatcher(Veigar* veigar) noexcept;
     ~RespDispatcher() noexcept = default;
 
     bool init();
     bool isInit() const;
     void uninit();
 
-    void pushResp(const std::shared_ptr<veigar_msgpack::object_handle>& respObj);
+    std::shared_ptr<MessageQueue> messageQueue();
 
     void addOngoingCall(const std::string& callId, const ResultMeta& retMeta);
     void releaseCall(const std::string& callId);
@@ -43,18 +44,16 @@ class RespDispatcher {
     void dispatchRespThreadProc();
 
    private:
-    Veigar* parent_ = nullptr;
+    Veigar* veigar_ = nullptr;
     bool init_ = false;
 
     std::mutex ongoingCallsMutex_;
     std::unordered_map<std::string, ResultMeta> ongoingCalls_;  // call id -> ResultMeta
 
     std::vector<std::thread> workers_;
-    std::queue<std::shared_ptr<veigar_msgpack::object_handle>> objs_;
-    std::mutex objsMutex_;
 
     std::atomic_bool stop_ = false;
-    std::shared_ptr<Semaphore> smh_ = nullptr;
+    std::shared_ptr<MessageQueue> respMsgQueue_;
 };
 }  // namespace veigar
 
