@@ -1,8 +1,16 @@
+/*
+ * Copyright (c) winsoft666.
+ * All rights reserved.
+ *
+ * This source code is licensed under the license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 #include "sender.h"
 #include "log.h"
 #include "string_helper.h"
 #include "veigar/veigar.h"
 #include "time_util.h"
+#include "run_time_recorder.h"
 
 namespace veigar {
 Sender::Sender(Veigar* v) noexcept :
@@ -15,11 +23,21 @@ bool Sender::init(std::shared_ptr<RespDispatcher> respDisp,
     if (isInit_)
         return true;
 
+    stop_.store(false);
     stopEvent_.reset();
 
     respDisp_ = respDisp;
     selfCallMQ_ = selfCallMQ;
     selfRespMQ_ = selfRespMQ;
+
+    if (!callSemp_.open("")) {
+        return false;
+    }
+
+    if (!respSemp_.open("")) {
+        callSemp_.close();
+        return false;
+    }
 
     for (size_t i = 0; i < VEIGAR_SEND_CALL_THREAD_NUMBER; ++i) {
         callWorkers_.emplace_back(std::thread(&Sender::callSendThreadProc, this));
@@ -35,17 +53,27 @@ bool Sender::init(std::shared_ptr<RespDispatcher> respDisp,
 }
 
 void Sender::uninit() {
+    stop_.store(true);
     stopEvent_.set();
 
-    for (std::thread& worker : callWorkers_) {
-        if (worker.joinable()) {
-            worker.join();
+    for (std::thread& w : callWorkers_) {
+        callSemp_.release();
+    }
+
+    for (std::thread& w : callWorkers_) {
+        if (w.joinable()) {
+            w.join();
         }
     }
 
-    for (std::thread& worker : respWorkers_) {
-        if (worker.joinable()) {
-            worker.join();
+    for (std::thread& w : respWorkers_) {
+        respSemp_.release();
+    }
+
+    for (std::thread& w : respWorkers_) {
+        respSemp_.release();
+        if (w.joinable()) {
+            w.join();
         }
     }
 
@@ -93,6 +121,9 @@ void Sender::uninit() {
     selfCallMQ_.reset();
     selfRespMQ_.reset();
 
+    callSemp_.close();
+    respSemp_.close();
+
     isInit_ = false;
 }
 
@@ -101,15 +132,21 @@ bool Sender::isInit() const {
 }
 
 void Sender::addCall(const Sender::CallMeta& cm) {
+    RUN_TIME_RECORDER("addCall " + cm.callId);
     callListMutex_.lock();
     callList_.emplace(cm);
     callListMutex_.unlock();
+
+    callSemp_.release();
 }
 
 void Sender::addResp(const Sender::RespMeta& rm) {
+    RUN_TIME_RECORDER("addResp");
     respListMutex_.lock();
     respList_.emplace(rm);
     respListMutex_.unlock();
+
+    respSemp_.release();
 }
 
 std::shared_ptr<MessageQueue> Sender::getTargetCallMessageQueue(const std::string& channelName) {
@@ -152,7 +189,10 @@ std::shared_ptr<MessageQueue> Sender::getTargetRespMessageQueue(const std::strin
 
 void Sender::callSendThreadProc() {
     std::string errMsg;
-    while (!stopEvent_.wait(5)) {
+    while (callSemp_.wait(-1)) {
+        if (stop_.load())
+            break;
+
         CallMeta cm;
         callListMutex_.lock();
         if (callList_.empty()) {
@@ -162,6 +202,8 @@ void Sender::callSendThreadProc() {
         cm = callList_.front();
         callList_.pop();
         callListMutex_.unlock();
+
+        RUN_TIME_RECORDER("callSendThreadProc " + cm.callId);
 
         respDisp_->addOngoingCall(cm.callId, cm.resultMeta);
 
@@ -189,7 +231,7 @@ void Sender::callSendThreadProc() {
                     }
                     else {
                         ec = ErrorCode::TIMEOUT;
-                        errMsg = "Waiting for queue availability timeout.";
+                        errMsg = "Waiting for call queue availability timeout.";
                     }
                     mq->rwUnlock();
                 }
@@ -243,7 +285,10 @@ void Sender::callSendThreadProc() {
 
 void Sender::respSendThreadProc() {
     std::string errMsg;
-    while (!stopEvent_.wait(5)) {
+    while (respSemp_.wait(-1)) {
+        if (stop_.load())
+            break;
+
         RespMeta rm;
         respListMutex_.lock();
         if (respList_.empty()) {
@@ -253,6 +298,8 @@ void Sender::respSendThreadProc() {
         rm = respList_.front();
         respList_.pop();
         respListMutex_.unlock();
+
+        RUN_TIME_RECORDER("respSendThreadProc");
 
         ErrorCode ec = ErrorCode::FAILED;
         std::shared_ptr<MessageQueue> mq = nullptr;
@@ -278,7 +325,7 @@ void Sender::respSendThreadProc() {
                     }
                     else {
                         ec = ErrorCode::TIMEOUT;
-                        errMsg = "Waiting for queue availability timeout.";
+                        errMsg = "Waiting for response queue availability timeout.";
                     }
                     mq->rwUnlock();
                 }
@@ -334,7 +381,16 @@ bool Sender::checkSpaceAndWait(std::shared_ptr<MessageQueue> mq,
             break;
         }
 
-        if (stopEvent_.wait(timeout - used)) {
+        int64_t waitMS = 0;
+        int64_t ms = (timeout - used) / 1000;
+        if (ms > 5) {
+            waitMS = 5;
+        }
+        else {
+            waitMS = ms;
+        }
+
+        if (stopEvent_.wait(waitMS)) {
             break;  // user call uninit, exit now!
         }
     } while (true);

@@ -14,6 +14,7 @@
 #include <atomic>
 #include <queue>
 #include "message_queue.h"
+#include "run_time_recorder.h"
 
 namespace veigar {
 namespace detail {
@@ -72,8 +73,11 @@ void CallDispatcher::uninit() {
     impl_->stop_.store(true);
 
     for (std::thread& worker : impl_->workers_) {
+        impl_->callMsgQueue_->notifyRead();
+    }
+
+    for (std::thread& worker : impl_->workers_) {
         if (worker.joinable()) {
-            impl_->callMsgQueue_->notifyRead();
             worker.join();
         }
     }
@@ -174,6 +178,8 @@ void CallDispatcher::dispatchThreadProc() {
         if (!impl_->callMsgQueue_->wait(-1)) {
             continue;
         }
+
+        RUN_TIME_RECORDER("callDispatchThreadProc");
 
         if (impl_->stop_.load()) {
             break;

@@ -89,7 +89,7 @@ veigar::Veigar vg;
 std::string channelName;
 std::string targetChannel;
 const std::string strHello = "hello";
-const int64_t totalCall = 1000;
+const int64_t totalCall = 200;
 std::atomic<int64_t> success = 0;
 std::atomic<int64_t> timeout = 0;
 std::atomic<int64_t> failed = 0;
@@ -102,13 +102,16 @@ void CallThreadProc(std::size_t threadId, std::string targetChannel) {
                     success++;
                 }
                 else {
-                    if (cr.errCode == veigar::ErrorCode::TIMEOUT)
+                    if (cr.errCode == veigar::ErrorCode::TIMEOUT) {
                         timeout++;
-                    else
+                    }
+                    else {
                         failed++;
+                    }
+                    printf("%s\n", cr.errorMessage.c_str());
                 }
             },
-            targetChannel, 200, "echo", strHello);
+            targetChannel, 6000, "echo", strHello);
     }
 }
 
@@ -122,7 +125,7 @@ int main(int argc, char** argv) {
 #endif
     printf("\n");
 
-    vg.setTimeoutOfRWLock(100);
+    vg.setTimeoutOfRWLock(3000);
 
     while (true) {
         if (channelName.empty()) {

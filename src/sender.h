@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) winsoft666.
+ * All rights reserved.
+ *
+ * This source code is licensed under the license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 #ifndef VEIGAR_SENDER_H_
 #define VEIGAR_SENDER_H_
 #pragma once
@@ -9,6 +16,7 @@
 #include "event.h"
 #include "resp_dispatcher.h"
 #include "message_queue.h"
+#include "semaphore.h"
 
 namespace veigar {
 class Veigar;
@@ -59,6 +67,7 @@ class Sender {
    private:
     bool isInit_ = false;
     Event stopEvent_;
+    std::atomic_bool stop_ = false;
 
     Veigar* veigar_ = nullptr;
 
@@ -66,10 +75,12 @@ class Sender {
     std::shared_ptr<MessageQueue> selfCallMQ_ = nullptr;
     std::shared_ptr<MessageQueue> selfRespMQ_ = nullptr;
 
+    Semaphore callSemp_;
     std::mutex callListMutex_;
     std::queue<CallMeta> callList_;
     std::vector<std::thread> callWorkers_;
 
+    Semaphore respSemp_;
     std::mutex respListMutex_;
     std::queue<RespMeta> respList_;
     std::vector<std::thread> respWorkers_;

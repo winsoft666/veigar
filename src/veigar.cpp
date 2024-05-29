@@ -14,6 +14,7 @@
 #include "resp_dispatcher.h"
 #include "sender.h"
 #include "time_util.h"
+#include "run_time_recorder.h"
 
 namespace veigar {
 class Veigar::Impl {
@@ -247,6 +248,7 @@ bool Veigar::sendCall(const std::string& channelName,
                       const std::string& funcName,
                       const ResultMeta& retMeta,
                       std::string& exceptionMsg) {
+    RUN_TIME_RECORDER("sendCall " + callId);
     assert(impl_);
     if (!impl_->sender_) {
         return false;

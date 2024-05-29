@@ -12,10 +12,7 @@ bool Semaphore::open(const std::string& name, int value /*= 0*/) {
     named_ = !name.empty();
     sh_ = new SemaphoreHandle();
 #ifdef VEIGAR_OS_WINDOWS
-    HANDLE h = CreateSemaphoreA(NULL,
-                                value,
-                                100000,
-                                name.empty() ? NULL : name.c_str());
+    HANDLE h = CreateSemaphoreA(NULL, value, 2147483647, name.empty() ? NULL : name.c_str());
     if (h) {
         sh_->h_ = h;
     }

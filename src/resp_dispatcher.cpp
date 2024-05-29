@@ -10,6 +10,7 @@
 #include "log.h"
 #include "string_helper.h"
 #include "message_queue.h"
+#include "run_time_recorder.h"
 
 namespace veigar {
 RespDispatcher::RespDispatcher(Veigar* veigar) noexcept :
@@ -50,8 +51,11 @@ void RespDispatcher::uninit() {
     stop_.store(true);
 
     for (std::thread& worker : workers_) {
+        respMsgQueue_->notifyRead();
+    }
+
+    for (std::thread& worker : workers_) {
         if (worker.joinable()) {
-            respMsgQueue_->notifyRead();
             worker.join();
         }
     }
@@ -88,6 +92,8 @@ void RespDispatcher::dispatchRespThreadProc() {
         if (!respMsgQueue_->wait(-1)) {
             continue;
         }
+
+        RUN_TIME_RECORDER("dispatchRespThreadProc");
 
         if (stop_.load()) {
             break;
