@@ -4,13 +4,13 @@
 
 Veigar is a cross platform remote procedure call (RPC) framework, supports Windows and Linux platforms.
 
-Veigar is implemented based on shared memory technology and only supports remote procedure calls between native processes or threads, which is the biggest difference between Veigar and other RPC frameworks such as Thrift and grpc.
+Veigar based on shared memory and only supports RPC between native processes or threads, which is the biggest difference between Veigar and other RPC frameworks such as Thrift and grpc.
 
-> So far as I know, Veigar is the first open source RPC framework based on shared memory technology.
+> So far as I know, Veigar is the first open source RPC framework based on shared memory.
 >
 > The term 'Veigar' comes from the 'The Tiny Master of Evil' in League of Legends.
 
-Veigar's advantages is that:
+**Features:**
 
 - Expose functions of your program to be called via RPC (from any language implementing msgpack-rpc).
 
@@ -27,11 +27,12 @@ Veigar's advantages is that:
 - Support 3 call method: Synchronous, Asynchronous with Promise, Asynchronous with Callback.
 
 # Compile
-Although Veigar's underlying implementation is based on msgpack, we have included this library in the project and do not require additional installation when using it.
 
-Although the header file of msgpack is referenced in the public header files of Veigar, it will not contaminate your global msgpack namespace, as the msgpack namespace in Veigar is `vegar_msgpack`.
+Although Veigar based on msgpack, we have included this library in the project and do not require additional installation when using it.
 
-Veigar only supports compiling to static libraries.
+Although the header file of msgpack is referenced in the public header files of Veigar, it will not contaminate your global msgpack namespace, as the namespace of msgpack in Veigar is `vegar_msgpack`.
+
+Veigar only supports compiling to static libraries now.
 
 CMake can be used for compilation and build, or using [vcpkg](https://github.com/microsoft/vcpkg) to install:
 
@@ -40,9 +41,6 @@ vcpkg install veigar
 ```
 
 # Quick Start
-Although Veigar's underlying implementation is based on msgpack, Veigar have included this library in the project and do not require additional installation.
-
-Veigar only supports compiling to static libraries.
 
 When using Veigar, simply include the `include` directory in the project and link Veigar's static library.
 
@@ -148,7 +146,7 @@ When the call fails (`!ret.isSuccess()`), the error information stored in the `e
 
 Use the `examples\performance-test` program as a test case.
 
-Process A call process B by use 4 threads, the payload size of parameter is 1024 bytes, each thread calls 25000 times. On average, it consumes 22 microseconds per call ("calling <--> result").
+Process A call process B by use 4 threads, the payload size of parameter is 1024 bytes, and each thread calls 25000 times. On average, it consumes 22 microseconds per call ("calling <--> result").
 
 ```txt
 Payload size: 1024
