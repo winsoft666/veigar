@@ -56,8 +56,8 @@ class Sender {
     std::shared_ptr<MessageQueue> getTargetCallMessageQueue(const std::string& channelName);
     std::shared_ptr<MessageQueue> getTargetRespMessageQueue(const std::string& channelName);
 
-    void callSendThreadProc();
-    void respSendThreadProc();
+    void sendCallThreadProc();
+    void sendRespThreadProc();
 
     bool checkSpaceAndWait(std::shared_ptr<MessageQueue> mq,
                            int64_t needSize,

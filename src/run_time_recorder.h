@@ -29,10 +29,16 @@ class RunTimeRecorder {
 
 #if VEIGAR_ENABLE_RUN_TIME_RECORDER
 #define RUN_TIME_RECORDER(flag) RunTimeRecorder __rtr__(flag)
-#define RUN_TIME_RECORDER_END __rtr.end()
+#define RUN_TIME_RECORDER_END __rtr__.end()
+
+#define RUN_TIME_RECORDER_EX(name, flag) RunTimeRecorder __##name##__(flag)
+#define RUN_TIME_RECORDER_EX_END(name) __##name##__.end()
 #else
 #define RUN_TIME_RECORDER(flag)
 #define RUN_TIME_RECORDER_END
+
+#define RUN_TIME_RECORDER_EX(name, flag)
+#define RUN_TIME_RECORDER_EX_END(name)
 #endif
 
 #endif  // !VEIGAR_DEBUG_HELPER_H_

@@ -248,7 +248,7 @@ bool Veigar::sendCall(const std::string& channelName,
                       const std::string& funcName,
                       const ResultMeta& retMeta,
                       std::string& exceptionMsg) {
-    RUN_TIME_RECORDER("sendCall " + callId);
+    RUN_TIME_RECORDER("1. Call " + callId);
     assert(impl_);
     if (!impl_->sender_) {
         return false;

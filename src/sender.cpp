@@ -40,11 +40,11 @@ bool Sender::init(std::shared_ptr<RespDispatcher> respDisp,
     }
 
     for (size_t i = 0; i < VEIGAR_SEND_CALL_THREAD_NUMBER; ++i) {
-        callWorkers_.emplace_back(std::thread(&Sender::callSendThreadProc, this));
+        callWorkers_.emplace_back(std::thread(&Sender::sendCallThreadProc, this));
     }
 
     for (size_t i = 0; i < VEIGAR_SEND_RESPONSE_THREAD_NUMBER; ++i) {
-        respWorkers_.emplace_back(std::thread(&Sender::respSendThreadProc, this));
+        respWorkers_.emplace_back(std::thread(&Sender::sendRespThreadProc, this));
     }
 
     isInit_ = true;
@@ -132,7 +132,7 @@ bool Sender::isInit() const {
 }
 
 void Sender::addCall(const Sender::CallMeta& cm) {
-    RUN_TIME_RECORDER("addCall " + cm.callId);
+    RUN_TIME_RECORDER("2. Add Call " + cm.callId);
     callListMutex_.lock();
     callList_.emplace(cm);
     callListMutex_.unlock();
@@ -141,7 +141,7 @@ void Sender::addCall(const Sender::CallMeta& cm) {
 }
 
 void Sender::addResp(const Sender::RespMeta& rm) {
-    RUN_TIME_RECORDER("addResp");
+    RUN_TIME_RECORDER("5. Add Resp");
     respListMutex_.lock();
     respList_.emplace(rm);
     respListMutex_.unlock();
@@ -187,12 +187,14 @@ std::shared_ptr<MessageQueue> Sender::getTargetRespMessageQueue(const std::strin
     return queue;
 }
 
-void Sender::callSendThreadProc() {
+void Sender::sendCallThreadProc() {
     std::string errMsg;
     while (callSemp_.wait(-1)) {
         if (stop_.load())
             break;
 
+        RUN_TIME_RECORDER("3. Send Call");
+        RUN_TIME_RECORDER_EX(get_call, "3.1 Get Call");
         CallMeta cm;
         callListMutex_.lock();
         if (callList_.empty()) {
@@ -202,8 +204,7 @@ void Sender::callSendThreadProc() {
         cm = callList_.front();
         callList_.pop();
         callListMutex_.unlock();
-
-        RUN_TIME_RECORDER("callSendThreadProc " + cm.callId);
+        RUN_TIME_RECORDER_EX_END(get_call);
 
         respDisp_->addOngoingCall(cm.callId, cm.resultMeta);
 
@@ -212,14 +213,17 @@ void Sender::callSendThreadProc() {
         try {
             errMsg.clear();
 
+            RUN_TIME_RECORDER_EX(get_mq, "3.2 Get Call MQ");
             if (cm.channel == veigar_->channelName()) {
                 mq = selfCallMQ_;
             }
             else {
                 mq = getTargetCallMessageQueue(cm.channel);
             }
+            RUN_TIME_RECORDER_EX_END(get_mq);
 
             if (mq) {
+                RUN_TIME_RECORDER_EX(push_mq, "3.3 Push Call MQ");
                 if (mq->rwLock(veigar_->timeoutOfRWLock())) {
                     if (checkSpaceAndWait(mq, cm.dataSize, cm.startCallTimePoint, cm.timeout)) {
                         if (mq->pushBack(cm.data, cm.dataSize)) {
@@ -239,6 +243,7 @@ void Sender::callSendThreadProc() {
                     ec = ErrorCode::TIMEOUT;
                     errMsg = "Get rw-lock timeout.";
                 }
+                RUN_TIME_RECORDER_EX_END(push_mq);
             }
             else {
                 errMsg = "Unable to get target message queue. It seems that the channel not started.";
@@ -277,18 +282,22 @@ void Sender::callSendThreadProc() {
             }
         }
 
+        RUN_TIME_RECORDER_EX(free_cm, "3.4 Free Call Meta");
         if (cm.data) {
             free(cm.data);
         }
+        RUN_TIME_RECORDER_EX_END(free_cm);
     }
 }
 
-void Sender::respSendThreadProc() {
+void Sender::sendRespThreadProc() {
     std::string errMsg;
     while (respSemp_.wait(-1)) {
         if (stop_.load())
             break;
 
+        RUN_TIME_RECORDER("6. Send Resp");
+        RUN_TIME_RECORDER_EX(get_resp, "6.1 Get Resp");
         RespMeta rm;
         respListMutex_.lock();
         if (respList_.empty()) {
@@ -299,12 +308,13 @@ void Sender::respSendThreadProc() {
         respList_.pop();
         respListMutex_.unlock();
 
-        RUN_TIME_RECORDER("respSendThreadProc");
+        RUN_TIME_RECORDER_EX_END(get_resp);
 
         ErrorCode ec = ErrorCode::FAILED;
         std::shared_ptr<MessageQueue> mq = nullptr;
         try {
             errMsg.clear();
+            RUN_TIME_RECORDER_EX(get_mq, "6.2 Get Resp MQ");
 
             if (rm.channel == veigar_->channelName()) {
                 mq = selfRespMQ_;
@@ -313,7 +323,10 @@ void Sender::respSendThreadProc() {
                 mq = getTargetRespMessageQueue(rm.channel);
             }
 
+            RUN_TIME_RECORDER_EX_END(get_mq);
+
             if (mq) {
+                RUN_TIME_RECORDER_EX(push_mq, "6.3 Push Resp MQ");
                 if (mq->rwLock(veigar_->timeoutOfRWLock())) {
                     if (checkSpaceAndWait(mq, rm.dataSize, rm.startCallTimePoint, rm.timeout)) {
                         if (mq->pushBack(rm.data, rm.dataSize)) {
@@ -333,6 +346,7 @@ void Sender::respSendThreadProc() {
                     ec = ErrorCode::TIMEOUT;
                     errMsg = "Get rw-lock timeout.";
                 }
+                RUN_TIME_RECORDER_EX_END(push_mq);
             }
             else {
                 errMsg = "Unable to get target message queue. It seems that the channel not started.";
@@ -354,9 +368,11 @@ void Sender::respSendThreadProc() {
             veigar::log("Veigar: Error: Send response failed: %s\n", errMsg.c_str());
         }
 
+        RUN_TIME_RECORDER_EX(free_cm, "6.4 Free Call Meta");
         if (rm.data) {
             free(rm.data);
         }
+        RUN_TIME_RECORDER_EX_END(free_cm);
     }
 }
 

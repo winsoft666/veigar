@@ -179,12 +179,13 @@ void CallDispatcher::dispatchThreadProc() {
             continue;
         }
 
-        RUN_TIME_RECORDER("callDispatchThreadProc");
+        RUN_TIME_RECORDER("4. Dispatch Call");
 
         if (impl_->stop_.load()) {
             break;
         }
 
+        RUN_TIME_RECORDER_EX(pop_mq, "4.1 Pop Call MQ");
         if (!impl_->callMsgQueue_->rwLock(veigar_->timeoutOfRWLock())) {
             veigar::log("Veigar: Warning: Get rw-lock timeout when pop front from call message queue.\n");
             continue;
@@ -215,6 +216,8 @@ void CallDispatcher::dispatchThreadProc() {
         callPac.buffer_consumed((size_t)written);
 
         impl_->callMsgQueue_->rwUnlock();
+
+        RUN_TIME_RECORDER_EX_END(pop_mq);
 
         do {
             veigar_msgpack::object_handle obj;
