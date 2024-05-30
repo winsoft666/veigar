@@ -1,18 +1,16 @@
 [ >>> 简体中文版](README_CN.md)
 
 # Veigar
-The term 'Veigar' comes from the 'The Tiny Master of Evil' in League of Legends.
-
-![Veigar on LOL](./veigar-lol.jpg)
 
 Veigar is a cross platform remote procedure call (RPC) framework, supports Windows and Linux platforms.
 
 Veigar is implemented based on shared memory technology and only supports remote procedure calls between native processes or threads, which is the biggest difference between Veigar and other RPC frameworks such as Thrift and grpc.
 
 > So far as I know, Veigar is the first open source RPC framework based on shared memory technology.
+>
+> The term 'Veigar' comes from the 'The Tiny Master of Evil' in League of Legends.
 
-# Features
-Compared to other RPC frameworks, Veigar's advantages is that:
+Veigar's advantages is that:
 
 - Expose functions of your program to be called via RPC (from any language implementing msgpack-rpc).
 
@@ -24,9 +22,9 @@ Compared to other RPC frameworks, Veigar's advantages is that:
 
 - No concept of server and client, and each Veigar instance can call each other.
 
-- No network issue, such as being occupied or being semi closed.
+- No network, port availability issue.
 
-- No strange port pseudo availability issues (especially in Windows).
+- Support 3 call method: Synchronous, Asynchronous with Promise, Asynchronous with Callback.
 
 # Compile
 Although Veigar's underlying implementation is based on msgpack, we have included this library in the project and do not require additional installation when using it.
@@ -142,56 +140,17 @@ Unlike synchronous calls, the `asyncCall` function return `std::shared_ptr<veiga
 
 # Reject exceptions
 
-I don't like exceptions, so Veigar doesn't throw errors in the form of exceptions. Veigar actively catches all C++ standard libraries, msgpack, and boost exceptions, and returns them to the caller as return values. When the call fails (`!ret.isSuccess()`), the error information stored in the `errorMessage` may be the exception information captured by Veigar.
+I don't like exceptions, so Veigar doesn't throw errors in the form of exceptions. Veigar catch all exceptions of C++ STL and msgpack, and returns them to the caller as return values. 
+
+When the call fails (`!ret.isSuccess()`), the error information stored in the `errorMessage` may be the exception information captured by Veigar.
 
 # Performance
 
-Use the `examples\echo` program as a test case.
+Use the `examples\performance-test` program as a test case.
 
-Start three channels A, B, and C, each channel calling each other 1 million times using two threads:
-
-![3 Channels Test Case](./3-channel-test-case.jpg)
-
-## Windows Platform Test Results
-
-Test machine CPU configuration：
-```txt
-12th Gen Intel(R) Core(TM) i7-12700H   2.30 GHz
-```
-
-Test result：
+Process A call process B by use 4 threads, the payload size of parameter is 1024 bytes, each thread calls 25000 times. On average, it consumes 22 microseconds per call ("calling <--> result").
 
 ```txt
-Target channel names (Split by comma):
-A,B,C
-Async method(0/1):
-0
-Thread number for each target:
-2
-Call times each of thread:
-1000000
-Read/Write Timeout(ms):
-100
-[Thread 1, Target A] Calling...
-[Thread 0, Target C] Calling...
-[Thread 0, Target A] Calling...
-[Thread 1, Target B] Calling...
-[Thread 0, Target B] Calling...
-[Thread 1, Target C] Calling...
-[Thread 1, Target B] Total 1000000, Success 1000000, Error 0, Used: 59092341us, Average: 59us/call, 16922call/s.
-
-[Thread 0, Target B] Total 1000000, Success 1000000, Error 0, Used: 59112785us, Average: 59us/call, 16916call/s.
-
-[Thread 1, Target A] Total 1000000, Success 1000000, Error 0, Used: 59111520us, Average: 59us/call, 16917call/s.
-
-[Thread 0, Target C] Total 1000000, Success 1000000, Error 0, Used: 59126879us, Average: 59us/call, 16912call/s.
-
-[Thread 0, Target A] Total 1000000, Success 1000000, Error 0, Used: 59206766us, Average: 59us/call, 16889call/s.
-
-[Thread 1, Target C] Total 1000000, Success 1000000, Error 0, Used: 59299407us, Average: 59us/call, 16863call/s.
+Payload size: 1024
+Used: 2s240ms721μs, Total: 100000 Success: 100000, Timeout: 0, Failed: 0, Average: 22μs/call.
 ```
-
-On average, it takes 59 microseconds per call and can be called approximately 16900 times per second.
-
-![Windows Test Result](./windows-test-result.png)
-
