@@ -160,9 +160,6 @@ bool MessageQueue::pushBack(const void* data, int64_t dataSize) {
 
     if (dataSize > msgExpectedMaxSize_) {
         veigar::log("Veigar: Warning: Message size(%" PRId64 ") greater than expected(%d). It's best to adjust the parameters of the message queue.\n", dataSize, msgExpectedMaxSize_);
-#if (defined DEBUG) || (defined _DEBUG)
-        assert(false);
-#endif
     }
 
     do {

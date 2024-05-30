@@ -45,4 +45,6 @@ static constexpr unsigned VERSION_MINOR = 5;
 #define VEIGAR_WRITE_RESPONSE_QUEUE_TIMEOUT 1500 // ms
 #endif
 
+#define VEIGAR_ENABLE_RUN_TIME_RECORDER 0
+
 #endif  // !VEIGAR_CONFIG_H_

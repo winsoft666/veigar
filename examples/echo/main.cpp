@@ -135,12 +135,12 @@ void CallThreadProc(std::size_t threadId, std::string targetChannel) {
         std::string strRandom = genRandomString(10 + i % 500);
 
         if (callMethod == 0) {
-            veigar::CallResult ret = vg.syncCall(targetChannel, callTimeout, "echo", strRandom);
-            if (ret.isSuccess() && ret.obj.get().as<std::string>() == strRandom) {
-                printf("[Thread %" PRId64 ", Target %s] Call %d OK\n", (int64_t)threadId, targetChannel.c_str(), i);
+            veigar::CallResult cr = vg.syncCall(targetChannel, callTimeout, "echo", strRandom);
+            if (cr.isSuccess() && cr.obj.get().as<std::string>() == strRandom) {
+                //printf("[Thread %" PRId64 ", Target %s] Call %d OK\n", (int64_t)threadId, targetChannel.c_str(), i);
             }
             else {
-                printf("[Thread %" PRId64 ", Target %s] Call %d Failed\n", (int64_t)threadId, targetChannel.c_str(), i);
+                printf("[Thread %" PRId64 ", Target %s] Call %d Failed: %s\n", (int64_t)threadId, targetChannel.c_str(), i, cr.errorMessage.c_str());
             }
         }
         else if (callMethod == 1) {  // Async with promise
@@ -148,21 +148,21 @@ void CallThreadProc(std::size_t threadId, std::string targetChannel) {
             assert(acr);
             if (acr) {
                 if (acr->second.valid()) {
-                    veigar::CallResult ret;
+                    veigar::CallResult cr;
                     auto waitResult = acr->second.wait_for(std::chrono::milliseconds(callTimeout));
                     if (waitResult == std::future_status::timeout) {
-                        ret.errCode = veigar::ErrorCode::TIMEOUT;
-                        ret.errorMessage = "Timeout";
+                        cr.errCode = veigar::ErrorCode::TIMEOUT;
+                        cr.errorMessage = "Timeout";
                     }
                     else {
-                        ret = std::move(acr->second.get());
+                        cr = std::move(acr->second.get());
                     }
 
-                    if (ret.isSuccess() && ret.obj.get().as<std::string>() == strRandom) {
-                        printf("[Thread %" PRId64 ", Target %s] Call %d OK\n", (int64_t)threadId, targetChannel.c_str(), i);
+                    if (cr.isSuccess() && cr.obj.get().as<std::string>() == strRandom) {
+                        //printf("[Thread %" PRId64 ", Target %s] Call %d OK\n", (int64_t)threadId, targetChannel.c_str(), i);
                     }
                     else {
-                        printf("[Thread %" PRId64 ", Target %s] Call %d Failed\n", (int64_t)threadId, targetChannel.c_str(), i);
+                        printf("[Thread %" PRId64 ", Target %s] Call %d Failed: %s\n", (int64_t)threadId, targetChannel.c_str(), i, cr.errorMessage.c_str());
                     }
                 }
                 vg.releaseCall(acr->first);
@@ -172,10 +172,10 @@ void CallThreadProc(std::size_t threadId, std::string targetChannel) {
             vg.asyncCall(
                 [threadId, targetChannel, strRandom, i](const veigar::CallResult& cr) {
                     if (cr.isSuccess() && cr.obj.get().as<std::string>() == strRandom) {
-                        printf("[Thread %" PRId64 ", Target %s] Call %d OK\n", (int64_t)threadId, targetChannel.c_str(), i);
+                        //printf("[Thread %" PRId64 ", Target %s] Call %d OK\n", (int64_t)threadId, targetChannel.c_str(), i);
                     }
                     else {
-                        printf("[Thread %" PRId64 ", Target %s] Call %d Failed\n", (int64_t)threadId, targetChannel.c_str(), i);
+                        printf("[Thread %" PRId64 ", Target %s] Call %d Failed: %s\n", (int64_t)threadId, targetChannel.c_str(), i, cr.errorMessage.c_str());
                     }
                 },
                 targetChannel, callTimeout, "echo", strRandom);
@@ -209,7 +209,7 @@ int main(int argc, char** argv) {
             if (channelName == "quit")
                 break;
 
-            if (!vg.init(channelName, 200, 655360)) {
+            if (!vg.init(channelName, 200, 10240)) {
                 printf("Init failed.\n");
                 channelName.clear();
                 continue;

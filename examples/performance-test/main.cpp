@@ -85,33 +85,47 @@ std::string TimeToHuman(int64_t microseconds) {
     return str;
 }
 
+std::string genRandomString(const uint32_t len) {
+    srand((uint32_t)time(nullptr) + len);
+    static const char alphanum[] =
+        "0123456789"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz";
+    std::string ret;
+    ret.reserve(len);
+
+    for (uint32_t i = 0; i < len; ++i) {
+        ret += alphanum[rand() % (sizeof(alphanum) - 1)];
+    }
+
+    return ret;
+}
+
 veigar::Veigar vg;
 std::string channelName;
 std::string targetChannel;
-const std::string strHello = "hello";
-const int64_t totalCall = 200;
+std::string strPayload;
+const int threadNum = 4;
+const int64_t eachThreadCallNum = 25000;
 std::atomic<int64_t> success = 0;
 std::atomic<int64_t> timeout = 0;
 std::atomic<int64_t> failed = 0;
 
 void CallThreadProc(std::size_t threadId, std::string targetChannel) {
-    for (int i = 0; i < totalCall; i++) {
-        vg.asyncCall(
-            [](const veigar::CallResult& cr) {
-                if (cr.isSuccess() && cr.obj.get().as<std::string>() == strHello) {
-                    success++;
-                }
-                else {
-                    if (cr.errCode == veigar::ErrorCode::TIMEOUT) {
-                        timeout++;
-                    }
-                    else {
-                        failed++;
-                    }
-                    printf("%s\n", cr.errorMessage.c_str());
-                }
-            },
-            targetChannel, 6000, "echo", strHello);
+    for (int i = 0; i < eachThreadCallNum; i++) {
+        veigar::CallResult cr = vg.syncCall(targetChannel, 1000, "echo", strPayload);
+        if (cr.isSuccess() && cr.obj.get().as<std::string>() == strPayload) {
+            success++;
+        }
+        else {
+            if (cr.errCode == veigar::ErrorCode::TIMEOUT) {
+                timeout++;
+            }
+            else {
+                failed++;
+            }
+            printf("%s\n", cr.errorMessage.c_str());
+        }
     }
 }
 
@@ -123,9 +137,10 @@ int main(int argc, char** argv) {
 #else
     printf("Version: %d.%d\n", veigar::VERSION_MAJOR, veigar::VERSION_MINOR);
 #endif
+    printf("Input 'quit' to exit the program.\n");
     printf("\n");
 
-    vg.setTimeoutOfRWLock(3000);
+    vg.setTimeoutOfRWLock(1000);
 
     while (true) {
         if (channelName.empty()) {
@@ -136,6 +151,9 @@ int main(int argc, char** argv) {
                 std::cout << "Channel name can not be empty.\n";
                 continue;
             }
+
+            if (channelName == "quit")
+                break;
 
             if (!vg.init(channelName)) {
                 printf("Init failed.\n");
@@ -159,23 +177,35 @@ int main(int argc, char** argv) {
             std::cout << "Target channel names: ";
             std::cin >> targetChannel;
 
+            if (targetChannel == "quit")
+                break;
+
+            int payloadSize = 0;
+            std::cout << "Payload size: ";
+            std::cin >> payloadSize;
+            if (payloadSize <= 0) {
+                std::cout << "Payload size must greater than 0.\n";
+                continue;
+            }
+
+            strPayload = genRandomString(payloadSize);
+
             success.store(0);
             timeout.store(0);
             failed.store(0);
 
             auto tg = std::make_shared<ThreadGroup>();
             veigar::detail::TimeMeter tm;
-            tg->createThreads(1, targetChannel, CallThreadProc);
+            tg->createThreads(threadNum, targetChannel, CallThreadProc);
             tg->joinAll();
 
-            while (true) {
-                if (success.load() + failed.load() + timeout.load() == totalCall) {
-                    int64_t used = tm.elapsed();
-                    printf("Used: %s, Total: %" PRId64 " Success: %" PRId64 ", Timeout: %" PRId64 ", Failed: %" PRId64 ", Average: %s/call.\n",
-                           TimeToHuman(used).c_str(), totalCall, success.load(), timeout.load(), failed.load(), TimeToHuman(used / totalCall).c_str());
-                    break;
-                }
-                std::this_thread::sleep_for(std::chrono::milliseconds(5));
+            const int64_t totalCall = eachThreadCallNum * threadNum;
+
+            assert(success.load() + failed.load() + timeout.load() == totalCall);
+            if (success.load() + failed.load() + timeout.load() == totalCall) {
+                int64_t used = tm.elapsed();
+                printf("Used: %s, Total: %" PRId64 " Success: %" PRId64 ", Timeout: %" PRId64 ", Failed: %" PRId64 ", Average: %s/call.\n",
+                       TimeToHuman(used).c_str(), totalCall, success.load(), timeout.load(), failed.load(), TimeToHuman(used / totalCall).c_str());
             }
         }
     }

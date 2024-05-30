@@ -1,7 +1,14 @@
-#pragma once
+/*
+ * Copyright (c) winsoft666.
+ * All rights reserved.
+ *
+ * This source code is licensed under the license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
-#ifndef FUNC_TRAITS_H_HWIWA6G0
-#define FUNC_TRAITS_H_HWIWA6G0
+#ifndef VEIGAR_DETAIL_FUNC_TRAITS_H_
+#define VEIGAR_DETAIL_FUNC_TRAITS_H_
+#pragma once
 
 #include "veigar/detail/bool.h"
 
@@ -89,4 +96,4 @@ using is_void_result = std::is_void<typename func_traits<F>::result_type>;
 }  // namespace detail
 }  // namespace veigar
 
-#endif
+#endif // !VEIGAR_DETAIL_FUNC_TRAITS_H_
