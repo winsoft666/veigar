@@ -180,7 +180,7 @@ vg1.bind("func", [](MyPoint m) {
 });
 ```
 
-详细的参数绑定方法见 [tests\type_test.cpp](.\tests\type_test.cpp)。
+详细的参数绑定方法见 [tests/type_test.cpp](./tests/type_test.cpp)。
 
 # 拒绝异常
 

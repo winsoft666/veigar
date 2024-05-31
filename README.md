@@ -187,7 +187,7 @@ vg1.bind("func", [](MyPoint m) {
 });
 ```
 
-The detailed parameter binding method can be found in [tests\type_test.cpp](.\tests\type_test.cpp)。
+The detailed parameter binding method can be found in [tests/type_test.cpp](./tests/type_test.cpp)。
 
 # Reject exceptions
 
