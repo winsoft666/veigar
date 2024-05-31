@@ -22,7 +22,7 @@ Veigar based on shared memory and only supports RPC between native processes or 
 
 - No concept of server and client, and each Veigar instance can call each other.
 
-- No network, port availability issue.
+- No network, port availability issue, fake availability issues of port on Windows especially.
 
 - Support 3 call methods: Synchronous, Asynchronous with Promise, Asynchronous with Callback.
 
