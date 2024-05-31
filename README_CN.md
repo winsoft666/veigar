@@ -139,6 +139,7 @@ vg.releaseCall(acr->first);
 - char, wchar_t
 - int, unsigned int, long, unsigned long, long long, unsigned long long
 - uint8_t, int8_t, int32_t, uint32_t, int64_t, uint64_t
+- float, double
 
 ```cpp
  veigar::Veigar vg;
@@ -191,10 +192,9 @@ vg1.bind("func", [](MyPoint m) {
 
 使用 `examples\performance-test` 程序作为测试用例：
 
-进程 A 使用 4 个线程同时进行同步调用进程 B，调用时传参数据大小为 1024 字节，每个线程调用 25000 次，平均每次“调用 <--> 返回结果”消耗22微妙。
+进程 A 使用 4 个线程同时进行同步调用进程 B，调用时传参数据大小为 1024 字节，每个线程调用 25000 次，平均每次“调用 <--> 返回结果”消耗 1.2 微妙。
 
 ```txt
 Payload size: 1024
-Used: 2s240ms721μs, Total: 100000 Success: 100000, Timeout: 0, Failed: 0, Average: 22μs/call.
+Used: 1s240ms721μs, Total: 100000 Success: 100000, Timeout: 0, Failed: 0, Average: 1.2μs/call.
 ```
-

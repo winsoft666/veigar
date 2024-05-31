@@ -24,7 +24,7 @@ Veigar based on shared memory and only supports RPC between native processes or 
 
 - No network, port availability issue.
 
-- Support 3 call method: Synchronous, Asynchronous with Promise, Asynchronous with Callback.
+- Support 3 call methods: Synchronous, Asynchronous with Promise, Asynchronous with Callback.
 
 # Compile
 
@@ -144,6 +144,7 @@ Supports regular C++ data types, such as:
 - char, wchar_t
 - int, unsigned int, long, unsigned long, long long, unsigned long long
 - uint8_t, int8_t, int32_t, uint32_t, int64_t, uint64_t
+- float, double
 
 ```cpp
  veigar::Veigar vg;
@@ -198,9 +199,9 @@ When the call fails (`!ret.isSuccess()`), the error information stored in the `e
 
 Use the `examples\performance-test` program as a test case.
 
-Process A call process B by use 4 threads, the payload size of parameter is 1024 bytes, and each thread calls 25000 times. On average, it consumes 22 microseconds per call ("calling <--> result").
+Process A call process B by use 4 threads, the payload size of parameter is 1024 bytes, and each thread calls 25000 times. On average, it consumes 1.2 microseconds per call ("calling <--> result").
 
 ```txt
 Payload size: 1024
-Used: 2s240ms721μs, Total: 100000 Success: 100000, Timeout: 0, Failed: 0, Average: 22μs/call.
+Used: 1s240ms721μs, Total: 100000 Success: 100000, Timeout: 0, Failed: 0, Average: 1.2μs/call.
 ```
