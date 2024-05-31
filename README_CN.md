@@ -131,6 +131,56 @@ vg.releaseCall(acr->first);
 
 与同步调用不同，`asyncCall`函数返回的是`std::shared_ptr<veigar::AsyncCallResult>`，而且调用者在获取到`CallResult`或不再关系调用结果时，需要调用`releaseCall`函数释放资源。
 
+## RPC函数参数类型
+
+支持常规的 C++ 数据类型，如：
+
+- bool
+- char, wchar_t
+- int, unsigned int, long, unsigned long, long long, unsigned long long
+- uint8_t, int8_t, int32_t, uint32_t, int64_t, uint64_t
+
+```cpp
+ veigar::Veigar vg;
+ vg.bind("func", [](char c, wchar_t w, int i, int8_t j, int64_t k) {
+     // ......
+ });
+```
+
+也支持如下 STL 数据类型：
+- std::string
+- std::set
+- std::vector
+- std::map
+- std::string_view (C++ 17)
+- std::optional (C++ 17)
+- 不支持 std::wstring，但是我们可以使用 std::vector<uint8_t> 来代替 std::wstring
+
+```cpp
+ veigar::Veigar vg;
+ vg.bind("func", [](std::string s, std::vector<std::string>, std::string_view v, std::map<int, bool> m) {
+     // ......
+ });
+```
+
+也可以支持自定义数据类型，如：
+```cpp
+#include "veigar/msgpack/adaptor/define.hpp"
+
+struct MyPoint {
+    int x;
+    int y;
+    MSGPACK_DEFINE(x, y);
+};
+
+veigar::Veigar vg;
+vg1.bind("func", [](MyPoint m) {
+    // ......
+});
+```
+
+详细的参数绑定方法见 [tests\type_test.cpp](.\tests\type_test.cpp)。
+
 # 拒绝异常
 
 我不喜欢异常，Veigar 不会通过抛出异常的形式来返回错误，相反 Veigar 会主动捕获所有 C++ 标准库、msgpack 的异常，并以返回值的形式返回给调用者。

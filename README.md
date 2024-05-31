@@ -136,6 +136,58 @@ vg.releaseCall(acr->first);
 
 Unlike synchronous calls, the `asyncCall` function return `std::shared_ptr<veigar::AsyncCallResult>`, and the caller needs to call the `releaseCall` function to release resources when obtaining the `CallResult` or when the call result is no longer related.
 
+## RPC function parameter types
+
+Supports regular C++ data types, such as:
+
+- bool
+- char, wchar_t
+- int, unsigned int, long, unsigned long, long long, unsigned long long
+- uint8_t, int8_t, int32_t, uint32_t, int64_t, uint64_t
+
+```cpp
+ veigar::Veigar vg;
+ vg.bind("func", [](char c, wchar_t w, int i, int8_t j, int64_t k) {
+     // ......
+ });
+```
+
+Also support STL data types, such as:
+
+- std::string
+- std::set
+- std::vector
+- std::map
+- std::string_view (C++ 17)
+- std::optional (C++ 17)
+- Not support std::wstring，but we can use std::vector<uint8_t> to instead of std::wstring
+
+```cpp
+ veigar::Veigar vg;
+ vg.bind("func", [](std::string s, std::vector<std::string>, std::string_view v, std::map<int, bool> m) {
+     // ......
+ });
+```
+
+Veigar can also support custom data types, such as:
+
+```cpp
+#include "veigar/msgpack/adaptor/define.hpp"
+
+struct MyPoint {
+    int x;
+    int y;
+    MSGPACK_DEFINE(x, y);
+};
+
+veigar::Veigar vg;
+vg1.bind("func", [](MyPoint m) {
+    // ......
+});
+```
+
+The detailed parameter binding method can be found in [tests\type_test.cpp](.\tests\type_test.cpp)。
+
 # Reject exceptions
 
 I don't like exceptions, so Veigar doesn't throw errors in the form of exceptions. Veigar catch all exceptions of C++ STL and msgpack, and returns them to the caller as return values. 
