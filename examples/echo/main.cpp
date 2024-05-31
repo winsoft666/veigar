@@ -1,4 +1,4 @@
-/*
+ï»¿/*
  * Copyright (c) winsoft666.
  * All rights reserved.
  *
@@ -97,7 +97,7 @@ std::string TimeToHuman(int64_t microseconds) {
     if (mill > 0)
         str += std::to_string(mill) + "ms";
     if (micro > 0)
-        str += std::to_string(micro) + "¦Ìs";
+        str += std::to_string(micro) + "Î¼s";
     return str;
 }
 

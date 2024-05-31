@@ -1,4 +1,4 @@
-/*
+ï»¿/*
  * Copyright (c) winsoft666.
  * All rights reserved.
  *
@@ -81,7 +81,7 @@ std::string TimeToHuman(int64_t microseconds) {
     if (mill > 0)
         str += std::to_string(mill) + "ms";
     if (micro > 0)
-        str += std::to_string(micro) + "¦Ìs";
+        str += std::to_string(micro) + "Î¼s";
     return str;
 }
 
@@ -107,9 +107,10 @@ std::string targetChannel;
 std::string strPayload;
 const int threadNum = 4;
 const int64_t eachThreadCallNum = 25000;
-std::atomic<int64_t> success = { 0 };
-std::atomic<int64_t> timeout = { 0 };
-std::atomic<int64_t> failed = { 0 };
+const int64_t totalCall = threadNum * eachThreadCallNum;
+std::atomic<int64_t> success = {0};
+std::atomic<int64_t> timeout = {0};
+std::atomic<int64_t> failed = {0};
 
 void CallThreadProc(std::size_t threadId, std::string targetChannel) {
     for (int i = 0; i < eachThreadCallNum; i++) {
@@ -198,8 +199,6 @@ int main(int argc, char** argv) {
             veigar::detail::TimeMeter tm;
             tg->createThreads(threadNum, targetChannel, CallThreadProc);
             tg->joinAll();
-
-            const int64_t totalCall = eachThreadCallNum * threadNum;
 
             assert(success.load() + failed.load() + timeout.load() == totalCall);
             if (success.load() + failed.load() + timeout.load() == totalCall) {
