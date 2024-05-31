@@ -17,7 +17,7 @@ option(VEIGAR_USE_STATIC_CRT "Set to ON to build with static CRT on Windows (/MT
 
 set(VEIGAR_CXX_STANDARD 11 CACHE STRING "C++ version used to build veigar (Currently: Only 11+ supported)")
 
-if(NOT ${VEIGAR_CXX_STANDARD} EQUAL 14 AND NOT ${VEIGAR_CXX_STANDARD} EQUAL 11)
+if(${VEIGAR_CXX_STANDARD} LESS 11)
   message(fatal_error "Unsupported C++ standard: ${VEIGAR_CXX_STANDARD}")
 endif()
 
