@@ -23,7 +23,7 @@ using detail::Response;
 class CallDispatcher::Impl {
    public:
     std::vector<std::thread> workers_;
-    std::atomic_bool stop_ = false;
+    std::atomic_bool stop_ = { false };
     std::shared_ptr<MessageQueue> callMsgQueue_;
 };
 

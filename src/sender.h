@@ -67,7 +67,7 @@ class Sender {
    private:
     bool isInit_ = false;
     Event stopEvent_;
-    std::atomic_bool stop_ = false;
+    std::atomic_bool stop_ = { false };
 
     Veigar* veigar_ = nullptr;
 

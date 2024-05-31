@@ -107,9 +107,9 @@ std::string targetChannel;
 std::string strPayload;
 const int threadNum = 4;
 const int64_t eachThreadCallNum = 25000;
-std::atomic<int64_t> success = 0;
-std::atomic<int64_t> timeout = 0;
-std::atomic<int64_t> failed = 0;
+std::atomic<int64_t> success = { 0 };
+std::atomic<int64_t> timeout = { 0 };
+std::atomic<int64_t> failed = { 0 };
 
 void CallThreadProc(std::size_t threadId, std::string targetChannel) {
     for (int i = 0; i < eachThreadCallNum; i++) {

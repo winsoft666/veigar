@@ -134,9 +134,9 @@ class Veigar::Impl {
     uint32_t msgQueueCapacity_ = 0;
     uint32_t expectedMsgMaxSize_ = 0;
 
-    std::atomic<uint32_t> rwTimeout_ = 260;  // ms
+    std::atomic<uint32_t> rwTimeout_ = { 260 };  // ms
 
-    std::atomic<uint32_t> callIndex_ = 0;
+    std::atomic<uint32_t> callIndex_ = { 0 };
     std::string channelName_;
     std::string uuid_;
 

@@ -11,6 +11,7 @@
 #include <time.h>
 #include <iostream>
 #include <map>
+#include <thread>
 #include "catch.hpp"
 #include "veigar/veigar.h"
 
