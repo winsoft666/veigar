@@ -199,9 +199,8 @@ When the call fails (`!ret.isSuccess()`), the error information stored in the `e
 
 Use the `examples\performance-test` program as a test case.
 
-Process A call process B by use 4 threads, the payload size of parameter is 1024 bytes, and each thread calls 25000 times. On average, it consumes 1.2 microseconds per call ("calling <--> result").
+Process A call process B by use 4 threads and each thread calls 25000 times. On average, it consumes 1.2 microseconds per call ("calling <--> result").
 
 ```txt
-Payload size: 1024
 Used: 1s240ms721μs, Total: 100000 Success: 100000, Timeout: 0, Failed: 0, Average: 1.2μs/call.
 ```

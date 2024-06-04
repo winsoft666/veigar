@@ -104,7 +104,6 @@ std::string genRandomString(const uint32_t len) {
 veigar::Veigar vg;
 std::string channelName;
 std::string targetChannel;
-std::string strPayload;
 const int threadNum = 4;
 const int64_t eachThreadCallNum = 25000;
 const int64_t totalCall = threadNum * eachThreadCallNum;
@@ -114,8 +113,8 @@ std::atomic<int64_t> failed = {0};
 
 void CallThreadProc(std::size_t threadId, std::string targetChannel) {
     for (int i = 0; i < eachThreadCallNum; i++) {
-        veigar::CallResult cr = vg.syncCall(targetChannel, 1000, "echo", strPayload);
-        if (cr.isSuccess() && cr.obj.get().as<std::string>() == strPayload) {
+        veigar::CallResult cr = vg.syncCall(targetChannel, 100, "add", i, 1);
+        if (cr.isSuccess() && cr.obj.get().as<int64_t>() == i + 1) {
             success++;
         }
         else {
@@ -141,7 +140,7 @@ int main(int argc, char** argv) {
     printf("Input 'quit' to exit the program.\n");
     printf("\n");
 
-    vg.setTimeoutOfRWLock(1000);
+    vg.setTimeoutOfRWLock(100);
 
     while (true) {
         if (channelName.empty()) {
@@ -164,10 +163,10 @@ int main(int argc, char** argv) {
 
             std::cout << "Init success.\n";
 
-            if (!vg.bind("echo", [](const std::string& msg) {
-                    return msg;
+            if (!vg.bind("add", [](int64_t i, int64_t j) {
+                    return i + j;
                 })) {
-                printf("Bind echo function failed.\n");
+                printf("Bind add function failed.\n");
                 continue;
             }
 
@@ -181,15 +180,6 @@ int main(int argc, char** argv) {
             if (targetChannel == "quit")
                 break;
 
-            int payloadSize = 0;
-            std::cout << "Payload size: ";
-            std::cin >> payloadSize;
-            if (payloadSize <= 0) {
-                std::cout << "Payload size must greater than 0.\n";
-                continue;
-            }
-
-            strPayload = genRandomString(payloadSize);
 
             success.store(0);
             timeout.store(0);
