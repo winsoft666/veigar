@@ -199,8 +199,10 @@ When the call fails (`!ret.isSuccess()`), the error information stored in the `e
 
 Use the `examples\performance-test` program as a test case.
 
-Process A call process B by use 4 threads and each thread calls 25000 times. On average, it consumes 1.2 microseconds per call ("calling <--> result").
+Process A call process B by use 4 threads and each thread calls 25000 times. On average, it consumes 12 microseconds per call ("calling <--> result").
 
 ```txt
-Used: 1s240ms721μs, Total: 100000 Success: 100000, Timeout: 0, Failed: 0, Average: 1.2μs/call.
+Used: 1s240ms721μs, Total: 100000 Success: 100000, Timeout: 0, Failed: 0, Average: 12μs/call.
 ```
+
+Although there is still a great possibility of performance improvement for Veigar at present, but based on test results, it has far surpassed other RPC frameworks.

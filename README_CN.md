@@ -192,8 +192,10 @@ vg1.bind("func", [](MyPoint m) {
 
 使用 `examples\performance-test` 程序作为测试用例：
 
-进程 A 使用 4 个线程同时进行同步调用进程 B，每个线程调用 25000 次，平均每次“调用 <--> 返回结果”消耗 1.2 微妙。
+进程 A 使用 4 个线程同时进行同步调用进程 B，每个线程调用 25000 次，平均每次“调用 <--> 返回结果”消耗 12 微妙。
 
 ```txt
-Used: 1s240ms721μs, Total: 100000 Success: 100000, Timeout: 0, Failed: 0, Average: 1.2μs/call.
+Used: 1s240ms721μs, Total: 100000 Success: 100000, Timeout: 0, Failed: 0, Average: 12μs/call.
 ```
+
+虽然 Veigar 在性能上还有一定的优化提升空间，但就测试结果来看，目前已经远远超越了其他 RPC 框架。
