@@ -99,16 +99,13 @@ Each instance bind a function named `echo`, which simply returns the msg paramet
 
 By specifying the `syncCall` function with 'target channel name', 'function name', 'function parameters', and 'timeout milliseconds', the target function can be synchronously called and the call result obtained.
 
-## Asynchronous Call
+## Asynchronous Call with Promise
 
-Asynchronous call can be implemented using the `asyncCall` function.
+Asynchronous call that with promise can be implemented using the `asyncCall` function.
 
-The following is an example of asynchronous call:
+The following is an example of asynchronous call with promise:
 
 ```cpp
-//
-// Same as synchronous call
-// ...
 std::vector<uint8_t> buf;
 std::shared_ptr<veigar::AsyncCallResult> acr = vg.asyncCall(targetChannelName, "echo", "hello", 12, 3.14, buf);
 if (acr->second.valid()) {
@@ -128,13 +125,30 @@ if (acr->second.valid()) {
 }
 
 vg.releaseCall(acr->first);
-
-//
-// Same as synchronous call
-// ...
 ```
 
 Unlike synchronous calls, the `asyncCall` function return `std::shared_ptr<veigar::AsyncCallResult>`, and the caller needs to call the `releaseCall` function to release resources when obtaining the `CallResult` or when the call result is no longer related.
+
+## Asynchronous Call with Callback
+
+Asynchronous call that with callback also can be implemented using the `asyncCall` function.
+
+The following is an example of asynchronous call with callback:
+
+```cpp
+std::vector<uint8_t> buf;
+vg.asyncCall([](const veigar::CallResult& cr) {
+    if(cr.isSuccess()) {
+        std::cout << cr.obj.get().as<std::string>() << std::endl;
+    }
+    else {
+        std::cout << cr.errorMessage << std::endl;
+    }
+ }, targetChannelName, "echo", "hello", 12, 3.14, buf);
+
+```
+
+This method does not require calling the `releaseCall` function to release resources.
 
 ## RPC function parameter types
 

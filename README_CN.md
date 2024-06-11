@@ -96,14 +96,13 @@ sample.exe myself other
 
 通过为`syncCall`函数指定“目标通道名称”、“函数名称”、“函数参数”及“超时毫秒数”就可以同步调用目标函数并得到调用结果。
 
-## 异步调用
+## 返回Promise的异步调用
+
 使用`asyncCall`函数可以实现异步调用。
 
-下面是异步调用示例：
+下面是返回 Promise 的异步调用示例：
+
 ```cpp
-//
-// 与同步调用相同
-// ...
 std::vector<uint8_t> buf;
 std::shared_ptr<veigar::AsyncCallResult> acr = vg.asyncCall(targetChannelName, "echo", "hello", 12, 3.14, buf);
 if (acr->second.valid()) {
@@ -123,13 +122,30 @@ if (acr->second.valid()) {
 }
 
 vg.releaseCall(acr->first);
-
-//
-// 与同步调用相同
-// ...
 ```
 
 与同步调用不同，`asyncCall`函数返回的是`std::shared_ptr<veigar::AsyncCallResult>`，而且调用者在获取到`CallResult`或不再关系调用结果时，需要调用`releaseCall`函数释放资源。
+
+## 基于回调函数的异步调用
+
+使用`asyncCall`函数同样可以实现基于回调函数的异步调用。
+
+下面是基于回调函数的异步调用示例：
+
+```cpp
+std::vector<uint8_t> buf;
+vg.asyncCall([](const veigar::CallResult& cr) {
+    if(cr.isSuccess()) {
+        std::cout << cr.obj.get().as<std::string>() << std::endl;
+    }
+    else {
+        std::cout << cr.errorMessage << std::endl;
+    }
+ }, targetChannelName, "echo", "hello", 12, 3.14, buf);
+
+```
+
+该方式不需要调用`releaseCall`函数释放资源。
 
 ## RPC函数参数类型
 
