@@ -7,7 +7,7 @@
 ############################################################################
 
 set (CMAKE_CXX_STANDARD 11)
-set (PACKAGE_VERSION 1.0)
+set (PACKAGE_VERSION 1.2)
 
 if (MSVC)
 	add_definitions(
@@ -68,7 +68,6 @@ install(TARGETS ${PROJECT_NAME}
 	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 	OBJECTS DESTINATION ${CMAKE_INSTALL_LIBDIR}
-	INCLUDES DESTINATION include
 )
 
 install(EXPORT veigar-targets
@@ -90,4 +89,7 @@ write_basic_package_version_file(
 	VERSION ${PACKAGE_VERSION}
 	COMPATIBILITY AnyNewerVersion
 )
+
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/veigarConfigVersion.cmake DESTINATION share/veigar)
+
+install(DIRECTORY ../include/veigar 	DESTINATION include)
