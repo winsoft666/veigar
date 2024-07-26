@@ -293,6 +293,24 @@ bool MessageQueue::popFront(void* buf, int64_t bufSize, int64_t& written) {
     return ret;
 }
 
+int64_t MessageQueue::msgNumber() const {
+    uint8_t* shmData = shm_->data();
+    assert(shmData);
+    if (!shmData) {
+        return -1;
+    }
+
+    int64_t* const p64 = (int64_t*)shmData;
+    if (!p64) {
+        return -1;
+    }
+
+    int64_t* const pShmSize = p64;
+    int64_t* const pCurMsgNumber = p64 + 1;
+
+    return *pCurMsgNumber;
+}
+
 bool MessageQueue::wait(int64_t ms) {
     if (readSmp_) {
         return readSmp_->wait(ms);

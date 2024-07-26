@@ -191,6 +191,18 @@ void CallDispatcher::dispatchThreadProc() {
             continue;
         }
 
+        const int64_t msgNum = impl_->callMsgQueue_->msgNumber();
+        if (msgNum <= 0) {
+            if (msgNum < 0) {
+                veigar::log("Veigar: Error: Query message number from call message queue failed.\n");
+            }
+            else {
+                veigar::log("Veigar: Warning: Disordered read signal for call message queue.\n");
+            }
+            impl_->callMsgQueue_->rwUnlock();
+            continue;
+        }
+
         if (!impl_->callMsgQueue_->popFront(callPac.buffer(), callPac.buffer_capacity(), written)) {
             if (written <= 0) {
                 veigar::log("Veigar: Error: Pop front from call message queue failed.\n");

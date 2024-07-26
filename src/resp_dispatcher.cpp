@@ -105,6 +105,18 @@ void RespDispatcher::dispatchRespThreadProc() {
             continue;
         }
 
+        const int64_t msgNum = respMsgQueue_->msgNumber();
+        if (msgNum <= 0) {
+            if (msgNum < 0) {
+                veigar::log("Veigar: Error: Query message number from response message queue failed.\n");
+            }
+            else {
+                veigar::log("Veigar: Warning: Disordered read signal for response message queue.\n");
+            }
+            respMsgQueue_->rwUnlock();
+            continue;
+        }
+
         if (!respMsgQueue_->popFront(respPac.buffer(), respPac.buffer_capacity(), written)) {
             if (written <= 0) {
                 veigar::log("Veigar: Error: Pop front from response message queue failed.\n");
