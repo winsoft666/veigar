@@ -8,6 +8,7 @@
 #include "message_queue.h"
 #include "log.h"
 #include <assert.h>
+#include <cstring>
 
 namespace veigar {
 MessageQueue::MessageQueue(int32_t msgMaxNumber, int32_t msgExpectedMaxSize) noexcept :

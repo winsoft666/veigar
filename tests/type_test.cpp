@@ -185,7 +185,12 @@ TEST_CASE("type-test-9") {
     CHECK(vg2.init("109F8B68-2"));
     veigar::CallResult cr = vg2.syncCall("109F8B68-1", 200, "func1", v);
     CHECK(cr.isSuccess());
-    CHECK(cr.obj.get().as<std::set<std::string>>() == v);
+    if (cr.isSuccess()) {
+        CHECK(cr.obj.get().as<std::set<std::string>>() == v);
+    }
+    else {
+        printf("ERROR: %d, %s\n", cr.errCode, cr.errorMessage.c_str());
+    }
 
     vg1.uninit();
     vg2.uninit();
@@ -212,8 +217,14 @@ TEST_CASE("type-test-10") {
     CHECK(vg2.init("109F8B68-2"));
     veigar::CallResult cr = vg2.syncCall("109F8B68-1", 200, "func1", mp);
     CHECK(cr.isSuccess());
-    MyPoint mp2 = cr.obj.get().as<MyPoint>();
-    CHECK((mp2.x == 10 && mp2.y == 11));
+    if (cr.isSuccess()) {
+        MyPoint mp2 = cr.obj.get().as<MyPoint>();
+        CHECK((mp2.x == 10 && mp2.y == 11));
+    }
+    else {
+        printf("ERROR: %d, %s\n", cr.errCode, cr.errorMessage.c_str());
+    }
+
 
     vg1.uninit();
     vg2.uninit();

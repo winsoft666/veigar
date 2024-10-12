@@ -27,7 +27,7 @@ class RunTimeRecorder {
 };
 }  // namespace veigar
 
-#if VEIGAR_ENABLE_RUN_TIME_RECORDER
+#ifdef VEIGAR_ENABLE_RUN_TIME_RECORD
 #define RUN_TIME_RECORDER(flag) RunTimeRecorder __rtr__(flag)
 #define RUN_TIME_RECORDER_END __rtr__.end()
 

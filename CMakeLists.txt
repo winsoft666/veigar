@@ -17,6 +17,8 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake;${CMAKE_MODULE_PATH};")
 option(VEIGAR_BUILD_EXAMPLES "Build examples project" ON)
 option(VEIGAR_BUILD_TESTS "Build tests project" ON)
 option(VEIGAR_USE_STATIC_CRT "Set to ON to build with static CRT on Windows (/MT)." OFF)
+option(VEIGAR_ENABLE_RUN_TIME_RECORD "Set to ON to record run time." OFF)
+mark_as_advanced(VEIGAR_ENABLE_RUN_TIME_RECORD)
 
 set(VEIGAR_CXX_STANDARD 11 CACHE STRING "C++ version used to build veigar (Currently: Only 11+ supported)")
 
@@ -24,7 +26,7 @@ if(${VEIGAR_CXX_STANDARD} LESS 11)
   message(fatal_error "Unsupported C++ standard: ${VEIGAR_CXX_STANDARD}")
 endif()
 
-set(CMAKE_CXX_STANDARD ${RPCLIB_CXX_STANDARD})
+set(CMAKE_CXX_STANDARD ${VEIGAR_CXX_STANDARD})
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)

@@ -8,6 +8,7 @@
 #include "semaphore.h"
 #include "log.h"
 #include <assert.h>
+#include <limits>
 
 namespace veigar {
 
@@ -119,26 +120,31 @@ bool Semaphore::wait(const int64_t& ms) {
     DWORD result = WaitForSingleObject(sh_->h_, ms >= 0 ? (DWORD)ms : INFINITE);
     return (result == WAIT_OBJECT_0);
 #else
-    timeval tv_now;
-    gettimeofday(&tv_now, NULL);
-
     timespec ts;
-    ts.tv_sec = tv_now.tv_sec;
-    ts.tv_nsec = tv_now.tv_usec * 1000;
 
-    int ns = ts.tv_nsec + (ms % 1000) * 1000000;
-    ts.tv_nsec = ns % 1000000000;
-    ts.tv_sec += ns / 1000000000;
-    ts.tv_sec += ms / 1000;
+    if (ms > 0) {
+        timespec ts_now;
+        clock_gettime(CLOCK_REALTIME, &ts_now);
+
+        ts.tv_sec = ts_now.tv_sec;
+        ts.tv_nsec = ts_now.tv_nsec;
+
+        ts.tv_sec += (ms / 1000);
+        ts.tv_nsec += ((ms % 1000) * 1000000);
+    }
+    else {
+        ts.tv_sec = std::numeric_limits<time_t>::max();
+        ts.tv_nsec = 0;
+    }
 
     if (named_) {
-        if (sem_timedwait(sh_->named_, &ts) != 0) {
+        if (sem_timedwait(sh_->named_, &ts) == 0) {
             return true;
         }
         return false;
     }
     else {
-        if (sem_timedwait(&sh_->unnamed_, &ts) != 0) {
+        if (sem_timedwait(&sh_->unnamed_, &ts) == 0) {
             return true;
         }
         return false;

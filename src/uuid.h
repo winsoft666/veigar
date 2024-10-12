@@ -10,6 +10,7 @@
 #pragma once
 
 #include <string>
+#include <cstdint>
 #include "os_platform.h"
 
 namespace veigar {

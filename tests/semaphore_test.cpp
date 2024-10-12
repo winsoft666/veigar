@@ -13,10 +13,13 @@
 #include "catch.hpp"
 #include "../src/semaphore.h"
 #include "thread_group.h"
+#include <list>
+#include "../src/time_util.h"
 
 TEST_CASE("semaphore-named") {
     veigar::Semaphore smp;
-    REQUIRE(smp.open("43464FE463F14B458D5585DE378F5FFC"));
+    REQUIRE(smp.open("43464FE463F14B458D5585DE378F5FFC" + std::to_string(time(nullptr))));
+
     int64_t ret = 0;
     ThreadGroup tg;
     tg.createThreads(4, [&smp, &ret](std::size_t id) {
@@ -40,6 +43,7 @@ TEST_CASE("semaphore-named") {
 TEST_CASE("semaphore-unnamed") {
     veigar::Semaphore smp;
     REQUIRE(smp.open(""));
+
     int64_t ret = 0;
     ThreadGroup tg;
     tg.createThreads(4, [&smp, &ret](std::size_t id) {
@@ -58,4 +62,71 @@ TEST_CASE("semaphore-unnamed") {
     smp.close();
 
     REQUIRE(ret == 100000);
+}
+
+TEST_CASE("semaphore-unnamed-2") {
+    veigar::Semaphore smp;
+    REQUIRE(smp.open(""));
+
+    int64_t ret = 0;
+    ThreadGroup tg;
+    tg.createThreads(1, [&smp, &ret](std::size_t id) {
+        if(id == 0) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+            smp.release();
+        }
+    });
+
+    REQUIRE(smp.wait(-1));
+
+    tg.joinAll();
+    smp.close();
+}
+
+TEST_CASE("semaphore-time-wait") {
+    using namespace veigar;
+    veigar::Semaphore rwLocker;
+    REQUIRE(rwLocker.open("43464FE463F14B458D5585DE378F5GGG" + std::to_string(time(nullptr)), 0, 1));
+
+    int64_t start = TimeUtil::GetCurrentTimestamp();
+    REQUIRE(!rwLocker.wait(1000));
+    int64_t end = TimeUtil::GetCurrentTimestamp();
+
+    int64_t used = end - start;
+    REQUIRE((used > 500000));
+
+    rwLocker.close();
+}
+
+TEST_CASE("semaphore-rw-locker") {
+    veigar::Semaphore rwLocker;
+    REQUIRE(rwLocker.open("43464FE463F14B458D5585DE378F5DDD" + std::to_string(time(nullptr)), 1, 1));
+
+    std::list<std::string> list;
+    ThreadGroup tg;
+    int w = 0, r = 0;
+    tg.createThreads(2, [&rwLocker, &w, &r, &list](std::size_t id) {
+        for (int i = 0; i < 100000; i++) {
+            CHECK(rwLocker.wait(1000));
+            if (id % 2 == 0) {
+                list.push_back("123456");
+                w++;
+            }
+            else {
+                if (list.size() > 0) {
+                    std::string s = list.front();
+                    CHECK(s == "123456");
+                    list.pop_front();
+                    r++;
+                }
+            }
+            rwLocker.release();
+        }
+    });
+
+    tg.joinAll();
+    rwLocker.close();
+
+    REQUIRE(w == 100000);
+    REQUIRE(r > 0);
 }

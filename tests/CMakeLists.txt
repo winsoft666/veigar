@@ -6,8 +6,6 @@
 # LICENSE file in the root directory of this source tree.
 ############################################################################
 
-set (CMAKE_CXX_STANDARD 14)
-
 file(GLOB TEST_SOURCE_FILES ./*.cpp ./*.h)
 file(GLOB VEIGAR_SOURCE_FILES ../src/*.h ../src/*.cpp)
 
@@ -16,7 +14,8 @@ source_group("test" FILES ${TEST_SOURCE_FILES})
 add_executable(
 	test
 	${TEST_SOURCE_FILES}
-    ${VEIGAR_SOURCE_FILES})
+    ${VEIGAR_SOURCE_FILES}
+)
 
 set_target_properties(test PROPERTIES 
   OUTPUT_NAME test

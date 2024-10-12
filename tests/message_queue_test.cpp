@@ -15,6 +15,7 @@
 #include <vector>
 #include "thread_group.h"
 #include <mutex>
+#include <cstring>
 
 TEST_CASE("mq-create-open") {
     std::string mqPath = "mq-create-open-" + std::to_string(time(nullptr));
@@ -163,7 +164,7 @@ TEST_CASE("mq-multi-thread-push-pop") {
             }
             else {
                 if (i == 0) {
-                    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                    std::this_thread::sleep_for(std::chrono::milliseconds(500));
                 }
                 int64_t written = 0;
                 memset(&buf20[0], 0, 20);

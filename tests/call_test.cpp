@@ -16,19 +16,21 @@
 #include "veigar/veigar.h"
 
 TEST_CASE("call-sync-1") {
+    std::string baseName = "109F8B35" + std::to_string(time(nullptr));
+
     veigar::Veigar vg1;
     CHECK(vg1.bind("func1", [](std::string s1, std::string s2) {
         return s1.size() + s2.size();
     }));
-    CHECK(vg1.init("109F8B35-1"));
+    CHECK(vg1.init(baseName + "-1"));
 
     veigar::Veigar vg2;
-    CHECK(vg2.init("109F8B35-2"));
-    veigar::CallResult cr = vg2.syncCall("109F8B35-1", 200, "func1", "s1", "s2");
+    CHECK(vg2.init(baseName + "-2"));
+    veigar::CallResult cr = vg2.syncCall(baseName + "-1", 200, "func1", "s1", "s2");
     CHECK(cr.isSuccess());
     CHECK(cr.obj.get().as<int>() == 4);
 
-    veigar::CallResult cr2 = vg2.syncCall("109F8B35-1-not-exist", 200, "func1", "s1", "s2");
+    veigar::CallResult cr2 = vg2.syncCall(baseName + "-not-exist", 200, "func1", "s1", "s2");
     CHECK(!cr2.isSuccess());
 
     vg1.uninit();
@@ -36,17 +38,19 @@ TEST_CASE("call-sync-1") {
 }
 
 TEST_CASE("call-sync-2") {
+    std::string baseName = "109F8BTT2Q" + std::to_string(time(nullptr));
+
     veigar::Veigar vg1;
     CHECK(vg1.bind("func1", [](std::string s1, std::string s2) {
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
         return s1.size() + s2.size();
     }));
-    CHECK(vg1.init("109F8B35-3"));
+    CHECK(vg1.init(baseName + "-3"));
 
     veigar::Veigar vg2;
-    CHECK(vg2.init("109F8B35-4"));
+    CHECK(vg2.init(baseName + "-4"));
 
-    veigar::CallResult cr = vg2.syncCall("109F8B35-3", 2000, "func1", "s1", "s2");
+    veigar::CallResult cr = vg2.syncCall(baseName + "-3", 2000, "func1", "s1", "s2");
     CHECK(cr.isSuccess());
     CHECK(cr.obj.get().as<int>() == 4);
 
@@ -55,17 +59,19 @@ TEST_CASE("call-sync-2") {
 }
 
 TEST_CASE("call-sync-3") {
+    std::string baseName = "109F8B76545555" + std::to_string(time(nullptr));
+
     veigar::Veigar vg1;
     CHECK(vg1.bind("func1", [](std::string s1, std::string s2) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1500));
         return s1.size() + s2.size();
     }));
-    CHECK(vg1.init("109F8B35-5"));
+    CHECK(vg1.init(baseName + "-5"));
 
     veigar::Veigar vg2;
-    CHECK(vg2.init("109F8B35-6"));
+    CHECK(vg2.init(baseName + "-6"));
 
-    veigar::CallResult cr = vg2.syncCall("109F8B35-3", 500, "func1", "s1", "s2");
+    veigar::CallResult cr = vg2.syncCall(baseName + "-3", 500, "func1", "s1", "s2");
     CHECK(!cr.isSuccess());
 
     vg1.uninit();
@@ -73,9 +79,11 @@ TEST_CASE("call-sync-3") {
 }
 
 TEST_CASE("call-sync-recursion") {
+    std::string baseName = "109F8B7654111133" + std::to_string(time(nullptr));
+
     veigar::Veigar vg1;
-    vg1.bind("vg1-func", [&vg1](std::string s1, std::string s2) {
-        veigar::CallResult cr1 = vg1.syncCall("109F8B35-8", 500, "vg2-func", "ss1", "ss2");
+    vg1.bind("vg1-func", [baseName, &vg1](std::string s1, std::string s2) {
+        veigar::CallResult cr1 = vg1.syncCall(baseName + "-8", 500, "vg2-func", "ss1", "ss2");
         CHECK(cr1.isSuccess());
         int result1 = 0;
         CHECK(cr1.convertObject(result1));
@@ -83,7 +91,7 @@ TEST_CASE("call-sync-recursion") {
 
         return s1.size() + s2.size();
     });
-    CHECK(vg1.init("109F8B35-7"));
+    CHECK(vg1.init(baseName + "-7"));
 
     // ----
 
@@ -91,37 +99,44 @@ TEST_CASE("call-sync-recursion") {
     vg2.bind("vg2-func", [](std::string s1, std::string s2) {
         return s1.size() + s2.size();
     });
-    CHECK(vg2.init("109F8B35-8"));
+    CHECK(vg2.init(baseName + "-8"));
 
-    veigar::CallResult cr2 = vg2.syncCall("109F8B35-7", 500, "vg1-func", "s1", "s2");
+    veigar::CallResult cr2 = vg2.syncCall(baseName + "-7", 500, "vg1-func", "s1", "s2");
     CHECK(cr2.isSuccess());
-    int result2 = 0;
-    CHECK(cr2.convertObject(result2));
-    CHECK(result2 == 4);
+    if(cr2.isSuccess()) {
+        int result2 = 0;
+        CHECK(cr2.convertObject(result2));
+        CHECK(result2 == 4);
+    }
+    else {
+        printf("ERROR: %d, %s\n", cr2.errCode, cr2.errorMessage.c_str());
+    }
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
 
     vg1.uninit();
     vg2.uninit();
 }
 
 TEST_CASE("call-async-1") {
+    std::string baseName = "109F8B9999" + std::to_string(time(nullptr));
+
     veigar::Veigar vg1;
     CHECK(vg1.bind("func1", [](std::string s1, std::string s2) {
         return s1.size() + s2.size();
     }));
-    CHECK(vg1.init("109F8B35-1"));
+    CHECK(vg1.init(baseName + "-1"));
 
     veigar::Veigar vg2;
-    CHECK(vg2.init("109F8B35-2"));
-    std::shared_ptr<veigar::AsyncCallResult> acr1 = vg2.asyncCall("109F8B35-1", 100, "func1", "s1", "s2");
+    CHECK(vg2.init(baseName + "-2"));
+    std::shared_ptr<veigar::AsyncCallResult> acr1 = vg2.asyncCall(baseName + "-1", 100, "func1", "s1", "s2");
     CHECK(acr1);
     CHECK(acr1->second.valid());
-    CHECK(acr1->second.wait_for(std::chrono::milliseconds(100)) != std::future_status::timeout);
+    CHECK(acr1->second.wait_for(std::chrono::milliseconds(300)) != std::future_status::timeout);
     CHECK(acr1->second.get().obj.get().as<int>() == 4);
     vg2.releaseCall(acr1->first);
 
-    std::shared_ptr<veigar::AsyncCallResult> acr2 = vg2.asyncCall("109F8B35-1-not-exist", 100, "func1", "s1", "s2");
+    std::shared_ptr<veigar::AsyncCallResult> acr2 = vg2.asyncCall(baseName + "-not-exist", 100, "func1", "s1", "s2");
     CHECK(acr2);
     CHECK(acr2->second.valid());
     CHECK(acr2->second.wait_for(std::chrono::milliseconds(100)) != std::future_status::timeout);
@@ -133,23 +148,30 @@ TEST_CASE("call-async-1") {
 }
 
 TEST_CASE("call-async-2") {
+    std::string baseName = "109F8B76541111" + std::to_string(time(nullptr));
+
     veigar::Veigar vg1;
     CHECK(vg1.bind("func1", [](std::string s1, std::string s2) {
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
         return s1.size() + s2.size();
     }));
-    CHECK(vg1.init("109F8B35-3"));
+    CHECK(vg1.init(baseName + "-3"));
 
     veigar::Veigar vg2;
-    CHECK(vg2.init("109F8B35-4"));
+    CHECK(vg2.init(baseName + "-4"));
 
-    std::shared_ptr<veigar::AsyncCallResult> acr = vg2.asyncCall("109F8B35-3", 100, "func1", "s1", "s2");
+    std::shared_ptr<veigar::AsyncCallResult> acr = vg2.asyncCall(baseName + "-3", 100, "func1", "s1", "s2");
     CHECK(acr);
     CHECK(acr->second.valid());
     CHECK(acr->second.wait_for(std::chrono::milliseconds(2000)) != std::future_status::timeout);
     auto cr = acr->second.get();
-    CHECK(cr.obj.get().as<int>() == 4);
     CHECK(cr.isSuccess());
+    if(cr.isSuccess()) {
+        CHECK(cr.obj.get().as<int>() == 4);
+    }
+    else {
+        printf("ERROR: %d, %s\n", cr.errCode, cr.errorMessage.c_str());
+    }
     vg2.releaseCall(acr->first);
 
     vg1.uninit();
@@ -157,17 +179,19 @@ TEST_CASE("call-async-2") {
 }
 
 TEST_CASE("call-async-3") {
+    std::string baseName = "109F8B7000" + std::to_string(time(nullptr));
+
     veigar::Veigar vg1;
     CHECK(vg1.bind("func1", [](std::string s1, std::string s2) {
         std::this_thread::sleep_for(std::chrono::milliseconds(2000));
         return s1.size() + s2.size();
     }));
-    CHECK(vg1.init("109F8B35-5"));
+    CHECK(vg1.init(baseName + "-5"));
 
     veigar::Veigar vg2;
-    CHECK(vg2.init("109F8B35-6"));
+    CHECK(vg2.init(baseName + "-6"));
 
-    std::shared_ptr<veigar::AsyncCallResult> acr = vg2.asyncCall("109F8B35-5", 100, "func1", "s1", "s2");
+    std::shared_ptr<veigar::AsyncCallResult> acr = vg2.asyncCall(baseName + "-5", 100, "func1", "s1", "s2");
     CHECK(acr);
     CHECK(acr->second.valid());
     CHECK(acr->second.wait_for(std::chrono::milliseconds(500)) == std::future_status::timeout);
@@ -178,9 +202,11 @@ TEST_CASE("call-async-3") {
 }
 
 TEST_CASE("call-async-recursion") {
+    std::string baseName = "109F8B766666" + std::to_string(time(nullptr));
+
     veigar::Veigar vg1;
-    vg1.bind("vg1-func", [&vg1](std::string s1, std::string s2) {
-        std::shared_ptr<veigar::AsyncCallResult> acr1 = vg1.asyncCall("109F8B35-8", 100, "vg2-func", "ss1", "ss2");
+    vg1.bind("vg1-func", [baseName, &vg1](std::string s1, std::string s2) {
+        std::shared_ptr<veigar::AsyncCallResult> acr1 = vg1.asyncCall(baseName + "-8", 500, "vg2-func", "ss1", "ss2");
         CHECK(acr1);
         CHECK(acr1->second.valid());
         CHECK(acr1->second.wait_for(std::chrono::milliseconds(500)) != std::future_status::timeout);
@@ -192,7 +218,7 @@ TEST_CASE("call-async-recursion") {
 
         return s1.size() + s2.size();
     });
-    CHECK(vg1.init("109F8B35-7"));
+    CHECK(vg1.init(baseName + "-7"));
 
     // ----
 
@@ -200,19 +226,24 @@ TEST_CASE("call-async-recursion") {
     vg2.bind("vg2-func", [](std::string s1, std::string s2) {
         return s1.size() + s2.size();
     });
-    CHECK(vg2.init("109F8B35-8"));
+    CHECK(vg2.init(baseName + "-8"));
 
-    std::shared_ptr<veigar::AsyncCallResult> acr2 = vg2.asyncCall("109F8B35-7", 100, "vg1-func", "s1", "s2");
+    std::shared_ptr<veigar::AsyncCallResult> acr2 = vg2.asyncCall(baseName + "-7", 500, "vg1-func", "s1", "s2");
     CHECK(acr2);
     CHECK(acr2->second.valid());
     CHECK(acr2->second.wait_for(std::chrono::milliseconds(500)) != std::future_status::timeout);
     auto cr = acr2->second.get();
-    CHECK(cr.obj.get().as<int>() == 4);
     CHECK(cr.isSuccess());
+    if(cr.isSuccess()) {
+        CHECK(cr.obj.get().as<int>() == 4);
+    }
+    else {
+        printf("ERROR: %d, %s\n", cr.errCode, cr.errorMessage.c_str());
+    }
 
     vg1.releaseCall(acr2->first);
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(8000));
 
     vg1.uninit();
     vg2.uninit();

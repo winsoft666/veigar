@@ -6,8 +6,6 @@
 # LICENSE file in the root directory of this source tree.
 ############################################################################
 
-set (CMAKE_CXX_STANDARD 11)
-
 file(GLOB HEADER_FILES                 ../include/veigar/*.h ../include/veigar/*.hpp ../include/veigar/*.inl)
 file(GLOB DETAIL_HEADER_FILES         ../include/veigar/detail/*.h ../include/veigar/detail/*.hpp ../include/veigar/detail/*.inl)
 
@@ -41,6 +39,10 @@ target_include_directories(veigar
 target_compile_definitions(veigar PRIVATE UNICODE _UNICODE NOMINMAX)
 if(WIN32)
 	target_compile_definitions(veigar PRIVATE _WIN32)
+endif()
+
+if(VEIGAR_ENABLE_RUN_TIME_RECORD)
+	target_compile_definitions(veigar PRIVATE VEIGAR_ENABLE_RUN_TIME_RECORD)
 endif()
 
 target_include_directories(veigar PUBLIC
