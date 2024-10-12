@@ -8,41 +8,39 @@
 
 set (CMAKE_CXX_STANDARD 14)
 
-set(EXE_NAME test)
-
 file(GLOB TEST_SOURCE_FILES ./*.cpp ./*.h)
 file(GLOB VEIGAR_SOURCE_FILES ../src/*.h ../src/*.cpp)
 
 source_group("test" FILES ${TEST_SOURCE_FILES})
 
-include_directories(../include)
-
-if (MSVC AND VEIGAR_USE_STATIC_CRT)
-    set(CompilerFlags
-        CMAKE_CXX_FLAGS
-        CMAKE_CXX_FLAGS_DEBUG
-        CMAKE_CXX_FLAGS_RELEASE
-        CMAKE_C_FLAGS
-        CMAKE_C_FLAGS_DEBUG
-        CMAKE_C_FLAGS_RELEASE
-        )
-    foreach(CompilerFlag ${CompilerFlags})
-        string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
-    endforeach()
-endif()
-
 add_executable(
-	${EXE_NAME}
+	test
 	${TEST_SOURCE_FILES}
     ${VEIGAR_SOURCE_FILES})
 
-add_dependencies(${EXE_NAME} ${PROJECT_NAME})
-target_link_libraries(${EXE_NAME} ${PROJECT_NAME})
+set_target_properties(test PROPERTIES 
+  OUTPUT_NAME test
+  DEBUG_OUTPUT_NAME test-d)
+
+add_dependencies(test veigar)
+
+target_include_directories(test 
+    PRIVATE "${CMAKE_SOURCE_DIR}/include"
+)
+
+target_link_libraries(test 
+    PRIVATE veigar
+)
 
 # Win32 Console
 if (WIN32 OR _WIN32)
-	set_target_properties(${EXE_NAME} PROPERTIES LINK_FLAGS "/SUBSYSTEM:CONSOLE")
-	set_target_properties(${EXE_NAME} PROPERTIES COMPILE_DEFINITIONS "_CONSOLE")
-else()
-   target_link_libraries(${EXE_NAME} pthread)
+	set_target_properties(test PROPERTIES LINK_FLAGS "/SUBSYSTEM:CONSOLE")
+	set_target_properties(test PROPERTIES COMPILE_DEFINITIONS "_CONSOLE")
 endif()
+
+install(TARGETS test
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+	OBJECTS DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)

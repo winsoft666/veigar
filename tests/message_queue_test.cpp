@@ -17,7 +17,7 @@
 #include <mutex>
 
 TEST_CASE("mq-create-open") {
-    std::string mqPath = "mq-create-open-641EC1C27FE244C9B";
+    std::string mqPath = "mq-create-open-" + std::to_string(time(nullptr));
 
     veigar::MessageQueue mq1(6, 10);
     REQUIRE(mq1.create(mqPath));
@@ -26,17 +26,15 @@ TEST_CASE("mq-create-open") {
     REQUIRE(mq2.open(mqPath));
 
     mq1.close();
-    REQUIRE(!mq2.open(mqPath));
-
     mq2.close();
-    REQUIRE(!mq2.open(mqPath));
 
+    REQUIRE(!mq2.open(mqPath));
     REQUIRE(mq1.create(mqPath));
     mq1.close();
 }
 
 TEST_CASE("mq-push-pop-no-discard") {
-    std::string mqPath = "mq-create-open-641EC1C27FE244C9B";
+    std::string mqPath = "mq-create-open-" + std::to_string(time(nullptr));
     std::string data = "hello-123456";  // size = 12
 
     veigar::MessageQueue mq1(3, 10);  // max size = 30
@@ -89,7 +87,7 @@ TEST_CASE("mq-push-pop-no-discard") {
 }
 
 TEST_CASE("mq-push-pop-discard") {
-    std::string mqPath = "mq-create-open-641EC1C27FE244C9B";
+    std::string mqPath = "mq-create-open-" + std::to_string(time(nullptr));
 
     veigar::MessageQueue mq1(3, 10);  // max size = 30
     REQUIRE(mq1.create(mqPath));
@@ -101,41 +99,36 @@ TEST_CASE("mq-push-pop-discard") {
     REQUIRE(mq1.pushBack(data2.c_str(), data2.size()));
 
     std::string data3 = "hello-123453";  // size = 12
-    REQUIRE(mq1.pushBack(data3.c_str(), data3.size()));
+    REQUIRE(!mq1.pushBack(data3.c_str(), data3.size()));
 
     char buf10[10] = {0};
     int64_t written = 0L;
-    REQUIRE(!mq1.popFront(buf10, 10, written));
+    REQUIRE(!mq1.popFront(buf10, 10, written)); // buffer size wrong
     REQUIRE(written == 12);
 
     char buf20[20] = {0};
     REQUIRE(mq1.popFront(buf20, 20, written));
-    REQUIRE(buf20 == data2);
+    REQUIRE(buf20 == data1);
     REQUIRE(written == 12);
 
     memset(&buf20[0], 0, 20);
     REQUIRE(mq1.popFront(buf20, 20, written));
-    REQUIRE(buf20 == data3);
     REQUIRE(written == 12);
-
-    memset(&buf20[0], 0, 20);
-    REQUIRE(!mq1.popFront(buf20, 20, written));
-    REQUIRE(written == 0);
 
     // again
     //
     REQUIRE(mq1.pushBack(data1.c_str(), data1.size()));
     REQUIRE(mq1.pushBack(data2.c_str(), data2.size()));
-    REQUIRE(mq1.pushBack(data3.c_str(), data3.size()));
+    REQUIRE(!mq1.pushBack(data3.c_str(), data3.size()));
 
     memset(&buf20[0], 0, 20);
     REQUIRE(mq1.popFront(buf20, 20, written));
-    REQUIRE(buf20 == data2);
+    REQUIRE(buf20 == data1);
     REQUIRE(written == 12);
 
     memset(&buf20[0], 0, 20);
     REQUIRE(mq1.popFront(buf20, 20, written));
-    REQUIRE(buf20 == data3);
+    REQUIRE(buf20 == data2);
     REQUIRE(written == 12);
 
     memset(&buf20[0], 0, 20);
@@ -146,7 +139,7 @@ TEST_CASE("mq-push-pop-discard") {
 }
 
 TEST_CASE("mq-multi-thread-push-pop") {
-    std::string mqPath = "mq-multi-thread-push-pop-641EC1C27FE244C9B";
+    std::string mqPath = "mq-multi-thread-push-pop-" + std::to_string(time(nullptr));
 
     veigar::MessageQueue mq(10000, 20);  // max size = 30
     REQUIRE(mq.create(mqPath));

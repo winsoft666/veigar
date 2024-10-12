@@ -24,18 +24,11 @@ namespace veigar {
 class SharedMemory {
    public:
     // path should only contain alpha-numeric characters, and is normalized on linux/macOS.
-    explicit SharedMemory(const std::string& path, int64_t size, bool create) noexcept;
+    explicit SharedMemory(const std::string& path, int64_t size) noexcept;
 
-    // open an existing shared memory for reading/writing
-    inline bool open() {
-        if (valid()) {
-            return true;
-        }
-        return createOrOpen();
-    }
-
+    bool create();
+    bool open();
     bool valid() const;
-
     void close();
 
     inline int64_t size() const {
@@ -51,12 +44,7 @@ class SharedMemory {
     }
 
     ~SharedMemory() noexcept = default;
-
    private:
-    bool createOrOpen();
-
-   private:
-    bool create_ = false;
     std::string path_;
     uint8_t* data_ = nullptr;
     int64_t size_ = 0;
@@ -64,6 +52,7 @@ class SharedMemory {
     HANDLE handle_ = NULL;
 #else
     int fd_ = -1;
+    bool shmCreator_ = false;
 #endif
 };
 }  // namespace veigar

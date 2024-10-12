@@ -38,7 +38,13 @@ class Semaphore {
     Semaphore() noexcept = default;
     ~Semaphore() noexcept = default;
 
-    bool open(const std::string& name, int value = 0);
+    static bool IsExist(const std::string& name);
+
+    // The semaphore will be created if it does not already exist.
+    // 
+    // unnamed semaphore used in synchronization among threads
+    // named semaphore used in synchronization among processes.
+    bool open(const std::string& name, int value = 0, int maxValue = 2147483647);
     void close();
 
     bool valid() const;

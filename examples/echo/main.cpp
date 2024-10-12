@@ -252,11 +252,18 @@ int main(int argc, char** argv) {
             std::cout << "Call method (0 = Sync, 1 = Async with promise, 2 = Async with callback): ";
             std::cin >> callMethod;
 
-            std::cout << "The number of threads calling the target function: ";
+            std::cout << "Thread Number: ";
             std::cin >> threadNum;
 
-            std::cout << "The number of calls per thread: ";
+            std::cout << "Call times for each thread: ";
             std::cin >> callTimesEachThread;
+
+            if (callMethod == 2) {
+                if (threadNum * callTimesEachThread > vg.msgQueueCapacity()) {
+                    printf("The total number of call can't greater than message queue's capacity when use callback method(%d).\n", vg.msgQueueCapacity());
+                    continue;
+                }
+            }
 
             std::vector<std::shared_ptr<ThreadGroup>> threadGroups;
             for (auto targetChannel : targetChannelList) {

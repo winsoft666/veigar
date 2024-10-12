@@ -12,7 +12,6 @@
 #include <memory>
 #include <inttypes.h>
 #include "shared_memory.h"
-#include "mutex.h"
 #include "semaphore.h"
 
 namespace veigar {
@@ -50,7 +49,7 @@ class MessageQueue {
     int32_t msgMaxNumber_ = 0;
     int32_t msgExpectedMaxSize_ = 0;
     std::shared_ptr<SharedMemory> shm_ = nullptr;
-    std::shared_ptr<Mutex> rwLock_ = nullptr;
+    std::shared_ptr<Semaphore> rwLock_ = nullptr;
     std::shared_ptr<Semaphore> readSmp_ = nullptr;
 };
 }  // namespace veigar

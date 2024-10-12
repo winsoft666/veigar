@@ -7,6 +7,7 @@
  */
 #include "shared_memory.h"
 #include "log.h"
+#include <assert.h>
 
 #ifdef VEIGAR_OS_WINDOWS
 #include <io.h>  // CreateFileMappingA, OpenFileMappingA, etc.
@@ -26,49 +27,36 @@
 
 namespace veigar {
 #ifdef VEIGAR_OS_WINDOWS
-SharedMemory::SharedMemory(const std::string& path, int64_t size, bool create) noexcept :
+SharedMemory::SharedMemory(const std::string& path, int64_t size) noexcept :
     path_(path),
-    size_(size),
-    create_(create) {
+    size_(size) {
 }
 
-bool SharedMemory::createOrOpen() {
+bool SharedMemory::valid() const {
+    return !!handle_;
+}
+
+bool SharedMemory::open() {
+    assert(!valid());
+    close();
+
     if (path_.empty()) {
         return false;
     }
 
-    if (create_) {
-        DWORD sizeLowOrder = static_cast<DWORD>(size_);
-        handle_ = CreateFileMappingA(INVALID_HANDLE_VALUE,
-                                     NULL,
-                                     PAGE_READWRITE,
-                                     0,
-                                     sizeLowOrder,
-                                     path_.c_str());
+    handle_ = OpenFileMappingA(FILE_MAP_READ | FILE_MAP_WRITE,
+                               FALSE,
+                               path_.c_str());
 
-        if (!handle_) {
-            veigar::log("Veigar: Error: Create file mapping failed, name: %s, size: %d, gle: %d.\n",
-                        path_.c_str(), sizeLowOrder, GetLastError());
-            return false;
-        }
-    }
-    else {
-        handle_ = OpenFileMappingA(FILE_MAP_READ | FILE_MAP_WRITE,
-                                   FALSE,
-                                   path_.c_str());
-
-        if (!handle_) {
-            veigar::log("Veigar: Error: Open file mapping failed, name: %s, gle: %d.\n", path_.c_str(), GetLastError());
-            return false;
-        }
+    if (!handle_) {
+        veigar::log("Veigar: Error: OpenFileMappingA failed, name: %s, gle: %d.\n", path_.c_str(), GetLastError());
+        return false;
     }
 
-    DWORD access = create_ ? FILE_MAP_ALL_ACCESS : FILE_MAP_READ | FILE_MAP_WRITE;
-
-    data_ = static_cast<uint8_t*>(MapViewOfFile(handle_, access, 0, 0, 0));
+    data_ = static_cast<uint8_t*>(MapViewOfFile(handle_, FILE_MAP_READ | FILE_MAP_WRITE, 0, 0, 0));
 
     if (!data_) {
-        veigar::log("Veigar: Error: Map file view failed, name: %s, gle: %d.\n", path_.c_str(), GetLastError());
+        veigar::log("Veigar: Error: MapViewOfFile failed, name: %s, gle: %d.\n", path_.c_str(), GetLastError());
         if (handle_) {
             CloseHandle(handle_);
             handle_ = NULL;
@@ -77,10 +65,6 @@ bool SharedMemory::createOrOpen() {
     }
 
     return true;
-}
-
-bool SharedMemory::valid() const {
-    return !!handle_;
 }
 
 void SharedMemory::close() {
@@ -95,42 +79,71 @@ void SharedMemory::close() {
     }
 }
 
-#else   // !VEIGAR_OS_WINDOWS
+bool SharedMemory::create() {
+    assert(!valid());
+    close();
 
-SharedMemory::SharedMemory(const std::string& path, int64_t size, bool create) noexcept :
-    size_(size),
-    create_(create) {
-    // For portable use, a shared memory object should be identified by a name of the form / somename;
-    path_ = "/" + path;
-}
-
-bool SharedMemory::createOrOpen() {
     if (path_.empty()) {
         return false;
     }
 
-    int flags = create_ ? (O_CREAT | O_RDWR) : O_RDWR;
+    DWORD sizeLowOrder = static_cast<DWORD>(size_);
+    handle_ = CreateFileMappingA(INVALID_HANDLE_VALUE,
+                                 NULL,
+                                 PAGE_READWRITE,
+                                 0,
+                                 sizeLowOrder,
+                                 path_.c_str());
 
-    fd_ = shm_open(path_.c_str(), flags, 0666);
-    if (fd_ < 0) {
-        int err = errno;
-        veigar::log("Veigar: Error: %s shared memory failed, err: %d.\n", create_ ? "Create" : "Open", err);
+    if (!handle_) {
+        veigar::log("Veigar: Error: CreateFileMappingA failed, name: %s, size: %d, gle: %d.\n",
+                    path_.c_str(), sizeLowOrder, GetLastError());
         return false;
     }
 
-    if (create_) {
-        // this is the only way to specify the size of a newly-created POSIX shared memory object
-        int ret = ftruncate(fd_, size_);
-        if (ret != 0) {
-            int err = errno;
-            veigar::log("Veigar: Error: ftruncate shm failed, size: %" PRId64 ", err: %d.\n", size_, err);
-            ::close(fd_);
-            fd_ = -1;
-            if (create_) {
-                shm_unlink(path_.c_str());
-            }
-            return false;
+    data_ = static_cast<uint8_t*>(MapViewOfFile(handle_, FILE_MAP_ALL_ACCESS, 0, 0, 0));
+
+    if (!data_) {
+        veigar::log("Veigar: Error: MapViewOfFile failed, name: %s, gle: %d.\n", path_.c_str(), GetLastError());
+        if (handle_) {
+            CloseHandle(handle_);
+            handle_ = NULL;
         }
+        return false;
+    }
+
+    return true;
+}
+
+#else   // !VEIGAR_OS_WINDOWS
+
+SharedMemory::SharedMemory(const std::string& path, int64_t size) noexcept :
+    size_(size) {
+    // For portable use, a shared memory object should be identified by a name of the form / somename;
+    path_ = "/" + path;
+}
+
+bool SharedMemory::create() {
+    if (path_.empty()) {
+        return false;
+    }
+
+    fd_ = shm_open(path_.c_str(), O_CREAT | O_RDWR, 0666);
+    if (fd_ < 0) {
+        int err = errno;
+        veigar::log("Veigar: Error: shm_open failed, err: %d.\n", err);
+        return false;
+    }
+
+    // this is the only way to specify the size of a newly-created POSIX shared memory object
+    int ret = ftruncate(fd_, size_);
+    if (ret != 0) {
+        int err = errno;
+        veigar::log("Veigar: Error: ftruncate failed, size: %" PRId64 ", err: %d.\n", size_, err);
+        ::close(fd_);
+        fd_ = -1;
+        shm_unlink(path_.c_str());
+        return false;
     }
 
     void* memory = mmap(nullptr,                 // addr
@@ -143,13 +156,11 @@ bool SharedMemory::createOrOpen() {
 
     if (memory == MAP_FAILED) {
         int err = errno;
-        veigar::log("Veigar: Error: mmap shm failed, size: %" PRId64 ", err: %d.\n", size_, err);
+        veigar::log("Veigar: Error: mmap failed, size: %" PRId64 ", err: %d.\n", size_, err);
 
         ::close(fd_);
         fd_ = -1;
-        if (create_) {
-            shm_unlink(path_.c_str());
-        }
+        shm_unlink(path_.c_str());
         return false;
     }
 
@@ -158,13 +169,53 @@ bool SharedMemory::createOrOpen() {
     if (!data_) {
         ::close(fd_);
         fd_ = -1;
-        if (create_) {
-            shm_unlink(path_.c_str());
-        }
+        shm_unlink(path_.c_str());
         return false;
     }
 
-    //veigar::log("Veigar: %s shared memory success, fd: %d.\n", create_ ? "Create" : "Open", fd_);
+    shmCreator_ = true;
+    // veigar::log("Veigar: Create shared memory success, fd: %d.\n", fd_);
+    return true;
+}
+
+bool SharedMemory::open() {
+    if (path_.empty()) {
+        return false;
+    }
+
+    fd_ = shm_open(path_.c_str(), O_RDWR, 0666);
+    if (fd_ < 0) {
+        int err = errno;
+        veigar::log("Veigar: Error: shm_open failed, err: %d.\n", err);
+        return false;
+    }
+
+    void* memory = mmap(nullptr,                 // addr
+                        size_,                   // length
+                        PROT_READ | PROT_WRITE,  // prot
+                        MAP_SHARED,              // flags
+                        fd_,                     // fd
+                        0                        // offset
+    );
+
+    if (memory == MAP_FAILED) {
+        int err = errno;
+        veigar::log("Veigar: Error: mmap failed, size: %" PRId64 ", err: %d.\n", size_, err);
+
+        ::close(fd_);
+        fd_ = -1;
+        return false;
+    }
+
+    data_ = static_cast<uint8_t*>(memory);
+
+    if (!data_) {
+        ::close(fd_);
+        fd_ = -1;
+        return false;
+    }
+
+    // veigar::log("Veigar: Open shared memory success, fd: %d.\n", fd_);
     return true;
 }
 
@@ -185,7 +236,7 @@ void SharedMemory::close() {
             fd_ = -1;
         }
 
-        if (create_) {
+        if (shmCreator_) {
             if (!path_.empty()) {
                 shm_unlink(path_.c_str());
             }

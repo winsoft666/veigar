@@ -6,10 +6,13 @@
 # LICENSE file in the root directory of this source tree.
 ############################################################################
 
-cmake_minimum_required(VERSION 3.4 FATAL_ERROR)
-project(veigar CXX)
+cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
+project(veigar 
+	VERSION 1.3
+	LANGUAGES CXX
+)
 
-set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake;${CMAKE_MODULE_PATH};")
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake;${CMAKE_MODULE_PATH};")
 
 option(VEIGAR_BUILD_EXAMPLES "Build examples project" ON)
 option(VEIGAR_BUILD_TESTS "Build tests project" ON)
@@ -27,17 +30,9 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-
-set(DEBUG_LIBNAME_SUFFIX "-d" 
-	CACHE STRING "Optional suffix to append to the library name for a debug build")
-mark_as_advanced(DEBUG_LIBNAME_SUFFIX)
-
-# Unicode Support
-add_definitions(-DUNICODE -D_UNICODE -DNOMINMAX)
-
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-
-include_directories(./include)
+if (MSVC AND VEIGAR_USE_STATIC_CRT)
+	set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
 
 add_subdirectory(src)
 

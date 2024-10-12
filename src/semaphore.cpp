@@ -6,24 +6,51 @@
  * LICENSE file in the root directory of this source tree.
  */
 #include "semaphore.h"
+#include "log.h"
+#include <assert.h>
 
 namespace veigar {
-bool Semaphore::open(const std::string& name, int value /*= 0*/) {
+
+bool Semaphore::IsExist(const std::string& name) {
+#ifdef VEIGAR_OS_WINDOWS
+    HANDLE h = OpenSemaphoreA(EVENT_MODIFY_STATE, FALSE, name.c_str());
+    if (h) {
+        CloseHandle(h);
+    }
+    return (h != NULL);
+#else
+    sem_t* sem = ::sem_open(name.c_str(), O_CREAT | O_EXCL);
+    if (sem == SEM_FAILED) {
+        return true;
+    }
+    ::sem_close(sem);
+    return false;
+#endif
+}
+
+bool Semaphore::open(const std::string& name, int value /*= 0*/, int maxValue /*= 2147483647*/) {
+    assert(!valid());
+    close();
+
     named_ = !name.empty();
     sh_ = new SemaphoreHandle();
 #ifdef VEIGAR_OS_WINDOWS
-    HANDLE h = CreateSemaphoreA(NULL, value, 2147483647, name.empty() ? NULL : name.c_str());
+    HANDLE h = CreateSemaphoreA(NULL, value, maxValue, name.empty() ? NULL : name.c_str());
     if (h) {
         sh_->h_ = h;
     }
     else {
+        veigar::log("Veigar: Error: CreateSemaphoreA failed, name: %s, gle: %d.\n", name.c_str(), GetLastError());
         delete sh_;
         sh_ = nullptr;
     }
 #else
     if (name.empty()) {
+        // unnamed semaphore shared between multiple threads.
         int err = ::sem_init(&sh_->unnamed_, 0, 0);
         if (err == -1) {
+            int err = errno;
+            veigar::log("Veigar: Error: sem_init failed, name: %s, errno: %d.\n", name.c_str(), err);
             delete sh_;
             sh_ = nullptr;
         }
@@ -34,6 +61,8 @@ bool Semaphore::open(const std::string& name, int value /*= 0*/) {
             sh_->named_ = sem;
         }
         else {
+            int err = errno;
+            veigar::log("Veigar: Error: sem_open failed, name: %s, errno: %d.\n", name.c_str(), err);
             delete sh_;
             sh_ = nullptr;
         }

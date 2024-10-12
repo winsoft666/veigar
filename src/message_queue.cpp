@@ -19,6 +19,9 @@ bool MessageQueue::create(const std::string& path) {
     bool result = false;
 
     do {
+        assert(!shm_ && !rwLock_ && !readSmp_);
+        close();
+
         if (msgMaxNumber_ <= 0) {
             break;
         }
@@ -26,23 +29,20 @@ bool MessageQueue::create(const std::string& path) {
         int64_t shmSize = sizeof(int64_t) * (msgMaxNumber_ + 3) + msgMaxNumber_ * msgExpectedMaxSize_;
 
         std::string shmName = path + "_shm";
-        shm_ = std::make_shared<SharedMemory>(shmName, shmSize, true);
-        if (!shm_->open()) {
-            veigar::log("Veigar: Error: Create shared memory(%s) failed.\n", shmName.c_str());
+        shm_ = std::make_shared<SharedMemory>(shmName, shmSize);
+        if (!shm_->create()) {
             break;
         }
 
         std::string rwLockName = path + "_rwlock";
-        rwLock_ = std::make_shared<Mutex>();
-        if (!rwLock_->open(rwLockName.c_str())) {
-            veigar::log("Veigar: Error: Create mutex(%s) failed.\n", rwLockName.c_str());
+        rwLock_ = std::make_shared<Semaphore>();
+        if (!rwLock_->open(rwLockName.c_str(), 1, 1)) {
             break;
         }
 
         std::string readSmpName = path + "_readsmp";
         readSmp_ = std::make_shared<Semaphore>();
         if (!readSmp_->open(readSmpName, 0)) {
-            veigar::log("Veigar: Error: Create semaphore(%s) failed.\n", readSmpName.c_str());
             break;
         }
 
@@ -80,26 +80,34 @@ bool MessageQueue::create(const std::string& path) {
 bool MessageQueue::open(const std::string& path) {
     bool result = false;
     do {
+        assert(!shm_ && !rwLock_ && !readSmp_);
+        close();
+
         std::string shmName = path + "_shm";
         int64_t shmSize = sizeof(int64_t) * (msgMaxNumber_ + 3) + msgMaxNumber_ * msgExpectedMaxSize_;
 
-        shm_ = std::make_shared<SharedMemory>(shmName, shmSize, false);
+        shm_ = std::make_shared<SharedMemory>(shmName, shmSize);
         if (!shm_->open()) {
-            veigar::log("Veigar: Error: Open shared memory(%s) failed.\n", shmName.c_str());
             break;
         }
 
         std::string rwLockName = path + "_rwlock";
-        rwLock_ = std::make_shared<Mutex>();
+        if (!Semaphore::IsExist(rwLockName)) {
+            break;
+        }
+
+        rwLock_ = std::make_shared<Semaphore>();
         if (!rwLock_->open(rwLockName.c_str())) {
-            veigar::log("Veigar: Error: Open mutex(%s) failed.\n", rwLockName.c_str());
             break;
         }
 
         std::string readSmpName = path + "_readsmp";
+        if (!Semaphore::IsExist(readSmpName)) {
+            break;
+        }
+
         readSmp_ = std::make_shared<Semaphore>();
-        if (!readSmp_->open(readSmpName, 0)) {
-            veigar::log("Veigar: Error: Open semaphore(%s) failed.\n", readSmpName.c_str());
+        if (!readSmp_->open(readSmpName)) {
             break;
         }
 
@@ -132,11 +140,11 @@ bool MessageQueue::open(const std::string& path) {
 bool MessageQueue::rwLock(uint32_t timeoutMS) {
     if (!rwLock_)
         return false;
-    return rwLock_->lock(timeoutMS);
+    return rwLock_->wait(timeoutMS);
 }
 
 void MessageQueue::rwUnlock() {
-    rwLock_->unlock();
+    rwLock_->release();
 }
 
 /*

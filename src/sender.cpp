@@ -241,7 +241,7 @@ void Sender::sendCallThreadProc() {
                 }
                 else {
                     ec = ErrorCode::TIMEOUT;
-                    errMsg = "Get rw-lock timeout.";
+                    errMsg = "Get rw-lock timeout when push call.";
                 }
                 RUN_TIME_RECORDER_EX_END(push_mq);
             }
@@ -344,7 +344,7 @@ void Sender::sendRespThreadProc() {
                 }
                 else {
                     ec = ErrorCode::TIMEOUT;
-                    errMsg = "Get rw-lock timeout.";
+                    errMsg = "Get rw-lock timeout when push response.";
                 }
                 RUN_TIME_RECORDER_EX_END(push_mq);
             }
