@@ -15,7 +15,7 @@ project(veigar
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake;${CMAKE_MODULE_PATH};")
 
 option(VEIGAR_BUILD_EXAMPLES "Build examples project" ON)
-option(VEIGAR_BUILD_TESTS "Build tests project" ON)
+option(VEIGAR_BUILD_TESTS "Build test project" ON)
 option(VEIGAR_USE_STATIC_CRT "Set to ON to build with static CRT on Windows (/MT)." OFF)
 option(VEIGAR_ENABLE_RUN_TIME_RECORD "Set to ON to record run time." OFF)
 mark_as_advanced(VEIGAR_ENABLE_RUN_TIME_RECORD)
