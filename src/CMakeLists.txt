@@ -28,8 +28,8 @@ add_library(
 )
 
 set_target_properties(veigar PROPERTIES 
-  OUTPUT_NAME veigar
-  DEBUG_OUTPUT_NAME veigar-d)
+  OUTPUT_NAME libveigar
+  DEBUG_OUTPUT_NAME libveigar-d)
 
 target_include_directories(veigar
 	PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
