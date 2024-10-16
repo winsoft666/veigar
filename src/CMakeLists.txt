@@ -28,27 +28,26 @@ add_library(
 )
 
 set_target_properties(veigar PROPERTIES 
-  OUTPUT_NAME libveigar
-  DEBUG_OUTPUT_NAME libveigar-d)
+  OUTPUT_NAME veigar
+  DEBUG_OUTPUT_NAME veigar-d)
 
 target_include_directories(veigar
 	PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
 	PUBLIC $<INSTALL_INTERFACE:../include>
 )
 
-target_compile_definitions(veigar PRIVATE UNICODE _UNICODE NOMINMAX)
-if(WIN32)
-	target_compile_definitions(veigar PRIVATE _WIN32)
+target_compile_definitions(veigar PRIVATE UNICODE _UNICODE)
+if(MSVC)
+	target_compile_definitions(veigar PRIVATE _WIN32 NOMINMAX)
+endif()
+
+if(NOT MSVC)
+	target_link_libraries(veigar PUBLIC pthread)
 endif()
 
 if(VEIGAR_ENABLE_RUN_TIME_RECORD)
 	target_compile_definitions(veigar PRIVATE VEIGAR_ENABLE_RUN_TIME_RECORD)
 endif()
-
-target_include_directories(veigar PUBLIC
-	"$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>"
-    "$<INSTALL_INTERFACE:include>"
-)
 
 install(TARGETS veigar
 	EXPORT veigarConfig

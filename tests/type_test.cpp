@@ -189,7 +189,7 @@ TEST_CASE("type-test-9") {
         CHECK(cr.obj.get().as<std::set<std::string>>() == v);
     }
     else {
-        printf("ERROR: %d, %s\n", cr.errCode, cr.errorMessage.c_str());
+        printf("ERROR: %d, %s\n", (int)cr.errCode, cr.errorMessage.c_str());
     }
 
     vg1.uninit();
@@ -222,7 +222,7 @@ TEST_CASE("type-test-10") {
         CHECK((mp2.x == 10 && mp2.y == 11));
     }
     else {
-        printf("ERROR: %d, %s\n", cr.errCode, cr.errorMessage.c_str());
+        printf("ERROR: %d, %s\n", (int)cr.errCode, cr.errorMessage.c_str());
     }
 
 

@@ -109,7 +109,7 @@ TEST_CASE("call-sync-recursion") {
         CHECK(result2 == 4);
     }
     else {
-        printf("ERROR: %d, %s\n", cr2.errCode, cr2.errorMessage.c_str());
+        printf("ERROR: %d, %s\n", (int)cr2.errCode, cr2.errorMessage.c_str());
     }
 
     std::this_thread::sleep_for(std::chrono::milliseconds(5000));
@@ -170,7 +170,7 @@ TEST_CASE("call-async-2") {
         CHECK(cr.obj.get().as<int>() == 4);
     }
     else {
-        printf("ERROR: %d, %s\n", cr.errCode, cr.errorMessage.c_str());
+        printf("ERROR: %d, %s\n", (int)cr.errCode, cr.errorMessage.c_str());
     }
     vg2.releaseCall(acr->first);
 
@@ -238,7 +238,7 @@ TEST_CASE("call-async-recursion") {
         CHECK(cr.obj.get().as<int>() == 4);
     }
     else {
-        printf("ERROR: %d, %s\n", cr.errCode, cr.errorMessage.c_str());
+        printf("ERROR: %d, %s\n", (int)cr.errCode, cr.errorMessage.c_str());
     }
 
     vg1.releaseCall(acr2->first);
