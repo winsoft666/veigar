@@ -134,7 +134,7 @@ class Veigar::Impl {
     uint32_t msgQueueCapacity_ = 0;
     uint32_t expectedMsgMaxSize_ = 0;
 
-    std::atomic<uint32_t> rwTimeout_ = { 100 };  // ms
+    std::atomic<uint32_t> processRWTimeout_ = { 100 };  // ms
 
     std::atomic<uint32_t> callIndex_ = { 0 };
     std::string channelName_;
@@ -225,13 +225,13 @@ std::vector<std::string> Veigar::bindNames() const {
 void Veigar::setTimeoutOfRWLock(uint32_t ms) {
     assert(impl_);
     if (ms > 0) {
-        impl_->rwTimeout_.store(ms);
+        impl_->processRWTimeout_.store(ms);
     }
 }
 
 uint32_t Veigar::timeoutOfRWLock() const {
     assert(impl_);
-    return impl_->rwTimeout_.load();
+    return impl_->processRWTimeout_.load();
 }
 
 std::string Veigar::getNextCallId(const std::string& funcName) const {
@@ -249,7 +249,7 @@ bool Veigar::sendCall(const std::string& channelName,
                       const ResultMeta& retMeta,
                       std::string& exceptionMsg) {
     assert(impl_);
-    assert(timeoutMS > impl_->rwTimeout_);
+    assert(timeoutMS > impl_->processRWTimeout_);
 
     if (!impl_->sender_) {
         return false;

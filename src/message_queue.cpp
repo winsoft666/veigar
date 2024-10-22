@@ -138,13 +138,15 @@ bool MessageQueue::open(const std::string& path) {
     return result;
 }
 
-bool MessageQueue::rwLock(uint32_t timeoutMS) {
+bool MessageQueue::processRWLock(uint32_t timeoutMS) {
+    assert(rwLock_);
     if (!rwLock_)
         return false;
     return rwLock_->wait(timeoutMS);
 }
 
-void MessageQueue::rwUnlock() {
+void MessageQueue::processRWUnlock() {
+    assert(rwLock_);
     rwLock_->release();
 }
 
@@ -236,10 +238,6 @@ bool MessageQueue::pushBack(const void* data, int64_t dataSize) {
         ret = true;
     } while (false);
 
-    if (ret) {
-        readSmp_->release();
-    }
-
     return ret;
 }
 
@@ -320,7 +318,7 @@ int64_t MessageQueue::msgNumber() const {
     return *pCurMsgNumber;
 }
 
-bool MessageQueue::wait(int64_t ms) {
+bool MessageQueue::waitForRead(int64_t ms) {
     if (readSmp_) {
         return readSmp_->wait(ms);
     }

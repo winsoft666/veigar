@@ -101,9 +101,9 @@ bool Semaphore::wait(const int64_t& ms) {
     DWORD result = WaitForSingleObject(sh_->h_, ms >= 0 ? (DWORD)ms : INFINITE);
     return (result == WAIT_OBJECT_0);
 #else
-    timespec ts;
+    if (ms >= 0) {
+        timespec ts;
 
-    if (ms > 0) {
         timespec ts_now;
         clock_gettime(CLOCK_REALTIME, &ts_now);
 
@@ -112,16 +112,11 @@ bool Semaphore::wait(const int64_t& ms) {
 
         ts.tv_sec += (ms / 1000);
         ts.tv_nsec += ((ms % 1000) * 1000000);
-    }
-    else {
-        ts.tv_sec = std::numeric_limits<time_t>::max();
-        ts.tv_nsec = 0;
+
+        return (sem_timedwait(sh_->named_, &ts) == 0);
     }
 
-    if (sem_timedwait(sh_->named_, &ts) == 0) {
-        return true;
-    }
-    return false;
+    return (sem_wait(sh_->named_) == 0);
 #endif
 }
 

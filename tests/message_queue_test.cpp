@@ -142,7 +142,7 @@ TEST_CASE("mq-push-pop-discard") {
 TEST_CASE("mq-multi-thread-push-pop") {
     std::string mqPath = "mq-multi-thread-push-pop-" + std::to_string(time(nullptr));
 
-    veigar::MessageQueue mq(10000, 20);  // max size = 30
+    veigar::MessageQueue mq(10000, 20);  // max size = 20
     REQUIRE(mq.create(mqPath));
 
     int pushFailed = 0;
@@ -155,10 +155,10 @@ TEST_CASE("mq-multi-thread-push-pop") {
         char buf20[20] = {0};
         for (int i = 0; i < 9999; i++) {
             if (tid == 0) {
-                if (mq.rwLock(200)) {
+                if (mq.processRWLock(200)) {
                     if (!mq.pushBack(data.c_str(), data.size()))
                         pushFailed++;
-                    mq.rwUnlock();
+                    mq.processRWUnlock();
                 }
                 else {
                     pushRWLockFailed++;
@@ -171,10 +171,10 @@ TEST_CASE("mq-multi-thread-push-pop") {
 
                 int64_t written = 0;
                 memset(&buf20[0], 0, 20);
-                if (mq.rwLock(200)) {
+                if (mq.processRWLock(200)) {
                     if (!mq.popFront(buf20, 20, written))
                         popFailed++;
-                    mq.rwUnlock();
+                    mq.processRWUnlock();
                 }
                 else {
                     popRWLockFailed++;

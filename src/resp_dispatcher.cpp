@@ -89,7 +89,7 @@ void RespDispatcher::dispatchRespThreadProc() {
     int64_t written = 0L;
     while (!stop_.load()) {
         written = 0L;
-        if (!respMsgQueue_->wait(-1)) {
+        if (!respMsgQueue_->waitForRead(-1)) {
             continue;
         }
 
@@ -97,7 +97,7 @@ void RespDispatcher::dispatchRespThreadProc() {
             break;
         }
 
-        if (!respMsgQueue_->rwLock(veigar_->timeoutOfRWLock())) {
+        if (!respMsgQueue_->processRWLock(veigar_->timeoutOfRWLock())) {
             veigar::log("Veigar: Warning: Get rw-lock timeout when pop front from response message queue.\n");
             continue;
         }
@@ -110,14 +110,14 @@ void RespDispatcher::dispatchRespThreadProc() {
             else {
                 veigar::log("Veigar: Warning: Disordered read signal for response message queue.\n");
             }
-            respMsgQueue_->rwUnlock();
+            respMsgQueue_->processRWUnlock();
             continue;
         }
 
         if (!respMsgQueue_->popFront(respPac.buffer(), respPac.buffer_capacity(), written)) {
             if (written <= 0) {
                 veigar::log("Veigar: Error: Pop front from response message queue failed.\n");
-                respMsgQueue_->rwUnlock();
+                respMsgQueue_->processRWUnlock();
                 continue;
             }
 
@@ -125,20 +125,20 @@ void RespDispatcher::dispatchRespThreadProc() {
                 respPac.reserve_buffer((size_t)written);
             } catch (std::bad_alloc& e) {
                 veigar::log("Veigar: Error: Pre-alloc response memory(%d bytes) failed: %s.\n", written, e.what());
-                respMsgQueue_->rwUnlock();
+                respMsgQueue_->processRWUnlock();
                 continue;
             }
 
             if (!respMsgQueue_->popFront(respPac.buffer(), respPac.buffer_capacity(), written)) {
                 veigar::log("Veigar: Error: Pop front from response message queue failed.\n");
-                respMsgQueue_->rwUnlock();
+                respMsgQueue_->processRWUnlock();
                 continue;
             }
         }
 
         respPac.buffer_consumed((size_t)written);
 
-        respMsgQueue_->rwUnlock();
+        respMsgQueue_->processRWUnlock();
 
         do {
             veigar_msgpack::object_handle obj;

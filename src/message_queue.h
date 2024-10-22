@@ -22,26 +22,25 @@ class MessageQueue {
 
     bool create(const std::string& path);
     bool open(const std::string& path);
+    void close();
 
-    bool rwLock(uint32_t timeoutMS);
-    void rwUnlock();
+    // Read/Write locker for multi processes.
+    bool processRWLock(uint32_t timeoutMS);
+    void processRWUnlock();
 
-    // Need protect by rw-lock
+    // Need protect by process rw-lock
     bool pushBack(const void* data, int64_t dataSize);
 
-    // Need protect by rw-lock
-    // popFront will set 'written' to message size.
+    // Need protect by process rw-lock
     bool popFront(void* buf, int64_t bufSize, int64_t& written);
 
-    // Need protect by rw-lock
+    // Need protect by process rw-lock
     int64_t msgNumber() const;
 
-    // Need protect by rw-lock
+    // Need protect by process rw-lock
     bool checkSpaceSufficient(int64_t dataSize, bool& waitable) const;
 
-    bool wait(int64_t ms);
-
-    void close();
+    bool waitForRead(int64_t ms);
 
     void notifyRead();
 

@@ -175,13 +175,13 @@ void CallDispatcher::dispatchThreadProc() {
     int64_t written = 0L;
     while (!impl_->stop_.load()) {
         written = 0L;
-        if (!impl_->callMsgQueue_->wait(-1))
+        if (!impl_->callMsgQueue_->waitForRead(-1))
             continue;
 
         if (impl_->stop_.load())
             break;
 
-        if (!impl_->callMsgQueue_->rwLock(veigar_->timeoutOfRWLock())) {
+        if (!impl_->callMsgQueue_->processRWLock(veigar_->timeoutOfRWLock())) {
             veigar::log("Veigar: Warning: Get rw-lock timeout when pop front from call message queue.\n");
             continue;
         }
@@ -194,14 +194,14 @@ void CallDispatcher::dispatchThreadProc() {
             else {
                 veigar::log("Veigar: Warning: Disordered read signal for call message queue.\n");
             }
-            impl_->callMsgQueue_->rwUnlock();
+            impl_->callMsgQueue_->processRWUnlock();
             continue;
         }
 
         if (!impl_->callMsgQueue_->popFront(callPac.buffer(), callPac.buffer_capacity(), written)) {
             if (written <= 0) {
                 veigar::log("Veigar: Error: Pop front from call message queue failed.\n");
-                impl_->callMsgQueue_->rwUnlock();
+                impl_->callMsgQueue_->processRWUnlock();
                 continue;
             }
 
@@ -209,20 +209,20 @@ void CallDispatcher::dispatchThreadProc() {
                 callPac.reserve_buffer((size_t)written);
             } catch (std::bad_alloc& e) {
                 veigar::log("Veigar: Error: Pre-alloc call memory(%u bytes) failed: %s.\n", written, e.what());
-                impl_->callMsgQueue_->rwUnlock();
+                impl_->callMsgQueue_->processRWUnlock();
                 continue;
             }
 
             if (!impl_->callMsgQueue_->popFront(callPac.buffer(), callPac.buffer_capacity(), written)) {
                 veigar::log("Veigar: Error: Pop front from call message queue failed.\n");
-                impl_->callMsgQueue_->rwUnlock();
+                impl_->callMsgQueue_->processRWUnlock();
                 continue;
             }
         }
 
         callPac.buffer_consumed((size_t)written);
 
-        impl_->callMsgQueue_->rwUnlock();
+        impl_->callMsgQueue_->processRWUnlock();
 
         do {
             veigar_msgpack::object_handle obj;

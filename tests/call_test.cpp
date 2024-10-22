@@ -160,7 +160,7 @@ TEST_CASE("call-async-2") {
     veigar::Veigar vg2;
     CHECK(vg2.init(baseName + "-4"));
 
-    std::shared_ptr<veigar::AsyncCallResult> acr = vg2.asyncCall(baseName + "-3", 120, "func1", "s1", "s2");
+    std::shared_ptr<veigar::AsyncCallResult> acr = vg2.asyncCall(baseName + "-3", 1200, "func1", "s1", "s2");
     CHECK(acr);
     CHECK(acr->second.valid());
     CHECK(acr->second.wait_for(std::chrono::milliseconds(2000)) != std::future_status::timeout);

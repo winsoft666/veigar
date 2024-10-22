@@ -205,9 +205,10 @@ void Sender::sendCallThreadProc() {
                 }
 
                 if (mq) {
-                    if (mq->rwLock(veigar_->timeoutOfRWLock())) {
+                    if (mq->processRWLock(veigar_->timeoutOfRWLock())) {
                         if (checkSpaceAndWait(mq, cm.dataSize, cm.startCallTimePoint, cm.timeout)) {
                             if (mq->pushBack(cm.data, cm.dataSize)) {
+                                mq->notifyRead();
                                 ec = ErrorCode::SUCCESS;
                             }
                             else {
@@ -218,7 +219,7 @@ void Sender::sendCallThreadProc() {
                             ec = ErrorCode::TIMEOUT;
                             errMsg = "Waiting for call queue availability timeout.";
                         }
-                        mq->rwUnlock();
+                        mq->processRWUnlock();
                     }
                     else {
                         ec = ErrorCode::TIMEOUT;
@@ -231,13 +232,13 @@ void Sender::sendCallThreadProc() {
 
             } catch (std::exception& e) {
                 if (mq) {
-                    mq->rwUnlock();  // always try to unlock again
+                    mq->processRWUnlock();  // always try to unlock again
                 }
                 veigar::log("Veigar: Error: An exception occurred during pushing message to call queue: %s.\n", e.what());
                 errMsg = StringHelper::StringPrintf("An exception occurred during pushing message to call queue: %s.", e.what());
             } catch (...) {
                 if (mq) {
-                    mq->rwUnlock();  // always try to unlock again
+                    mq->processRWUnlock();  // always try to unlock again
                 }
                 veigar::log("Veigar: Error: An exception occurred during pushing message to call queue.\n");
                 errMsg = "An exception occurred during pushing message to call queue.";
@@ -307,9 +308,10 @@ void Sender::sendRespThreadProc() {
                 }
 
                 if (mq) {
-                    if (mq->rwLock(veigar_->timeoutOfRWLock())) {
+                    if (mq->processRWLock(veigar_->timeoutOfRWLock())) {
                         if (checkSpaceAndWait(mq, rm.dataSize, rm.startCallTimePoint, rm.timeout)) {
                             if (mq->pushBack(rm.data, rm.dataSize)) {
+                                mq->notifyRead();
                                 ec = ErrorCode::SUCCESS;
                             }
                             else {
@@ -320,7 +322,7 @@ void Sender::sendRespThreadProc() {
                             ec = ErrorCode::TIMEOUT;
                             errMsg = "Waiting for response queue availability timeout.";
                         }
-                        mq->rwUnlock();
+                        mq->processRWUnlock();
                     }
                     else {
                         ec = ErrorCode::TIMEOUT;
@@ -333,12 +335,12 @@ void Sender::sendRespThreadProc() {
 
             } catch (std::exception& e) {
                 if (mq) {
-                    mq->rwUnlock();  // always try to unlock again
+                    mq->processRWUnlock();  // always try to unlock again
                 }
                 errMsg = StringHelper::StringPrintf("An exception occurred during pushing message to response queue: %s.", e.what());
             } catch (...) {
                 if (mq) {
-                    mq->rwUnlock();  // always try to unlock again
+                    mq->processRWUnlock();  // always try to unlock again
                 }
                 errMsg = "An exception occurred during parsing pushing message to response queue.";
             }

@@ -114,7 +114,7 @@ std::atomic<int64_t> failed = {0};
 
 void CallThreadProc(std::size_t threadId, std::string targetChannel) {
     for (int i = 0; i < eachThreadCallNum; i++) {
-        veigar::CallResult cr = vg.syncCall(targetChannel, 100, "add", i, 1);
+        veigar::CallResult cr = vg.syncCall(targetChannel, 150, "add", i, 1);
         if (cr.isSuccess() && cr.obj.get().as<int64_t>() == i + 1) {
             success++;
         }
