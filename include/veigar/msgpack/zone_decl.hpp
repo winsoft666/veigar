@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_ZONE_DECL_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_ZONE_DECL_HPP
 //
 // MessagePack for C++ memory pool
 //
@@ -15,3 +17,5 @@
 #include "veigar/msgpack/v3/zone_decl.hpp"
 
 #endif // MSGPACK_ZONE_DECL_HPP
+
+#endif // !__VEIGAR_MSGPACK_ZONE_DECL_HPP

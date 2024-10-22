@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_LOGICAL_BITNOR_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_LOGICAL_BITNOR_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002.
@@ -36,3 +38,5 @@
 # define MSGPACK_PP_BITNOR_11 0
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_LOGICAL_BITNOR_HPP

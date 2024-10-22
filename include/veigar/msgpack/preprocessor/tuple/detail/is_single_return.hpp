@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_TUPLE_DETAIL_IS_SINGLE_RETURN_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_TUPLE_DETAIL_IS_SINGLE_RETURN_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Edward Diener 2014.                                    *
@@ -26,3 +28,5 @@
 # endif /* MSGPACK_PP_VARIADICS && MSGPACK_PP_VARIADICS_MSVC */
 #
 # endif /* MSGPACK_PREPROCESSOR_TUPLE_DETAIL_IS_SINGLE_RETURN_HPP */
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_TUPLE_DETAIL_IS_SINGLE_RETURN_HPP

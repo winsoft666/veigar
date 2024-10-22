@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V1_ADAPTOR_CPP11_TIMESPEC_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V1_ADAPTOR_CPP11_TIMESPEC_HPP
 //
 // MessagePack for C++ static resolution routine
 //
@@ -139,3 +141,5 @@ struct object_with_zone<timespec> {
 } // namespace veigar_msgpack
 
 #endif // MSGPACK_V1_TYPE_CPP11_TIMESPEC_HPP
+
+#endif // !__VEIGAR_MSGPACK_V1_ADAPTOR_CPP11_TIMESPEC_HPP

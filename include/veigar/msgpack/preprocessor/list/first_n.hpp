@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_LIST_FIRST_N_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_LIST_FIRST_N_HPP
 # /* Copyright (C) 2001
 #  * Housemarque Oy
 #  * http://www.housemarque.com
@@ -56,3 +58,5 @@
 # endif
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_LIST_FIRST_N_HPP

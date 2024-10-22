@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V1_ADAPTOR_CPP20_SPAN_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V1_ADAPTOR_CPP20_SPAN_HPP
 //
 // MessagePack for C++ static resolution routine
 //
@@ -122,3 +124,5 @@ MSGPACK_ADAPTOR_SPAN_BINARY(std::byte)
 #endif // MSGPACK_CPP_VERSION > 201703
 
 #endif // MSGPACK_V1_TYPE_CPP11_ARRAY_HPP
+
+#endif // !__VEIGAR_MSGPACK_V1_ADAPTOR_CPP20_SPAN_HPP

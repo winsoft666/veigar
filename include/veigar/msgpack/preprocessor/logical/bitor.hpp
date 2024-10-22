@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_LOGICAL_BITOR_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_LOGICAL_BITOR_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002.
@@ -36,3 +38,5 @@
 # define MSGPACK_PP_BITOR_11 1
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_LOGICAL_BITOR_HPP

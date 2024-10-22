@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V1_META_DECL_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V1_META_DECL_HPP
 //
 // MessagePack for C++ static resolution routine
 //
@@ -55,3 +57,5 @@ struct is_non_const_pointer;
 #endif // !defined(MSGPACK_USE_CPP03)
 
 #endif // MSGPACK_V1_META_DECL_HPP
+
+#endif // !__VEIGAR_MSGPACK_V1_META_DECL_HPP

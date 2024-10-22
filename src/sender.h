@@ -29,14 +29,14 @@ class Sender {
         uint8_t* data = nullptr;
         size_t dataSize = 0;
         int64_t startCallTimePoint;  // microseconds
-        int64_t timeout = 0;         // microseconds
+        int64_t timeout = 0;         // the timeout for waiting call queue availability, microseconds
     };
     struct RespMeta {
         std::string channel;
         uint8_t* data = nullptr;
         size_t dataSize = 0;
         int64_t startCallTimePoint;  // microseconds
-        int64_t timeout = 0;         // microseconds
+        int64_t timeout = 0;         // the timeout for waiting response queue availability, microseconds
     };
     Sender(Veigar* v) noexcept;
     ~Sender() noexcept = default;
@@ -67,7 +67,6 @@ class Sender {
    private:
     bool isInit_ = false;
     Event stopEvent_;
-    std::atomic_bool stop_ = { false };
 
     Veigar* veigar_ = nullptr;
 
@@ -75,14 +74,14 @@ class Sender {
     std::shared_ptr<MessageQueue> selfCallMQ_ = nullptr;
     std::shared_ptr<MessageQueue> selfRespMQ_ = nullptr;
 
-    Semaphore callSemp_;
     std::mutex callListMutex_;
     std::queue<CallMeta> callList_;
+    Event callListSetEvent_;
     std::vector<std::thread> callWorkers_;
 
-    Semaphore respSemp_;
     std::mutex respListMutex_;
     std::queue<RespMeta> respList_;
+    Event respListSetEvent_;
     std::vector<std::thread> respWorkers_;
 
     std::mutex targetCallMQsMutex_;

@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V2_ADAPTOR_ARRAY_REF_DECL_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V2_ADAPTOR_ARRAY_REF_DECL_HPP
 //
 // MessagePack for C++ static resolution routine
 //
@@ -34,3 +36,5 @@ using v1::type::make_array_ref;
 } // namespace veigar_msgpack
 
 #endif // MSGPACK_V2_TYPE_ARRAY_REF_DECL_HPP
+
+#endif // !__VEIGAR_MSGPACK_V2_ADAPTOR_ARRAY_REF_DECL_HPP

@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_REPETITION_ENUM_SHIFTED_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_REPETITION_ENUM_SHIFTED_HPP
 # /* Copyright (C) 2001
 #  * Housemarque Oy
 #  * http://www.housemarque.com
@@ -66,3 +68,5 @@
 # define MSGPACK_PP_ENUM_SHIFTED_M_3_I(z, n, m, d) MSGPACK_PP_COMMA_IF(n) m(z, MSGPACK_PP_INC(n), d)
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_REPETITION_ENUM_SHIFTED_HPP

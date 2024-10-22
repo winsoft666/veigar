@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_PUNCTUATION_REMOVE_PARENS_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_PUNCTUATION_REMOVE_PARENS_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Edward Diener 2014.
@@ -37,3 +39,5 @@
 
 #endif /* MSGPACK_PP_VARIADICS */
 #endif /* MSGPACK_PREPROCESSOR_REMOVE_PARENS_HPP */
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_PUNCTUATION_REMOVE_PARENS_HPP

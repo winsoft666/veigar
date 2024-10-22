@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V1_ADAPTOR_TR1_UNORDERED_MAP_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V1_ADAPTOR_TR1_UNORDERED_MAP_HPP
 //
 // MessagePack for C++ static resolution routine
 //
@@ -170,3 +172,5 @@ struct object_with_zone<MSGPACK_STD_TR1::unordered_multimap<K, V, Hash, Pred, Al
 #endif // MSGPACK_STD_TR1
 
 #endif // MSGPACK_TYPE_TR1_UNORDERED_MAP_HPP
+
+#endif // !__VEIGAR_MSGPACK_V1_ADAPTOR_TR1_UNORDERED_MAP_HPP

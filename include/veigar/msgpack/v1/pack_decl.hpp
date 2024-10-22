@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V1_PACK_DECL_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V1_PACK_DECL_HPP
 //
 // MessagePack for C++ serializing routine
 //
@@ -89,3 +91,5 @@ char take8_64(T d);
 }  // namespace veigar_msgpack
 
 #endif // MSGPACK_V1_PACK_DECL_HPP
+
+#endif // !__VEIGAR_MSGPACK_V1_PACK_DECL_HPP

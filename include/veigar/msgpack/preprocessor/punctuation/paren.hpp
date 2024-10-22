@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_PUNCTUATION_PAREN_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_PUNCTUATION_PAREN_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002.
@@ -21,3 +23,5 @@
 # define MSGPACK_PP_RPAREN() )
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_PUNCTUATION_PAREN_HPP

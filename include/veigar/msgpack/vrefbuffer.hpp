@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_VREFBUFFER_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_VREFBUFFER_HPP
 //
 // MessagePack for C++ zero-copy buffer implementation
 //
@@ -15,3 +17,5 @@
 #include "veigar/msgpack/v1/vrefbuffer.hpp"
 
 #endif // MSGPACK_VREFBUFFER_HPP
+
+#endif // !__VEIGAR_MSGPACK_VREFBUFFER_HPP

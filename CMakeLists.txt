@@ -8,11 +8,11 @@
 
 cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
 project(veigar 
-	VERSION 1.3
+	VERSION 1.4
 	LANGUAGES CXX
 )
 
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake;${CMAKE_MODULE_PATH};")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 option(VEIGAR_BUILD_EXAMPLES "Build examples project" ON)
 option(VEIGAR_BUILD_TESTS "Build test project" ON)

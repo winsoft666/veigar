@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V1_ADAPTOR_CHECK_CONTAINER_SIZE_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V1_ADAPTOR_CHECK_CONTAINER_SIZE_HPP
 //
 // MessagePack for C++ static resolution routine
 //
@@ -65,3 +67,5 @@ inline uint32_t checked_get_container_size(T size) {
 }  // namespace veigar_msgpack
 
 #endif // MSGPACK_V1_CHECK_CONTAINER_SIZE_HPP
+
+#endif // !__VEIGAR_MSGPACK_V1_ADAPTOR_CHECK_CONTAINER_SIZE_HPP

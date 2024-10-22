@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_SEQ_FOR_EACH_PRODUCT_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_SEQ_FOR_EACH_PRODUCT_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002.
@@ -124,3 +126,5 @@
 # define MSGPACK_PP_SEQ_FOR_EACH_PRODUCT_N_25(r, data) MSGPACK_PP_FOR_ ## r(MSGPACK_PP_SEQ_FOR_EACH_PRODUCT_H(data), MSGPACK_PP_SEQ_FOR_EACH_PRODUCT_P, MSGPACK_PP_SEQ_FOR_EACH_PRODUCT_O, MSGPACK_PP_SEQ_FOR_EACH_PRODUCT_M_26)
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_SEQ_FOR_EACH_PRODUCT_HPP

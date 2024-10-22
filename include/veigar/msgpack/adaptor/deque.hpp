@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_ADAPTOR_DEQUE_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_ADAPTOR_DEQUE_HPP
 //
 // MessagePack for C++ static resolution routine
 //
@@ -13,3 +15,5 @@
 #include "veigar/msgpack/v1/adaptor/deque.hpp"
 
 #endif // MSGPACK_TYPE_DEQUE_HPP
+
+#endif // !__VEIGAR_MSGPACK_ADAPTOR_DEQUE_HPP

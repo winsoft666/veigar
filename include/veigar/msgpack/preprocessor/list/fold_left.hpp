@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_LIST_FOLD_LEFT_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_LIST_FOLD_LEFT_HPP
 # /* Copyright (C) 2001
 #  * Housemarque Oy
 #  * http://www.housemarque.com
@@ -301,3 +303,5 @@
 # define MSGPACK_PP_LIST_FOLD_LEFT_CHECK_MSGPACK_PP_LIST_FOLD_LEFT_256(o, s, l) 0
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_LIST_FOLD_LEFT_HPP

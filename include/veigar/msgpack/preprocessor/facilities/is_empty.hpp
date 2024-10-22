@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_FACILITIES_IS_EMPTY_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_FACILITIES_IS_EMPTY_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2003.
@@ -54,3 +56,5 @@
 # endif /* MSGPACK_PP_VARIADICS */
 #
 # endif /* MSGPACK_PREPROCESSOR_FACILITIES_IS_EMPTY_HPP */
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_FACILITIES_IS_EMPTY_HPP

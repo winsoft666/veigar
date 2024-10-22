@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_LIST_ADT_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_LIST_ADT_HPP
 # /* Copyright (C) 2001
 #  * Housemarque Oy
 #  * http://www.housemarque.com
@@ -71,3 +73,5 @@
 # endif
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_LIST_ADT_HPP

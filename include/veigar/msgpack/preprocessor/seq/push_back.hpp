@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_SEQ_PUSH_BACK_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_SEQ_PUSH_BACK_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002.
@@ -17,3 +19,5 @@
 # define MSGPACK_PP_SEQ_PUSH_BACK(seq, elem) seq(elem)
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_SEQ_PUSH_BACK_HPP

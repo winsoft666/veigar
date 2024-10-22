@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V2_UNPACK_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V2_UNPACK_HPP
 //
 // MessagePack for C++ deserializing routine
 //
@@ -346,3 +348,5 @@ unpack_imp(const char* data, std::size_t len, std::size_t& off,
 #endif // MSGPACK_DEFAULT_API_VERSION >= 2
 
 #endif // MSGPACK_V2_UNPACK_HPP
+
+#endif // !__VEIGAR_MSGPACK_V2_UNPACK_HPP

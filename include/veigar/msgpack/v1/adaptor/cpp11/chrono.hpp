@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V1_ADAPTOR_CPP11_CHRONO_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V1_ADAPTOR_CPP11_CHRONO_HPP
 //
 // MessagePack for C++ static resolution routine
 //
@@ -355,3 +357,5 @@ struct object_with_zone<std::chrono::time_point<Clock, Duration>> {
 } // namespace veigar_msgpack
 
 #endif // MSGPACK_V1_TYPE_CPP11_CHRONO_HPP
+
+#endif // !__VEIGAR_MSGPACK_V1_ADAPTOR_CPP11_CHRONO_HPP

@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_VERSION_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_VERSION_HPP
 /*
  * MessagePack for C++ version information
  *
@@ -34,3 +36,5 @@ inline int msgpack_version_revision(void) {
 }
 
 #endif /* msgpack/version.hpp */
+
+#endif // !__VEIGAR_MSGPACK_VERSION_HPP

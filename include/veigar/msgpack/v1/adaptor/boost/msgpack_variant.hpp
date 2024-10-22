@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V1_ADAPTOR_BOOST_MSGPACK_VARIANT_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V1_ADAPTOR_BOOST_MSGPACK_VARIANT_HPP
 //
 // MessagePack for C++ static resolution routine
 //
@@ -447,3 +449,5 @@ struct object_with_zone<type::basic_variant<STR, BIN, EXT> > {
 } // namespace veigar_msgpack
 
 #endif // MSGPACK_V1_TYPE_BOOST_MSGPACK_VARIANT_HPP
+
+#endif // !__VEIGAR_MSGPACK_V1_ADAPTOR_BOOST_MSGPACK_VARIANT_HPP

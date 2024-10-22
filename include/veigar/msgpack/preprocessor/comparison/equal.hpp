@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_COMPARISON_EQUAL_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_COMPARISON_EQUAL_HPP
 # /* Copyright (C) 2001
 #  * Housemarque Oy
 #  * http://www.housemarque.com
@@ -32,3 +34,5 @@
 # define MSGPACK_PP_EQUAL_D(d, x, y) MSGPACK_PP_EQUAL(x, y)
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_COMPARISON_EQUAL_HPP

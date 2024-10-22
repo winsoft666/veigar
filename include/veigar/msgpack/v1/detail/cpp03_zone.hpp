@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V1_DETAIL_CPP03_ZONE_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V1_DETAIL_CPP03_ZONE_HPP
 //
 // MessagePack for C++ memory pool
 //
@@ -671,3 +673,5 @@ T* zone::allocate(A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8, A9 a9,
 }  // namespace veigar_msgpack
 
 #endif // MSGPACK_V1_CPP03_ZONE_HPP
+
+#endif // !__VEIGAR_MSGPACK_V1_DETAIL_CPP03_ZONE_HPP

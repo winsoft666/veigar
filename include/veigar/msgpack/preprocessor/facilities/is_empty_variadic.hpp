@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_FACILITIES_IS_EMPTY_VARIADIC_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_FACILITIES_IS_EMPTY_VARIADIC_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Edward Diener 2014.
@@ -55,3 +57,5 @@
 # endif /* MSGPACK_PP_VARIADICS_MSVC && _MSC_VER <= 1400 */
 # endif /* MSGPACK_PP_VARIADICS */
 # endif /* MSGPACK_PREPROCESSOR_FACILITIES_IS_EMPTY_VARIADIC_HPP */
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_FACILITIES_IS_EMPTY_VARIADIC_HPP

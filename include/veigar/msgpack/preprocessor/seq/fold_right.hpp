@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_SEQ_FOLD_RIGHT_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_SEQ_FOLD_RIGHT_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002.
@@ -286,3 +288,5 @@
 # define MSGPACK_PP_SEQ_FOLD_RIGHT_256(op, st, ss) MSGPACK_PP_SEQ_FOLD_LEFT_I_256(op, st, MSGPACK_PP_SEQ_REVERSE_S(257, ss), MSGPACK_PP_SEQ_SIZE(ss))
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_SEQ_FOLD_RIGHT_HPP

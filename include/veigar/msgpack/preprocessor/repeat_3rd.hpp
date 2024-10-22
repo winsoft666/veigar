@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_REPEAT_3RD_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_REPEAT_3RD_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002.
@@ -15,3 +17,5 @@
 # include <veigar/msgpack/preprocessor/repetition/repeat.hpp>
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_REPEAT_3RD_HPP

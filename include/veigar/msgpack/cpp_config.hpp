@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_CPP_CONFIG_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_CPP_CONFIG_HPP
 //
 // MessagePack for C++ C++03/C++11 Adaptation
 //
@@ -15,3 +17,5 @@
 #include "veigar/msgpack/v1/cpp_config.hpp"
 
 #endif // MSGPACK_CPP_CONFIG_HPP
+
+#endif // !__VEIGAR_MSGPACK_CPP_CONFIG_HPP

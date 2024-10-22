@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V1_CPP_CONFIG_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V1_CPP_CONFIG_HPP
 //
 // MessagePack for C++ C++03/C++11 Adaptation
 //
@@ -139,3 +141,5 @@ template<class T> struct is_pointer : detail::is_pointer_helper<typename remove_
 #endif // MSGPACK_CPP_VERSION >= 201402L
 
 #endif // MSGPACK_V1_CPP_CONFIG_HPP
+
+#endif // !__VEIGAR_MSGPACK_V1_CPP_CONFIG_HPP

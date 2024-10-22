@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_WSTRINGIZE_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_WSTRINGIZE_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002.
@@ -27,3 +29,5 @@
 # define MSGPACK_PP_WSTRINGIZE_II(str) L ## str
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_WSTRINGIZE_HPP

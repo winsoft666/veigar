@@ -35,7 +35,7 @@ TEST_CASE("mq-create-open") {
 }
 
 TEST_CASE("mq-push-pop-no-discard") {
-    std::string mqPath = "mq-create-open-" + std::to_string(time(nullptr));
+    std::string mqPath = "mq-push-pop-no-discard-" + std::to_string(time(nullptr));
     std::string data = "hello-123456";  // size = 12
 
     veigar::MessageQueue mq1(3, 10);  // max size = 30
@@ -88,7 +88,7 @@ TEST_CASE("mq-push-pop-no-discard") {
 }
 
 TEST_CASE("mq-push-pop-discard") {
-    std::string mqPath = "mq-create-open-" + std::to_string(time(nullptr));
+    std::string mqPath = "mq-push-pop-discard-" + std::to_string(time(nullptr));
 
     veigar::MessageQueue mq1(3, 10);  // max size = 30
     REQUIRE(mq1.create(mqPath));

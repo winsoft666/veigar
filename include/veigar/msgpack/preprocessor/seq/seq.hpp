@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_SEQ_SEQ_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_SEQ_SEQ_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002.
@@ -42,3 +44,5 @@
 # define MSGPACK_PP_SEQ_NIL(x) (x)
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_SEQ_SEQ_HPP

@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V2_ADAPTOR_SIZE_EQUAL_ONLY_DECL_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V2_ADAPTOR_SIZE_EQUAL_ONLY_DECL_HPP
 //
 // MessagePack for C++ static resolution routine
 //
@@ -33,3 +35,5 @@ using v1::type::size;
 } // namespace veigar_msgpack
 
 #endif // MSGPACK_V2_TYPE_SIZE_EQUAL_ONLY_DECL_HPP
+
+#endif // !__VEIGAR_MSGPACK_V2_ADAPTOR_SIZE_EQUAL_ONLY_DECL_HPP

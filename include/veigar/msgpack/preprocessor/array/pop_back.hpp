@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_ARRAY_POP_BACK_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_ARRAY_POP_BACK_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002.
@@ -35,3 +37,5 @@
 # define MSGPACK_PP_ARRAY_POP_BACK_M(z, n, data) MSGPACK_PP_ARRAY_ELEM(n, data)
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_ARRAY_POP_BACK_HPP

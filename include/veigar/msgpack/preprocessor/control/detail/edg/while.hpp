@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_CONTROL_DETAIL_EDG_WHILE_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_CONTROL_DETAIL_EDG_WHILE_HPP
 # /* Copyright (C) 2001
 #  * Housemarque Oy
 #  * http://www.housemarque.com
@@ -532,3 +534,5 @@
 # define MSGPACK_PP_WHILE_256_I(p, o, s) MSGPACK_PP_IF(p(257, s), MSGPACK_PP_WHILE_257, s MSGPACK_PP_TUPLE_EAT_3)(p, o, o(257, s))
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_CONTROL_DETAIL_EDG_WHILE_HPP

@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PACK_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PACK_HPP
 //
 // MessagePack for C++ serializing routine
 //
@@ -15,3 +17,5 @@
 #include "veigar/msgpack/v1/pack.hpp"
 
 #endif // MSGPACK_PACK_HPP
+
+#endif // !__VEIGAR_MSGPACK_PACK_HPP

@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_SEQ_DETAIL_TO_LIST_MSVC_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_SEQ_DETAIL_TO_LIST_MSVC_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Edward Diener 2016.                                    *
@@ -53,3 +55,5 @@
 # endif // MSGPACK_PP_CONFIG_FLAGS() & MSGPACK_PP_CONFIG_MSVC()
 #
 # endif // MSGPACK_PREPROCESSOR_SEQ_DETAIL_TO_LIST_MSVC_HPP
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_SEQ_DETAIL_TO_LIST_MSVC_HPP

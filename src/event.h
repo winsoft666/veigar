@@ -38,10 +38,10 @@ class Event {
     bool wait(int64_t millseconds = -1);
 
    protected:
-    bool is_set_ = false;
-    bool is_cancelld_ = false;
-    std::mutex set_mutex_;
-    std::condition_variable setted_cond_var_;
+    bool isSet_ = false;
+    bool isCancelled_ = false;
+    std::mutex m_;
+    std::condition_variable settedCondVar_;
 };
 }  // namespace veigar
 #endif  //!VEIGAR_EVENT_H__

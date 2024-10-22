@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_SEQ_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_SEQ_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002-2011.                             *
@@ -42,3 +44,5 @@
 # include <veigar/msgpack/preprocessor/seq/variadic_seq_to_seq.hpp>
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_SEQ_HPP

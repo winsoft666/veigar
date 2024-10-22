@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_ARRAY_PUSH_BACK_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_ARRAY_PUSH_BACK_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002.
@@ -33,3 +35,5 @@
 # define MSGPACK_PP_ARRAY_PUSH_BACK_I(size, data, elem) (MSGPACK_PP_INC(size), (MSGPACK_PP_ARRAY_DETAIL_GET_DATA(size,data) MSGPACK_PP_COMMA_IF(size) elem))
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_ARRAY_PUSH_BACK_HPP

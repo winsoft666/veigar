@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V2_CREATE_OBJECT_VISITOR_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V2_CREATE_OBJECT_VISITOR_HPP
 //
 // MessagePack for C++ deserializing routine
 //
@@ -278,3 +280,5 @@ public:
 }  // namespace veigar_msgpack
 
 #endif // MSGPACK_V2_CREATE_OBJECT_VISITOR_HPP
+
+#endif // !__VEIGAR_MSGPACK_V2_CREATE_OBJECT_VISITOR_HPP

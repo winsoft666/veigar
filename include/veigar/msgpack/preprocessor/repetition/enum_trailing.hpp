@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_REPETITION_ENUM_TRAILING_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_REPETITION_ENUM_TRAILING_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002.
@@ -61,3 +63,5 @@
 # define MSGPACK_PP_ENUM_TRAILING_M_3_I(z, n, m, d) , m(z, n, d)
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_REPETITION_ENUM_TRAILING_HPP

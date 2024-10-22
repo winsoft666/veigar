@@ -194,7 +194,8 @@ int main(int argc, char** argv) {
     printf("Input 'quit' to exit the program.\n");
     printf("\n");
 
-    vg.setTimeoutOfRWLock(100);
+    vg.setTimeoutOfRWLock(260);
+    callTimeout = 260 * 2;
 
     while (true) {
         if (channelName.empty()) {
@@ -245,9 +246,6 @@ int main(int argc, char** argv) {
             targetChannelList = StringSplit(targetChannels, ",", false);
             if (targetChannelList.empty())
                 continue;
-
-            std::cout << "Timeout (ms):";
-            std::cin >> callTimeout;
 
             std::cout << "Call method (0 = Sync, 1 = Async with promise, 2 = Async with callback): ";
             std::cin >> callMethod;

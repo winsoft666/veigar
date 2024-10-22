@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_UNPACK_DEFINE_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_UNPACK_DEFINE_HPP
 /*
  * MessagePack unpacking routine template
  *
@@ -73,3 +75,5 @@ typedef enum {
 
 
 #endif /* msgpack/unpack_define.hpp */
+
+#endif // !__VEIGAR_MSGPACK_UNPACK_DEFINE_HPP

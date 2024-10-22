@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_LIBRARY_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_LIBRARY_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002-2011.                             *
@@ -35,3 +37,5 @@
 # include <veigar/msgpack/preprocessor/wstringize.hpp>
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_LIBRARY_HPP

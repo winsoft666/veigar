@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_REPETITION_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_REPETITION_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002.
@@ -30,3 +32,5 @@
 # include <veigar/msgpack/preprocessor/repetition/repeat_from_to.hpp>
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_REPETITION_HPP

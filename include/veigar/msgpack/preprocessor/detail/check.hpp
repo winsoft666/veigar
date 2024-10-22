@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_DETAIL_CHECK_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_DETAIL_CHECK_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002.
@@ -46,3 +48,5 @@
 # define MSGPACK_PP_CHECK_RESULT_1 1, MSGPACK_PP_NIL
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_DETAIL_CHECK_HPP

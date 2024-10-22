@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_FACILITIES_EXPAND_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_FACILITIES_EXPAND_HPP
 # /* Copyright (C) 2001
 #  * Housemarque Oy
 #  * http://www.housemarque.com
@@ -26,3 +28,5 @@
 # define MSGPACK_PP_EXPAND_I(x) x
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_FACILITIES_EXPAND_HPP

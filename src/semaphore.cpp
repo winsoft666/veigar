@@ -30,10 +30,13 @@ bool Semaphore::IsExist(const std::string& name) {
 }
 
 bool Semaphore::open(const std::string& name, int value /*= 0*/, int maxValue /*= 2147483647*/) {
+    assert(!name.empty());
     assert(!valid());
+    if (name.empty())
+        return false;
+
     close();
 
-    named_ = !name.empty();
     sh_ = new SemaphoreHandle();
 #ifdef VEIGAR_OS_WINDOWS
     HANDLE h = CreateSemaphoreA(NULL, value, maxValue, name.empty() ? NULL : name.c_str());
@@ -46,27 +49,15 @@ bool Semaphore::open(const std::string& name, int value /*= 0*/, int maxValue /*
         sh_ = nullptr;
     }
 #else
-    if (name.empty()) {
-        // unnamed semaphore shared between multiple threads.
-        int err = ::sem_init(&sh_->unnamed_, 0, 0);
-        if (err == -1) {
-            int err = errno;
-            veigar::log("Veigar: Error: sem_init failed, name: %s, errno: %d.\n", name.c_str(), err);
-            delete sh_;
-            sh_ = nullptr;
-        }
+    sem_t* sem = ::sem_open(name.c_str(), O_CREAT, 0666, static_cast<unsigned int>(value));
+    if (sem != SEM_FAILED) {
+        sh_->named_ = sem;
     }
     else {
-        sem_t* sem = ::sem_open(name.c_str(), O_CREAT, 0666, static_cast<unsigned>(value));
-        if (sem != SEM_FAILED) {
-            sh_->named_ = sem;
-        }
-        else {
-            int err = errno;
-            veigar::log("Veigar: Error: sem_open failed, name: %s, errno: %d.\n", name.c_str(), err);
-            delete sh_;
-            sh_ = nullptr;
-        }
+        int err = errno;
+        veigar::log("Veigar: Error: sem_open failed, name: %s, errno: %d.\n", name.c_str(), err);
+        delete sh_;
+        sh_ = nullptr;
     }
 #endif
     return valid();
@@ -78,13 +69,8 @@ void Semaphore::close() {
         CloseHandle(sh_->h_);
         sh_->h_ = nullptr;
 #else
-        if (named_) {
-            ::sem_close(sh_->named_);
-            sh_->named_ = SEM_FAILED;
-        }
-        else {
-            ::sem_destroy(&sh_->unnamed_);
-        }
+        ::sem_close(sh_->named_);
+        sh_->named_ = SEM_FAILED;
 #endif
 
         delete sh_;
@@ -101,12 +87,7 @@ void Semaphore::wait() {
 #ifdef VEIGAR_OS_WINDOWS
         WaitForSingleObject(sh_->h_, INFINITE);
 #else
-        if (named_) {
-            sem_wait(sh_->named_);
-        }
-        else {
-            sem_wait(&sh_->unnamed_);
-        }
+        sem_wait(sh_->named_);
 #endif
     }
 }
@@ -137,18 +118,10 @@ bool Semaphore::wait(const int64_t& ms) {
         ts.tv_nsec = 0;
     }
 
-    if (named_) {
-        if (sem_timedwait(sh_->named_, &ts) == 0) {
-            return true;
-        }
-        return false;
+    if (sem_timedwait(sh_->named_, &ts) == 0) {
+        return true;
     }
-    else {
-        if (sem_timedwait(&sh_->unnamed_, &ts) == 0) {
-            return true;
-        }
-        return false;
-    }
+    return false;
 #endif
 }
 
@@ -157,12 +130,7 @@ void Semaphore::release() {
 #ifdef VEIGAR_OS_WINDOWS
         ReleaseSemaphore(sh_->h_, 1, NULL);
 #else
-        if (named_) {
-            sem_post(sh_->named_);
-        }
-        else {
-            sem_post(&sh_->unnamed_);
-        }
+        sem_post(sh_->named_);
 #endif
     }
 }

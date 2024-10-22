@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_GCC_ATOMIC_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_GCC_ATOMIC_HPP
 //
 // MessagePack for C++ old gcc workaround for atomic operation
 //
@@ -28,3 +30,5 @@ int _msgpack_sync_incr_and_fetch(volatile _msgpack_atomic_counter_t* ptr)
 #endif // old gcc workaround
 
 #endif /* gcc_atomic.hpp */
+
+#endif // !__VEIGAR_MSGPACK_GCC_ATOMIC_HPP

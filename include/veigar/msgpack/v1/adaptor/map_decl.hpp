@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V1_ADAPTOR_MAP_DECL_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V1_ADAPTOR_MAP_DECL_HPP
 //
 // MessagePack for C++ static resolution routine
 //
@@ -34,3 +36,5 @@ class assoc_vector;
 }  // namespace veigar_msgpack
 
 #endif // MSGPACK_V1_TYPE_MAP_DECL_HPP
+
+#endif // !__VEIGAR_MSGPACK_V1_ADAPTOR_MAP_DECL_HPP

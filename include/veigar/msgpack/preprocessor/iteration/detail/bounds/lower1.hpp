@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_ITERATION_DETAIL_BOUNDS_LOWER1_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_ITERATION_DETAIL_BOUNDS_LOWER1_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002.
@@ -97,3 +99,5 @@
 # else
 #    define MSGPACK_PP_ITERATION_START_1 MSGPACK_PP_ITERATION_START_1_DIGIT_1
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_ITERATION_DETAIL_BOUNDS_LOWER1_HPP

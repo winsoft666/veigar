@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_ENUM_PARAMS_WITH_A_DEFAULT_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_ENUM_PARAMS_WITH_A_DEFAULT_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002.
@@ -15,3 +17,5 @@
 # include <veigar/msgpack/preprocessor/repetition/enum_params_with_a_default.hpp>
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_ENUM_PARAMS_WITH_A_DEFAULT_HPP

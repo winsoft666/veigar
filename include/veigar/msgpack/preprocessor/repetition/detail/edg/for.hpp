@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_REPETITION_DETAIL_EDG_FOR_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_REPETITION_DETAIL_EDG_FOR_HPP
 # /* Copyright (C) 2001
 #  * Housemarque Oy
 #  * http://www.housemarque.com
@@ -532,3 +534,5 @@
 # define MSGPACK_PP_FOR_256_I(s, p, o, m) MSGPACK_PP_IF(p(257, s), m, MSGPACK_PP_TUPLE_EAT_2)(257, s) MSGPACK_PP_IF(p(257, s), MSGPACK_PP_FOR_257, MSGPACK_PP_TUPLE_EAT_4)(o(257, s), p, o, m)
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_REPETITION_DETAIL_EDG_FOR_HPP

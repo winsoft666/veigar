@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V1_OBJECT_DECL_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V1_OBJECT_DECL_HPP
 //
 // MessagePack for C++ static resolution routine
 //
@@ -118,3 +120,5 @@ std::ostream& operator<< (std::ostream& s, const veigar_msgpack::object& v);
 }  // namespace veigar_msgpack
 
 #endif // MSGPACK_V1_OBJECT_DECL_HPP
+
+#endif // !__VEIGAR_MSGPACK_V1_OBJECT_DECL_HPP

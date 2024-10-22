@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V1_ADAPTOR_DETAIL_CPP11_DEFINE_ARRAY_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V1_ADAPTOR_DETAIL_CPP11_DEFINE_ARRAY_HPP
 //
 // MessagePack for C++ static resolution routine
 //
@@ -126,3 +128,5 @@ inline define_array<Args...> make_define_array(Args&... args)
 }  // namespace veigar_msgpack
 
 #endif // MSGPACK_V1_CPP11_DEFINE_ARRAY_HPP
+
+#endif // !__VEIGAR_MSGPACK_V1_ADAPTOR_DETAIL_CPP11_DEFINE_ARRAY_HPP

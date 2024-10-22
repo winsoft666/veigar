@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_ITERATION_DETAIL_ITER_REVERSE2_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_ITERATION_DETAIL_ITER_REVERSE2_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002.
@@ -1294,3 +1296,5 @@
 #    include MSGPACK_PP_FILENAME_2
 #    undef MSGPACK_PP_ITERATION_2
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_ITERATION_DETAIL_ITER_REVERSE2_HPP

@@ -23,7 +23,7 @@ using detail::Response;
 class CallDispatcher::Impl {
    public:
     std::vector<std::thread> workers_;
-    std::atomic_bool stop_ = { false };
+    std::atomic_bool stop_ = {false};
     std::shared_ptr<MessageQueue> callMsgQueue_;
 };
 
@@ -175,17 +175,12 @@ void CallDispatcher::dispatchThreadProc() {
     int64_t written = 0L;
     while (!impl_->stop_.load()) {
         written = 0L;
-        if (!impl_->callMsgQueue_->wait(-1)) {
+        if (!impl_->callMsgQueue_->wait(-1))
             continue;
-        }
 
-        RUN_TIME_RECORDER("4. Dispatch Call");
-
-        if (impl_->stop_.load()) {
+        if (impl_->stop_.load())
             break;
-        }
 
-        RUN_TIME_RECORDER_EX(pop_mq, "4.1 Pop Call MQ");
         if (!impl_->callMsgQueue_->rwLock(veigar_->timeoutOfRWLock())) {
             veigar::log("Veigar: Warning: Get rw-lock timeout when pop front from call message queue.\n");
             continue;
@@ -228,8 +223,6 @@ void CallDispatcher::dispatchThreadProc() {
         callPac.buffer_consumed((size_t)written);
 
         impl_->callMsgQueue_->rwUnlock();
-
-        RUN_TIME_RECORDER_EX_END(pop_mq);
 
         do {
             veigar_msgpack::object_handle obj;

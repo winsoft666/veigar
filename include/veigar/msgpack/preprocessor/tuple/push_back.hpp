@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_TUPLE_PUSH_BACK_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_TUPLE_PUSH_BACK_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Edward Diener 2013.
@@ -29,3 +31,5 @@
 # endif // MSGPACK_PP_VARIADICS
 #
 # endif // MSGPACK_PREPROCESSOR_TUPLE_PUSH_BACK_HPP
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_TUPLE_PUSH_BACK_HPP

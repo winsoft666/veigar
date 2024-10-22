@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_ADAPTOR_LIST_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_ADAPTOR_LIST_HPP
 //
 // MessagePack for C++ static resolution routine
 //
@@ -13,3 +15,5 @@
 #include "veigar/msgpack/v1/adaptor/list.hpp"
 
 #endif // MSGPACK_TYPE_LIST_HPP
+
+#endif // !__VEIGAR_MSGPACK_ADAPTOR_LIST_HPP

@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_PUNCTUATION_DETAIL_IS_BEGIN_PARENS_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_PUNCTUATION_DETAIL_IS_BEGIN_PARENS_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Edward Diener 2014.
@@ -46,3 +48,5 @@
 #define MSGPACK_PP_DETAIL_IBP_IS_VARIADIC_R_MSGPACK_PP_DETAIL_IBP_IS_VARIADIC_C 0,
 
 #endif /* MSGPACK_PREPROCESSOR_DETAIL_IS_BEGIN_PARENS_HPP */
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_PUNCTUATION_DETAIL_IS_BEGIN_PARENS_HPP

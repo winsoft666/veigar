@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V1_ADAPTOR_DETAIL_CPP11_CONVERT_HELPER_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V1_ADAPTOR_DETAIL_CPP11_CONVERT_HELPER_HPP
 //
 // MessagePack for C++ static resolution routine
 //
@@ -43,3 +45,5 @@ convert_helper(veigar_msgpack::object const& o, T& t) {
 }  // namespace veigar_msgpack
 
 #endif // MSGPACK_V1_CPP11_CONVERT_HELPER_HPP
+
+#endif // !__VEIGAR_MSGPACK_V1_ADAPTOR_DETAIL_CPP11_CONVERT_HELPER_HPP

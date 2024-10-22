@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V1_ADAPTOR_FLOAT_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V1_ADAPTOR_FLOAT_HPP
 //
 // MessagePack for C++ static resolution routine
 //
@@ -121,3 +123,5 @@ struct object_with_zone<double> {
 }  // namespace veigar_msgpack
 
 #endif // MSGPACK_V1_TYPE_FLOAT_HPP
+
+#endif // !__VEIGAR_MSGPACK_V1_ADAPTOR_FLOAT_HPP

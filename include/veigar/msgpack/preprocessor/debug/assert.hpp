@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_DEBUG_ASSERT_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_DEBUG_ASSERT_HPP
 # /* Copyright (C) 2001
 #  * Housemarque Oy
 #  * http://www.housemarque.com
@@ -42,3 +44,5 @@
 # define MSGPACK_PP_ASSERT_MSG_D(cond, msg) MSGPACK_PP_EXPR_IIF(MSGPACK_PP_NOT(cond), msg)
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_DEBUG_ASSERT_HPP

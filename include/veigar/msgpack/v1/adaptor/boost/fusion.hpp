@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V1_ADAPTOR_BOOST_FUSION_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V1_ADAPTOR_BOOST_FUSION_HPP
 //
 // MessagePack for C++ static resolution routine
 //
@@ -214,3 +216,5 @@ private:
 } // namespace veigar_msgpack
 
 #endif // MSGPACK_V1_TYPE_BOOST_FUSION_HPP
+
+#endif // !__VEIGAR_MSGPACK_V1_ADAPTOR_BOOST_FUSION_HPP

@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_DETAIL_IS_BINARY_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_DETAIL_IS_BINARY_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002.
@@ -28,3 +30,5 @@
 # define MSGPACK_PP_CHECK_RESULT_MSGPACK_PP_IS_BINARY_CHECK 0, MSGPACK_PP_NIL
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_DETAIL_IS_BINARY_HPP

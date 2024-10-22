@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_ITERATION_LOCAL_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_ITERATION_LOCAL_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002.
@@ -24,3 +26,5 @@
 # define MSGPACK_PP_LOCAL_R(n) (MSGPACK_PP_LOCAL_F) <= n && (MSGPACK_PP_LOCAL_S) >= n
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_ITERATION_LOCAL_HPP

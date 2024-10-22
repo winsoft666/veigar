@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V1_ADAPTOR_NIL_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V1_ADAPTOR_NIL_HPP
 //
 // MessagePack for C++ static resolution routine
 //
@@ -74,3 +76,5 @@ struct object_with_zone<type::nil_t> {
 }  // namespace veigar_msgpack
 
 #endif // MSGPACK_V1_TYPE_NIL_HPP
+
+#endif // !__VEIGAR_MSGPACK_V1_ADAPTOR_NIL_HPP

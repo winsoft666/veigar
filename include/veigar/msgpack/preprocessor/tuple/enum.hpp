@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_TUPLE_ENUM_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_TUPLE_ENUM_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Edward Diener 2011.                                    *
@@ -20,3 +22,5 @@
 # define MSGPACK_PP_TUPLE_ENUM MSGPACK_PP_TUPLE_REM_CTOR
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_TUPLE_ENUM_HPP

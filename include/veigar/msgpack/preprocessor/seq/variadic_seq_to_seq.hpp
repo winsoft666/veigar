@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_SEQ_VARIADIC_SEQ_TO_SEQ_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_SEQ_VARIADIC_SEQ_TO_SEQ_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2012.                                  *
@@ -26,3 +28,5 @@
 # endif
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_SEQ_VARIADIC_SEQ_TO_SEQ_HPP

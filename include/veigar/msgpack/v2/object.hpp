@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V2_OBJECT_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V2_OBJECT_HPP
 //
 // MessagePack for C++ static resolution routine
 //
@@ -31,3 +33,5 @@ inline object::implicit_type object::convert() const
 }  // namespace veigar_msgpack
 
 #endif // MSGPACK_V2_OBJECT_HPP
+
+#endif // !__VEIGAR_MSGPACK_V2_OBJECT_HPP

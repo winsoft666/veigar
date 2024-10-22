@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_SLOT_DETAIL_SLOT1_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_SLOT_DETAIL_SLOT1_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002.
@@ -265,3 +267,5 @@
 # else
 #    define MSGPACK_PP_SLOT_1() MSGPACK_PP_SLOT_1_DIGIT_1
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_SLOT_DETAIL_SLOT1_HPP

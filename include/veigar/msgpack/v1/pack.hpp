@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V1_PACK_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V1_PACK_HPP
 //
 // MessagePack for C++ serializing routine
 //
@@ -1657,3 +1659,5 @@ inline void packer<Stream>::pack_imp_int64(T d)
 }  // namespace veigar_msgpack
 
 #endif // MSGPACK_V1_PACK_HPP
+
+#endif // !__VEIGAR_MSGPACK_V1_PACK_HPP

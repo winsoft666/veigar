@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_SEQ_TO_LIST_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_SEQ_TO_LIST_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2011.                                  *
@@ -39,3 +41,5 @@
 # define MSGPACK_PP_SEQ_TO_LIST_B_ID() MSGPACK_PP_SEQ_TO_LIST_B
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_SEQ_TO_LIST_HPP

@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_SEQ_DETAIL_BINARY_TRANSFORM_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_SEQ_DETAIL_BINARY_TRANSFORM_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2011.                                  *
@@ -45,3 +47,5 @@
 # define MSGPACK_PP_SEQ_BINARY_TRANSFORM_B0 (MSGPACK_PP_EAT, ?)
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_SEQ_DETAIL_BINARY_TRANSFORM_HPP

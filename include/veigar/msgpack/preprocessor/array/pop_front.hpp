@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_ARRAY_POP_FRONT_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_ARRAY_POP_FRONT_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002.
@@ -36,3 +38,5 @@
 # define MSGPACK_PP_ARRAY_POP_FRONT_M(z, n, data) MSGPACK_PP_ARRAY_ELEM(MSGPACK_PP_INC(n), data)
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_ARRAY_POP_FRONT_HPP

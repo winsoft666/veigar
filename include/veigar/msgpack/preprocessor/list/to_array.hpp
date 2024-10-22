@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_LIST_TO_ARRAY_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_LIST_TO_ARRAY_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2011.
@@ -153,3 +155,5 @@
 # endif
 #
 # endif /* MSGPACK_PREPROCESSOR_LIST_TO_ARRAY_HPP */
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_LIST_TO_ARRAY_HPP

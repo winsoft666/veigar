@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_ASSERT_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_ASSERT_HPP
 //
 // MessagePack for C++ static resolution routine
 //
@@ -24,3 +26,5 @@
 #endif // defined(MSGPACK_NO_BOOST)
 
 #endif // MSGPACK_ASSERT_HPP
+
+#endif // !__VEIGAR_MSGPACK_ASSERT_HPP

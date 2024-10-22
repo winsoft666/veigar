@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PARSE_RETURN_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PARSE_RETURN_HPP
 //
 // MessagePack for C++ deserializing routine
 //
@@ -15,3 +17,5 @@
 #include "veigar/msgpack/v3/parse_return.hpp"
 
 #endif // MSGPACK_PARSE_RETURN_HPP
+
+#endif // !__VEIGAR_MSGPACK_PARSE_RETURN_HPP

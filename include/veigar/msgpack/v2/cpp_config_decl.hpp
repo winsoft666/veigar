@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V2_CPP_CONFIG_DECL_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V2_CPP_CONFIG_DECL_HPP
 //
 // MessagePack for C++ C++03/C++11 Adaptation
 //
@@ -83,3 +85,5 @@ using v1::is_pointer;
 #endif // MSGPACK_USE_CPP03
 
 #endif // MSGPACK_V2_CPP_CONFIG_DECL_HPP
+
+#endif // !__VEIGAR_MSGPACK_V2_CPP_CONFIG_DECL_HPP

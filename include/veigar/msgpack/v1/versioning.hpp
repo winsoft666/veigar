@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V1_VERSIONING_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V1_VERSIONING_HPP
 /*
  * MessagePack for C++ version switcher
  *
@@ -69,3 +71,5 @@
 #endif // MSGPACK_USE_CPP03
 
 #endif // MSGPACK_VERSIONING_HPP
+
+#endif // !__VEIGAR_MSGPACK_V1_VERSIONING_HPP

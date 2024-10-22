@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_ARRAY_ENUM_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_ARRAY_ENUM_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Edward Diener 2011.                                    *
@@ -31,3 +33,5 @@
 # endif
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_ARRAY_ENUM_HPP

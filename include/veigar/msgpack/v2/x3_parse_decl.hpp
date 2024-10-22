@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V2_X3_PARSE_DECL_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V2_X3_PARSE_DECL_HPP
 //
 // MessagePack for C++ deserializing routine
 //
@@ -34,3 +36,5 @@ bool parse(Iterator&& begin, Iterator&& end, Visitor&& vis);
 #endif // defined(MSGPACK_USE_X3_PARSE)
 
 #endif // MSGPACK_V2_X3_PARSE_DECL_HPP
+
+#endif // !__VEIGAR_MSGPACK_V2_X3_PARSE_DECL_HPP

@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_INC_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_INC_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002.
@@ -15,3 +17,5 @@
 # include <veigar/msgpack/preprocessor/arithmetic/inc.hpp>
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_INC_HPP

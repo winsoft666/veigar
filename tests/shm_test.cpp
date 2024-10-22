@@ -14,7 +14,7 @@
 #include "thread_group.h"
 
 TEST_CASE("shm-valid") {
-    veigar::SharedMemory shm1("C519BBC0D2774887AB754A9463DBA664" + std::to_string(time(nullptr)), 1024);
+    veigar::SharedMemory shm1("shm-valid-" + std::to_string(time(nullptr)), 1024);
     REQUIRE(!shm1.valid());
     REQUIRE(shm1.data() == nullptr);
 
@@ -35,7 +35,7 @@ TEST_CASE("shm-valid") {
 }
 
 TEST_CASE("shm-create-open-1") {
-     std::string name = "C519BBC0D2774887AB754A9463DBA665" + std::to_string(time(nullptr));
+     std::string name = "shm-create-open-1-" + std::to_string(time(nullptr));
 
     veigar::SharedMemory shm1(name, 1024);
     REQUIRE(!shm1.open());
@@ -64,7 +64,7 @@ TEST_CASE("shm-create-open-1") {
 }
 
 TEST_CASE("shm-open2-close1-open") {
-    std::string name = "C519BBC0D2774897AB754A9463DBA666" + std::to_string(time(nullptr));
+    std::string name = "shm-open2-close1-open-" + std::to_string(time(nullptr));
 
     veigar::SharedMemory shm(name, 1024);
     REQUIRE(!shm.open());

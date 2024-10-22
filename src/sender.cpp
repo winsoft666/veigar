@@ -23,21 +23,11 @@ bool Sender::init(std::shared_ptr<RespDispatcher> respDisp,
     if (isInit_)
         return true;
 
-    stop_.store(false);
     stopEvent_.reset();
 
     respDisp_ = respDisp;
     selfCallMQ_ = selfCallMQ;
     selfRespMQ_ = selfRespMQ;
-
-    if (!callSemp_.open("")) {
-        return false;
-    }
-
-    if (!respSemp_.open("")) {
-        callSemp_.close();
-        return false;
-    }
 
     for (size_t i = 0; i < VEIGAR_SEND_CALL_THREAD_NUMBER; ++i) {
         callWorkers_.emplace_back(std::thread(&Sender::sendCallThreadProc, this));
@@ -53,12 +43,10 @@ bool Sender::init(std::shared_ptr<RespDispatcher> respDisp,
 }
 
 void Sender::uninit() {
-    stop_.store(true);
     stopEvent_.set();
 
-    for (std::thread& w : callWorkers_) {
-        callSemp_.release();
-    }
+    callListSetEvent_.cancel();
+    respListSetEvent_.cancel();
 
     for (std::thread& w : callWorkers_) {
         if (w.joinable()) {
@@ -67,11 +55,6 @@ void Sender::uninit() {
     }
 
     for (std::thread& w : respWorkers_) {
-        respSemp_.release();
-    }
-
-    for (std::thread& w : respWorkers_) {
-        respSemp_.release();
         if (w.joinable()) {
             w.join();
         }
@@ -121,9 +104,6 @@ void Sender::uninit() {
     selfCallMQ_.reset();
     selfRespMQ_.reset();
 
-    callSemp_.close();
-    respSemp_.close();
-
     isInit_ = false;
 }
 
@@ -132,21 +112,19 @@ bool Sender::isInit() const {
 }
 
 void Sender::addCall(const Sender::CallMeta& cm) {
-    RUN_TIME_RECORDER("2. Add Call " + cm.callId);
     callListMutex_.lock();
     callList_.emplace(cm);
     callListMutex_.unlock();
 
-    callSemp_.release();
+    callListSetEvent_.set();
 }
 
 void Sender::addResp(const Sender::RespMeta& rm) {
-    RUN_TIME_RECORDER("5. Add Resp");
     respListMutex_.lock();
     respList_.emplace(rm);
     respListMutex_.unlock();
 
-    respSemp_.release();
+    respListSetEvent_.set();
 }
 
 std::shared_ptr<MessageQueue> Sender::getTargetCallMessageQueue(const std::string& channelName) {
@@ -189,190 +167,190 @@ std::shared_ptr<MessageQueue> Sender::getTargetRespMessageQueue(const std::strin
 
 void Sender::sendCallThreadProc() {
     std::string errMsg;
-    while (callSemp_.wait(-1)) {
-        if (stop_.load())
+    while (true) {
+        if (!callListSetEvent_.wait(30))
+            continue;
+
+        if (callListSetEvent_.isCancelled())
             break;
 
-        RUN_TIME_RECORDER("3. Send Call");
-        RUN_TIME_RECORDER_EX(get_call, "3.1 Get Call");
-        CallMeta cm;
-        callListMutex_.lock();
-        if (callList_.empty()) {
+        callListSetEvent_.unset();
+
+        for (;;) {
+            if (callListSetEvent_.isCancelled())
+                break;
+
+            CallMeta cm;
+            callListMutex_.lock();
+            if (callList_.empty()) {
+                callListMutex_.unlock();
+                break;
+            }
+            cm = callList_.front();
+            callList_.pop();
             callListMutex_.unlock();
-            continue;
-        }
-        cm = callList_.front();
-        callList_.pop();
-        callListMutex_.unlock();
-        RUN_TIME_RECORDER_EX_END(get_call);
 
-        respDisp_->addOngoingCall(cm.callId, cm.resultMeta);
+            respDisp_->addOngoingCall(cm.callId, cm.resultMeta);
 
-        ErrorCode ec = ErrorCode::FAILED;
-        std::shared_ptr<MessageQueue> mq = nullptr;
-        try {
-            errMsg.clear();
+            ErrorCode ec = ErrorCode::FAILED;
+            std::shared_ptr<MessageQueue> mq = nullptr;
+            try {
+                errMsg.clear();
 
-            RUN_TIME_RECORDER_EX(get_mq, "3.2 Get Call MQ");
-            if (cm.channel == veigar_->channelName()) {
-                mq = selfCallMQ_;
-            }
-            else {
-                mq = getTargetCallMessageQueue(cm.channel);
-            }
-            RUN_TIME_RECORDER_EX_END(get_mq);
+                if (cm.channel == veigar_->channelName()) {
+                    mq = selfCallMQ_;
+                }
+                else {
+                    mq = getTargetCallMessageQueue(cm.channel);
+                }
 
-            if (mq) {
-                RUN_TIME_RECORDER_EX(push_mq, "3.3 Push Call MQ");
-                if (mq->rwLock(veigar_->timeoutOfRWLock())) {
-                    if (checkSpaceAndWait(mq, cm.dataSize, cm.startCallTimePoint, cm.timeout)) {
-                        if (mq->pushBack(cm.data, cm.dataSize)) {
-                            ec = ErrorCode::SUCCESS;
+                if (mq) {
+                    if (mq->rwLock(veigar_->timeoutOfRWLock())) {
+                        if (checkSpaceAndWait(mq, cm.dataSize, cm.startCallTimePoint, cm.timeout)) {
+                            if (mq->pushBack(cm.data, cm.dataSize)) {
+                                ec = ErrorCode::SUCCESS;
+                            }
+                            else {
+                                errMsg = "Unable to push message to queue.";
+                            }
                         }
                         else {
-                            errMsg = "Unable to push message to queue.";
+                            ec = ErrorCode::TIMEOUT;
+                            errMsg = "Waiting for call queue availability timeout.";
                         }
+                        mq->rwUnlock();
                     }
                     else {
                         ec = ErrorCode::TIMEOUT;
-                        errMsg = "Waiting for call queue availability timeout.";
+                        errMsg = "Get rw-lock timeout when push call.";
                     }
-                    mq->rwUnlock();
                 }
                 else {
-                    ec = ErrorCode::TIMEOUT;
-                    errMsg = "Get rw-lock timeout when push call.";
+                    errMsg = "Unable to get target message queue. It seems that the channel not started.";
                 }
-                RUN_TIME_RECORDER_EX_END(push_mq);
-            }
-            else {
-                errMsg = "Unable to get target message queue. It seems that the channel not started.";
-            }
 
-        } catch (std::exception& e) {
-            if (mq) {
-                mq->rwUnlock();  // always try to unlock again
-            }
-            veigar::log("Veigar: Error: An exception occurred during pushing message to call queue: %s.\n", e.what());
-            errMsg = StringHelper::StringPrintf("An exception occurred during pushing message to call queue: %s.", e.what());
-        } catch (...) {
-            if (mq) {
-                mq->rwUnlock();  // always try to unlock again
-            }
-            veigar::log("Veigar: Error: An exception occurred during pushing message to call queue.\n");
-            errMsg = "An exception occurred during pushing message to call queue.";
-        }
-
-        if (ec != ErrorCode::SUCCESS) {
-            respDisp_->releaseCall(cm.callId);
-
-            CallResult failedRet;
-            failedRet.errCode = ec;
-            failedRet.errorMessage = errMsg;
-
-            if (cm.resultMeta.metaType == 0) {
-                if (cm.resultMeta.p) {
-                    cm.resultMeta.p->set_value(std::move(failedRet));
+            } catch (std::exception& e) {
+                if (mq) {
+                    mq->rwUnlock();  // always try to unlock again
                 }
+                veigar::log("Veigar: Error: An exception occurred during pushing message to call queue: %s.\n", e.what());
+                errMsg = StringHelper::StringPrintf("An exception occurred during pushing message to call queue: %s.", e.what());
+            } catch (...) {
+                if (mq) {
+                    mq->rwUnlock();  // always try to unlock again
+                }
+                veigar::log("Veigar: Error: An exception occurred during pushing message to call queue.\n");
+                errMsg = "An exception occurred during pushing message to call queue.";
             }
-            else if (cm.resultMeta.metaType == 1) {
-                if (cm.resultMeta.cb) {
-                    cm.resultMeta.cb(failedRet);
+
+            if (ec != ErrorCode::SUCCESS) {
+                respDisp_->releaseCall(cm.callId);
+
+                CallResult failedRet;
+                failedRet.errCode = ec;
+                failedRet.errorMessage = errMsg;
+
+                if (cm.resultMeta.metaType == 0) {
+                    if (cm.resultMeta.p) {
+                        cm.resultMeta.p->set_value(std::move(failedRet));
+                    }
+                }
+                else if (cm.resultMeta.metaType == 1) {
+                    if (cm.resultMeta.cb) {
+                        cm.resultMeta.cb(failedRet);
+                    }
                 }
             }
-        }
 
-        RUN_TIME_RECORDER_EX(free_cm, "3.4 Free Call Meta");
-        if (cm.data) {
-            free(cm.data);
+            if (cm.data) {
+                free(cm.data);
+            }
         }
-        RUN_TIME_RECORDER_EX_END(free_cm);
     }
 }
 
 void Sender::sendRespThreadProc() {
     std::string errMsg;
-    while (respSemp_.wait(-1)) {
-        if (stop_.load())
+    while (true) {
+        if (!respListSetEvent_.wait(30))
+            continue;
+
+        if (respListSetEvent_.isCancelled())
             break;
 
-        RUN_TIME_RECORDER("6. Send Resp");
-        RUN_TIME_RECORDER_EX(get_resp, "6.1 Get Resp");
-        RespMeta rm;
-        respListMutex_.lock();
-        if (respList_.empty()) {
+        respListSetEvent_.unset();
+
+        for (;;) {
+            if (respListSetEvent_.isCancelled())
+                break;
+
+            RespMeta rm;
+            respListMutex_.lock();
+            if (respList_.empty()) {
+                respListMutex_.unlock();
+                break;
+            }
+            rm = respList_.front();
+            respList_.pop();
             respListMutex_.unlock();
-            continue;
-        }
-        rm = respList_.front();
-        respList_.pop();
-        respListMutex_.unlock();
 
-        RUN_TIME_RECORDER_EX_END(get_resp);
+            ErrorCode ec = ErrorCode::FAILED;
+            std::shared_ptr<MessageQueue> mq = nullptr;
+            try {
+                errMsg.clear();
 
-        ErrorCode ec = ErrorCode::FAILED;
-        std::shared_ptr<MessageQueue> mq = nullptr;
-        try {
-            errMsg.clear();
-            RUN_TIME_RECORDER_EX(get_mq, "6.2 Get Resp MQ");
+                if (rm.channel == veigar_->channelName()) {
+                    mq = selfRespMQ_;
+                }
+                else {
+                    mq = getTargetRespMessageQueue(rm.channel);
+                }
 
-            if (rm.channel == veigar_->channelName()) {
-                mq = selfRespMQ_;
-            }
-            else {
-                mq = getTargetRespMessageQueue(rm.channel);
-            }
-
-            RUN_TIME_RECORDER_EX_END(get_mq);
-
-            if (mq) {
-                RUN_TIME_RECORDER_EX(push_mq, "6.3 Push Resp MQ");
-                if (mq->rwLock(veigar_->timeoutOfRWLock())) {
-                    if (checkSpaceAndWait(mq, rm.dataSize, rm.startCallTimePoint, rm.timeout)) {
-                        if (mq->pushBack(rm.data, rm.dataSize)) {
-                            ec = ErrorCode::SUCCESS;
+                if (mq) {
+                    if (mq->rwLock(veigar_->timeoutOfRWLock())) {
+                        if (checkSpaceAndWait(mq, rm.dataSize, rm.startCallTimePoint, rm.timeout)) {
+                            if (mq->pushBack(rm.data, rm.dataSize)) {
+                                ec = ErrorCode::SUCCESS;
+                            }
+                            else {
+                                errMsg = "Unable to push message to response queue.";
+                            }
                         }
                         else {
-                            errMsg = "Unable to push message to response queue.";
+                            ec = ErrorCode::TIMEOUT;
+                            errMsg = "Waiting for response queue availability timeout.";
                         }
+                        mq->rwUnlock();
                     }
                     else {
                         ec = ErrorCode::TIMEOUT;
-                        errMsg = "Waiting for response queue availability timeout.";
+                        errMsg = "Get rw-lock timeout when push response.";
                     }
-                    mq->rwUnlock();
                 }
                 else {
-                    ec = ErrorCode::TIMEOUT;
-                    errMsg = "Get rw-lock timeout when push response.";
+                    errMsg = "Unable to get target message queue. It seems that the channel not started.";
                 }
-                RUN_TIME_RECORDER_EX_END(push_mq);
-            }
-            else {
-                errMsg = "Unable to get target message queue. It seems that the channel not started.";
+
+            } catch (std::exception& e) {
+                if (mq) {
+                    mq->rwUnlock();  // always try to unlock again
+                }
+                errMsg = StringHelper::StringPrintf("An exception occurred during pushing message to response queue: %s.", e.what());
+            } catch (...) {
+                if (mq) {
+                    mq->rwUnlock();  // always try to unlock again
+                }
+                errMsg = "An exception occurred during parsing pushing message to response queue.";
             }
 
-        } catch (std::exception& e) {
-            if (mq) {
-                mq->rwUnlock();  // always try to unlock again
+            if (ec != ErrorCode::SUCCESS) {
+                veigar::log("Veigar: Error: Send response failed: %s\n", errMsg.c_str());
             }
-            errMsg = StringHelper::StringPrintf("An exception occurred during pushing message to response queue: %s.", e.what());
-        } catch (...) {
-            if (mq) {
-                mq->rwUnlock();  // always try to unlock again
+
+            if (rm.data) {
+                free(rm.data);
             }
-            errMsg = "An exception occurred during parsing pushing message to response queue.";
         }
-
-        if (ec != ErrorCode::SUCCESS) {
-            veigar::log("Veigar: Error: Send response failed: %s\n", errMsg.c_str());
-        }
-
-        RUN_TIME_RECORDER_EX(free_cm, "6.4 Free Call Meta");
-        if (rm.data) {
-            free(rm.data);
-        }
-        RUN_TIME_RECORDER_EX_END(free_cm);
     }
 }
 

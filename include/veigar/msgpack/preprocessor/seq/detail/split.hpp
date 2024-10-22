@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_SEQ_DETAIL_SPLIT_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_SEQ_DETAIL_SPLIT_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002.
@@ -282,3 +284,5 @@
 # define MSGPACK_PP_SEQ_SPLIT_256(x) (x) MSGPACK_PP_SEQ_SPLIT_255
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_SEQ_DETAIL_SPLIT_HPP

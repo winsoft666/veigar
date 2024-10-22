@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_CPP_VERSION_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_CPP_VERSION_HPP
 #ifndef MSGPACK_CPP_VERSION_HPP
 #define MSGPACK_CPP_VERSION_HPP
 
@@ -16,3 +18,5 @@
 #endif
 
 #endif // MSGPACK_CPP_VERSION_HPP
+
+#endif // !__VEIGAR_MSGPACK_CPP_VERSION_HPP

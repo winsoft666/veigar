@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V1_ADAPTOR_CHAR_PTR_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V1_ADAPTOR_CHAR_PTR_HPP
 //
 // MessagePack for C++ static resolution routine
 //
@@ -90,3 +92,5 @@ struct object<char*> {
 }  // namespace veigar_msgpack
 
 #endif // MSGPACK_V1_TYPE_CHAR_PTR_HPP
+
+#endif // !__VEIGAR_MSGPACK_V1_ADAPTOR_CHAR_PTR_HPP

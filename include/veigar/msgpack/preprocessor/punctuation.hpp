@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_PUNCTUATION_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_PUNCTUATION_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002.
@@ -20,3 +22,5 @@
 # include <veigar/msgpack/preprocessor/punctuation/remove_parens.hpp>
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_PUNCTUATION_HPP

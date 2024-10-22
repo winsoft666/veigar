@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_ENUM_SHIFTED_PARAMS_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_ENUM_SHIFTED_PARAMS_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002.
@@ -15,3 +17,5 @@
 # include <veigar/msgpack/preprocessor/repetition/enum_shifted_params.hpp>
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_ENUM_SHIFTED_PARAMS_HPP

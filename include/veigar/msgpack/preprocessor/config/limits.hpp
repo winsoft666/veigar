@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_CONFIG_LIMITS_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_CONFIG_LIMITS_HPP
 # /* Copyright (C) 2001
 #  * Housemarque Oy
 #  * http://www.housemarque.com
@@ -28,3 +30,5 @@
 # define MSGPACK_PP_LIMIT_SLOT_COUNT 5
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_CONFIG_LIMITS_HPP

@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V1_ADAPTOR_ARRAY_REF_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V1_ADAPTOR_ARRAY_REF_HPP
 //
 // MessagePack for C++ static resolution routine
 //
@@ -303,3 +305,5 @@ struct object_with_zone<veigar_msgpack::type::array_ref<T[N]> > {
 } // namespace veigar_msgpack
 
 #endif // MSGPACK_V1_TYPE_ARRAY_REF_HPP
+
+#endif // !__VEIGAR_MSGPACK_V1_ADAPTOR_ARRAY_REF_HPP

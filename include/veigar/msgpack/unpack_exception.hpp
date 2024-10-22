@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_UNPACK_EXCEPTION_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_UNPACK_EXCEPTION_HPP
 //
 // MessagePack for C++ deserializing routine
 //
@@ -13,3 +15,5 @@
 #include "veigar/msgpack/v1/unpack_exception.hpp"
 
 #endif // MSGPACK_UNPACK_EXCEPTION_HPP
+
+#endif // !__VEIGAR_MSGPACK_UNPACK_EXCEPTION_HPP

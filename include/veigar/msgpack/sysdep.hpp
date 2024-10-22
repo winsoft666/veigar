@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_SYSDEP_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_SYSDEP_HPP
 /*
  * MessagePack system dependencies
  *
@@ -204,3 +206,5 @@
 #endif
 
 #endif /* msgpack/sysdep.hpp */
+
+#endif // !__VEIGAR_MSGPACK_SYSDEP_HPP

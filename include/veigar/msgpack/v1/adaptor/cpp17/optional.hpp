@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V1_ADAPTOR_CPP17_OPTIONAL_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V1_ADAPTOR_CPP17_OPTIONAL_HPP
 //
 // MessagePack for C++ static resolution routine
 //
@@ -91,3 +93,5 @@ struct object_with_zone<std::optional<T> > {
 #endif // MSGPACK_CPP_VERSION >= 201703
 
 #endif // MSGPACK_V1_TYPE_OPTIONAL_HPP
+
+#endif // !__VEIGAR_MSGPACK_V1_ADAPTOR_CPP17_OPTIONAL_HPP

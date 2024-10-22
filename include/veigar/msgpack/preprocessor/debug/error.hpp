@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_DEBUG_ERROR_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_DEBUG_ERROR_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002.
@@ -31,3 +33,5 @@
 # define MSGPACK_PP_ERROR_0x0007 MSGPACK_PP_ERROR(0x0007, MSGPACK_PP_DIVISION_BY_ZERO)
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_DEBUG_ERROR_HPP

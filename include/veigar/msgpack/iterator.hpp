@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_ITERATOR_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_ITERATOR_HPP
 //
 // MessagePack for C++ static resolution routine
 //
@@ -16,3 +18,5 @@
 #include "veigar/msgpack/v1/iterator.hpp"
 
 #endif // MSGPACK_ITERATOR_HPP
+
+#endif // !__VEIGAR_MSGPACK_ITERATOR_HPP

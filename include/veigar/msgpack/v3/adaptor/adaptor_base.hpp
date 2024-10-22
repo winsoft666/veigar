@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V3_ADAPTOR_ADAPTOR_BASE_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V3_ADAPTOR_ADAPTOR_BASE_HPP
 //
 // MessagePack for C++ static resolution routine
 //
@@ -57,3 +59,5 @@ struct object_with_zone : v2::adaptor::object_with_zone<T, Enabler> {
 
 
 #endif // MSGPACK_V3_ADAPTOR_BASE_HPP
+
+#endif // !__VEIGAR_MSGPACK_V3_ADAPTOR_ADAPTOR_BASE_HPP

@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_CONTROL_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_CONTROL_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002.
@@ -20,3 +22,5 @@
 # include <veigar/msgpack/preprocessor/control/while.hpp>
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_CONTROL_HPP

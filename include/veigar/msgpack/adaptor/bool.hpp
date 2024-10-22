@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_ADAPTOR_BOOL_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_ADAPTOR_BOOL_HPP
 //
 // MessagePack for C++ static resolution routine
 //
@@ -13,3 +15,5 @@
 #include "veigar/msgpack/v1/adaptor/bool.hpp"
 
 #endif // MSGPACK_TYPE_BOOL_HPP
+
+#endif // !__VEIGAR_MSGPACK_ADAPTOR_BOOL_HPP

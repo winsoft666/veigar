@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_VARIADIC_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_VARIADIC_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Edward Diener 2011.                                    *
@@ -21,3 +23,5 @@
 # include <veigar/msgpack/preprocessor/variadic/to_tuple.hpp>
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_VARIADIC_HPP

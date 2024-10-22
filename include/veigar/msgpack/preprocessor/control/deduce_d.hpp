@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_CONTROL_DEDUCE_D_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_CONTROL_DEDUCE_D_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002.
@@ -20,3 +22,5 @@
 # define MSGPACK_PP_DEDUCE_D() MSGPACK_PP_AUTO_REC(MSGPACK_PP_WHILE_P, 256)
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_CONTROL_DEDUCE_D_HPP

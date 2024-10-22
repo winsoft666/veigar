@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_LOGICAL_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_LOGICAL_HPP
 # /* Copyright (C) 2001
 #  * Housemarque Oy
 #  * http://www.housemarque.com
@@ -27,3 +29,5 @@
 # include <veigar/msgpack/preprocessor/logical/xor.hpp>
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_LOGICAL_HPP

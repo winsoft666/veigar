@@ -16,7 +16,7 @@
 #include "veigar/veigar.h"
 
 TEST_CASE("call-sync-1") {
-    std::string baseName = "109F8B35" + std::to_string(time(nullptr));
+    std::string baseName = "call-sync-1-" + std::to_string(time(nullptr));
 
     veigar::Veigar vg1;
     CHECK(vg1.bind("func1", [](std::string s1, std::string s2) {
@@ -38,7 +38,7 @@ TEST_CASE("call-sync-1") {
 }
 
 TEST_CASE("call-sync-2") {
-    std::string baseName = "109F8BTT2Q" + std::to_string(time(nullptr));
+    std::string baseName = "call-sync-2-" + std::to_string(time(nullptr));
 
     veigar::Veigar vg1;
     CHECK(vg1.bind("func1", [](std::string s1, std::string s2) {
@@ -59,7 +59,7 @@ TEST_CASE("call-sync-2") {
 }
 
 TEST_CASE("call-sync-3") {
-    std::string baseName = "109F8B76545555" + std::to_string(time(nullptr));
+    std::string baseName = "call-sync-3-" + std::to_string(time(nullptr));
 
     veigar::Veigar vg1;
     CHECK(vg1.bind("func1", [](std::string s1, std::string s2) {
@@ -79,7 +79,7 @@ TEST_CASE("call-sync-3") {
 }
 
 TEST_CASE("call-sync-recursion") {
-    std::string baseName = "109F8B7654111133" + std::to_string(time(nullptr));
+    std::string baseName = "call-sync-recursion-" + std::to_string(time(nullptr));
 
     veigar::Veigar vg1;
     vg1.bind("vg1-func", [baseName, &vg1](std::string s1, std::string s2) {
@@ -119,7 +119,7 @@ TEST_CASE("call-sync-recursion") {
 }
 
 TEST_CASE("call-async-1") {
-    std::string baseName = "109F8B9999" + std::to_string(time(nullptr));
+    std::string baseName = "call-async-1-" + std::to_string(time(nullptr));
 
     veigar::Veigar vg1;
     CHECK(vg1.bind("func1", [](std::string s1, std::string s2) {
@@ -148,7 +148,7 @@ TEST_CASE("call-async-1") {
 }
 
 TEST_CASE("call-async-2") {
-    std::string baseName = "109F8B76541111" + std::to_string(time(nullptr));
+    std::string baseName = "call-async-2-" + std::to_string(time(nullptr));
 
     veigar::Veigar vg1;
     CHECK(vg1.bind("func1", [](std::string s1, std::string s2) {
@@ -179,7 +179,7 @@ TEST_CASE("call-async-2") {
 }
 
 TEST_CASE("call-async-3") {
-    std::string baseName = "109F8B7000" + std::to_string(time(nullptr));
+    std::string baseName = "call-async-3-" + std::to_string(time(nullptr));
 
     veigar::Veigar vg1;
     CHECK(vg1.bind("func1", [](std::string s1, std::string s2) {
@@ -202,7 +202,7 @@ TEST_CASE("call-async-3") {
 }
 
 TEST_CASE("call-async-recursion") {
-    std::string baseName = "109F8B766666" + std::to_string(time(nullptr));
+    std::string baseName = "call-async-recursion-" + std::to_string(time(nullptr));
 
     veigar::Veigar vg1;
     vg1.bind("vg1-func", [baseName, &vg1](std::string s1, std::string s2) {

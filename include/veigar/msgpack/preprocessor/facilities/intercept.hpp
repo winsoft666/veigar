@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_FACILITIES_INTERCEPT_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_FACILITIES_INTERCEPT_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002.
@@ -275,3 +277,5 @@
 # define MSGPACK_PP_INTERCEPT_256
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_FACILITIES_INTERCEPT_HPP

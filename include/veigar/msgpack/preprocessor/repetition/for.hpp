@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_REPETITION_FOR_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_REPETITION_FOR_HPP
 # /* Copyright (C) 2001
 #  * Housemarque Oy
 #  * http://www.housemarque.com
@@ -322,3 +324,5 @@
 # define MSGPACK_PP_FOR_CHECK_MSGPACK_PP_FOR_256(s, p, o, m) 0
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_REPETITION_FOR_HPP

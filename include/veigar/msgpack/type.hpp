@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_TYPE_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_TYPE_HPP
 #include "cpp_config.hpp"
 #include "adaptor/array_ref.hpp"
 #include "adaptor/bool.hpp"
@@ -78,3 +80,5 @@
 #include "adaptor/boost/string_ref.hpp"
 #include "adaptor/boost/string_view.hpp"
 #endif // !defined(MSGPACK_NO_BOOST)
+
+#endif // !__VEIGAR_MSGPACK_TYPE_HPP

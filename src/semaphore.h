@@ -31,9 +31,9 @@ struct SemaphoreHandle {
     HANDLE h_ = NULL;
 #else
     sem_t* named_ = SEM_FAILED;  // Named
-    sem_t unnamed_;              // Unnamed
 #endif
 };
+
 class Semaphore {
    public:
     Semaphore() noexcept = default;
@@ -43,7 +43,6 @@ class Semaphore {
 
     // The semaphore will be created if it does not already exist.
     // 
-    // unnamed semaphore used in synchronization among threads
     // named semaphore used in synchronization among processes.
     bool open(const std::string& name, int value = 0, int maxValue = 2147483647);
     void close();
@@ -55,7 +54,6 @@ class Semaphore {
     void release();                // semaphore + 1
 
    private:
-    bool named_ = false;
     SemaphoreHandle* sh_ = nullptr;
 };
 }  // namespace veigar

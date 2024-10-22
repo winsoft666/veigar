@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_TUPLE_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_TUPLE_HPP
 # /* Copyright (C) 2001
 #  * Housemarque Oy
 #  * http://www.housemarque.com
@@ -33,3 +35,5 @@
 # include <veigar/msgpack/preprocessor/tuple/to_seq.hpp>
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_TUPLE_HPP

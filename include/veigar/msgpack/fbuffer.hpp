@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_FBUFFER_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_FBUFFER_HPP
 //
 // MessagePack for C++ FILE* buffer adaptor
 //
@@ -15,3 +17,5 @@
 #include "veigar/msgpack/v1/fbuffer.hpp"
 
 #endif // MSGPACK_FBUFFER_HPP
+
+#endif // !__VEIGAR_MSGPACK_FBUFFER_HPP

@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_ARRAY_INSERT_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_ARRAY_INSERT_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002.
@@ -53,3 +55,5 @@
 # define MSGPACK_PP_ARRAY_INSERT_O_I(n, i, elem, res, arr) (MSGPACK_PP_IIF(MSGPACK_PP_NOT_EQUAL(MSGPACK_PP_ARRAY_SIZE(res), i), MSGPACK_PP_INC(n), n), i, elem, MSGPACK_PP_ARRAY_PUSH_BACK(res, MSGPACK_PP_IIF(MSGPACK_PP_NOT_EQUAL(MSGPACK_PP_ARRAY_SIZE(res), i), MSGPACK_PP_ARRAY_ELEM(n, arr), elem)), arr)
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_ARRAY_INSERT_HPP

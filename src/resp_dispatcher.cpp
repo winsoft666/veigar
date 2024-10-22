@@ -93,13 +93,10 @@ void RespDispatcher::dispatchRespThreadProc() {
             continue;
         }
 
-        RUN_TIME_RECORDER("7. Dispatch Resp");
-
         if (stop_.load()) {
             break;
         }
 
-        RUN_TIME_RECORDER_EX(pop_mq, "7.1 Pop Resp MQ");
         if (!respMsgQueue_->rwLock(veigar_->timeoutOfRWLock())) {
             veigar::log("Veigar: Warning: Get rw-lock timeout when pop front from response message queue.\n");
             continue;
@@ -142,8 +139,6 @@ void RespDispatcher::dispatchRespThreadProc() {
         respPac.buffer_consumed((size_t)written);
 
         respMsgQueue_->rwUnlock();
-
-        RUN_TIME_RECORDER_EX_END(pop_mq);
 
         do {
             veigar_msgpack::object_handle obj;
@@ -189,7 +184,7 @@ void RespDispatcher::dispatchRespThreadProc() {
                     retMeta = ongoingCalls_[callId];
                 }
                 else {
-                    veigar::log("Veigar: Warning: Unable to find call: %s.\n", callId.c_str());
+                    veigar::log("Veigar: Warning: Unable to find call: %s, Going-Call number: %d.\n", callId.c_str(), ongoingCalls_.size());
                     ongoingCallsMutex_.unlock();
                     continue;
                 }
@@ -216,7 +211,6 @@ void RespDispatcher::dispatchRespThreadProc() {
                 callRet.errorMessage = "An exception occurred during parsing response message.";
             }
 
-            RUN_TIME_RECORDER_EX(return_ret, "7.2 Return Result");
             if (retMeta.metaType == 0) {
                 assert(retMeta.p);
                 if (retMeta.p) {
@@ -231,7 +225,6 @@ void RespDispatcher::dispatchRespThreadProc() {
 
                 releaseCall(callId);
             }
-            RUN_TIME_RECORDER_EX_END(return_ret);
         } while (true);  // msgpack unpack while
     }
 }

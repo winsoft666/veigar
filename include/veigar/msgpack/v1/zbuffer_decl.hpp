@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V1_ZBUFFER_DECL_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V1_ZBUFFER_DECL_HPP
 //
 // MessagePack for C++ deflate buffer implementation
 //
@@ -35,3 +37,5 @@ class zbuffer;
 }  // namespace veigar_msgpack
 
 #endif // MSGPACK_V1_ZBUFFER_DECL_HPP
+
+#endif // !__VEIGAR_MSGPACK_V1_ZBUFFER_DECL_HPP

@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V1_DETAIL_CPP11_ZONE_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V1_DETAIL_CPP11_ZONE_HPP
 //
 // MessagePack for C++ memory pool
 //
@@ -367,3 +369,5 @@ inline std::size_t aligned_size(
 }  // namespace veigar_msgpack
 
 #endif // MSGPACK_CPP11_ZONE_HPP
+
+#endif // !__VEIGAR_MSGPACK_V1_DETAIL_CPP11_ZONE_HPP

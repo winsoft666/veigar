@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V1_ADAPTOR_DETAIL_CPP03_MSGPACK_TUPLE_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V1_ADAPTOR_DETAIL_CPP03_MSGPACK_TUPLE_HPP
 //
 // MessagePack for C++ static resolution routine
 //
@@ -14423,3 +14425,5 @@ struct object_with_zone<type::tuple<A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10,
 }  // namespace veigar_msgpack
 
 #endif // MSGPACK_V1_CPP03_MSGPACK_TUPLE_HPP
+
+#endif // !__VEIGAR_MSGPACK_V1_ADAPTOR_DETAIL_CPP03_MSGPACK_TUPLE_HPP

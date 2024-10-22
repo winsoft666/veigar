@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_FACILITIES_IDENTITY_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_FACILITIES_IDENTITY_HPP
 # /* Copyright (C) 2001
 #  * Housemarque Oy
 #  * http://www.housemarque.com
@@ -25,3 +27,5 @@
 # define MSGPACK_PP_IDENTITY_N(item,n) item MSGPACK_PP_TUPLE_EAT_N(n)
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_FACILITIES_IDENTITY_HPP

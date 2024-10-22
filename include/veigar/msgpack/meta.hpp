@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_META_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_META_HPP
 //
 // MessagePack for C++ static resolution routine
 //
@@ -16,3 +18,5 @@
 #include "veigar/msgpack/v1/meta.hpp"
 
 #endif // MSGPACK_META_HPP
+
+#endif // !__VEIGAR_MSGPACK_META_HPP

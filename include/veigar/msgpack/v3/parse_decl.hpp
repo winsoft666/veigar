@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V3_PARSE_DECL_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V3_PARSE_DECL_HPP
 //
 // MessagePack for C++ deserializing routine
 //
@@ -47,3 +49,5 @@ parse_imp(const char* data, size_t len, size_t& off, Visitor& v);
 
 
 #endif // MSGPACK_V3_PARSE_DECL_HPP
+
+#endif // !__VEIGAR_MSGPACK_V3_PARSE_DECL_HPP

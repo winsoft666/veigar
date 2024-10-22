@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V1_OBJECT_FWD_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V1_OBJECT_FWD_HPP
 //
 // MessagePack for C++ static resolution routine
 //
@@ -248,3 +250,5 @@ private:
 } // namespace veigar_msgpack
 
 #endif // MSGPACK_V1_OBJECT_FWD_HPP
+
+#endif // !__VEIGAR_MSGPACK_V1_OBJECT_FWD_HPP

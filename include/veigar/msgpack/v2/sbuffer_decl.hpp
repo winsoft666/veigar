@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V2_SBUFFER_DECL_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V2_SBUFFER_DECL_HPP
 //
 // MessagePack for C++ simple buffer implementation
 //
@@ -31,3 +33,5 @@ using v1::sbuffer;
 }  // namespace veigar_msgpack
 
 #endif // MSGPACK_V2_SBUFFER_DECL_HPP
+
+#endif // !__VEIGAR_MSGPACK_V2_SBUFFER_DECL_HPP

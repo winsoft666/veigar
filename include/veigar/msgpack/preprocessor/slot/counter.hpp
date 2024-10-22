@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_SLOT_COUNTER_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_SLOT_COUNTER_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2005.                                  *
@@ -23,3 +25,5 @@
 # define MSGPACK_PP_UPDATE_COUNTER() <msgpack/preprocessor/slot/detail/counter.hpp>
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_SLOT_COUNTER_HPP

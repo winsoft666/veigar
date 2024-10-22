@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_ARITHMETIC_DEC_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_ARITHMETIC_DEC_HPP
 # /* Copyright (C) 2001
 #  * Housemarque Oy
 #  * http://www.housemarque.com
@@ -287,3 +289,5 @@
 # define MSGPACK_PP_DEC_257 256
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_ARITHMETIC_DEC_HPP

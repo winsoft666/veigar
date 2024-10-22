@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_NULL_VISITOR_DECL_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_NULL_VISITOR_DECL_HPP
 //
 // MessagePack for C++ deserializing routine
 //
@@ -14,3 +16,5 @@
 #include "veigar/msgpack/v3/null_visitor_decl.hpp"
 
 #endif // MSGPACK_NULL_VISITOR_DECL_HPP
+
+#endif // !__VEIGAR_MSGPACK_NULL_VISITOR_DECL_HPP

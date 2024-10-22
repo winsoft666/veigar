@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_LOGICAL_COMPL_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_LOGICAL_COMPL_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002.
@@ -34,3 +36,5 @@
 # define MSGPACK_PP_COMPL_1 0
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_LOGICAL_COMPL_HPP

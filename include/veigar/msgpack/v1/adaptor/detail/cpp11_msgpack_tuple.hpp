@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V1_ADAPTOR_DETAIL_CPP11_MSGPACK_TUPLE_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V1_ADAPTOR_DETAIL_CPP11_MSGPACK_TUPLE_HPP
 //
 // MessagePack for C++ static resolution routine
 //
@@ -218,3 +220,5 @@ template <typename... Args>
 }  // namespace veigar_msgpack
 
 #endif // MSGPACK_CPP11_MSGPACK_TUPLE_HPP
+
+#endif // !__VEIGAR_MSGPACK_V1_ADAPTOR_DETAIL_CPP11_MSGPACK_TUPLE_HPP

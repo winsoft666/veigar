@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V1_FBUFFER_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V1_FBUFFER_HPP
 //
 // MessagePack for C++ FILE* buffer adaptor
 //
@@ -61,3 +63,5 @@ private:
 }  // namespace veigar_msgpack
 
 #endif // MSGPACK_V1_FBUFFER_HPP
+
+#endif // !__VEIGAR_MSGPACK_V1_FBUFFER_HPP

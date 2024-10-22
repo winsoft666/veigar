@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V1_ADAPTOR_CPP11_REFERENCE_WRAPPER_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V1_ADAPTOR_CPP11_REFERENCE_WRAPPER_HPP
 //
 // MessagePack for C++ static resolution routine
 //
@@ -67,3 +69,5 @@ struct object_with_zone<std::reference_wrapper<T>> {
 } // namespace veigar_msgpack
 
 #endif // MSGPACK_V1_TYPE_CPP11_REFERENCE_WRAPPER_HPP
+
+#endif // !__VEIGAR_MSGPACK_V1_ADAPTOR_CPP11_REFERENCE_WRAPPER_HPP

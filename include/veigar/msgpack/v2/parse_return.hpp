@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V2_PARSE_RETURN_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V2_PARSE_RETURN_HPP
 //
 // MessagePack for C++ deserializing routine
 //
@@ -35,3 +37,5 @@ typedef enum {
 }  // namespace veigar_msgpack
 
 #endif // MSGPACK_V2_PARSE_RETURN_HPP
+
+#endif // !__VEIGAR_MSGPACK_V2_PARSE_RETURN_HPP

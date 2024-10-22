@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V1_ADAPTOR_BOOST_STRING_REF_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V1_ADAPTOR_BOOST_STRING_REF_HPP
 //
 // MessagePack for C++ static resolution routine
 //
@@ -86,3 +88,5 @@ struct object_with_zone<boost::string_ref> {
 #endif // (BOOST_VERSION / 100000) >= 1 && ((BOOST_VERSION / 100) % 1000) >= 53
 
 #endif // MSGPACK_V1_TYPE_BOOST_STRING_REF_HPP
+
+#endif // !__VEIGAR_MSGPACK_V1_ADAPTOR_BOOST_STRING_REF_HPP

@@ -63,6 +63,8 @@ class Veigar {
 
     std::vector<std::string> bindNames() const;
 
+    // timeoutMS: This value should greater than the timeout that set by setTimeoutOfRWLock.
+    //
     template <typename... Args>
     std::shared_ptr<AsyncCallResult> asyncCall(
         const std::string& targetChannel,
@@ -90,8 +92,9 @@ class Veigar {
         const std::string& funcName,
         Args... args);
 
-    // Set the timeout for obtaining read/write locks.
+    // Set the timeout for obtaining queue's read/write locks.
     // This timeout is different from the timeout in 'syncCall' or 'asyncCall' functions.
+    // This value should greater than the timeout of syncCall / asyncCall.
     //
     // Default is 260ms.
     void setTimeoutOfRWLock(uint32_t ms);

@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_ITERATION_DETAIL_ITER_FORWARD1_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_ITERATION_DETAIL_ITER_FORWARD1_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002.
@@ -1340,3 +1342,5 @@
 #
 # undef MSGPACK_PP_ITERATION_FLAGS_1
 # undef MSGPACK_PP_ITERATION_PARAMS_1
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_ITERATION_DETAIL_ITER_FORWARD1_HPP

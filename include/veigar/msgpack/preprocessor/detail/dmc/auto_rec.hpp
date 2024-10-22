@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_DETAIL_DMC_AUTO_REC_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_DETAIL_DMC_AUTO_REC_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002.
@@ -284,3 +286,5 @@
 #                            define MSGPACK_PP_NODE_255(p) MSGPACK_PP_IIF(p##(255), 255, 256)
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_DETAIL_DMC_AUTO_REC_HPP

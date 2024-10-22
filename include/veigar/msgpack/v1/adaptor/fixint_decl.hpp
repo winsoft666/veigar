@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V1_ADAPTOR_FIXINT_DECL_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V1_ADAPTOR_FIXINT_DECL_HPP
 //
 // MessagePack for C++ static resolution routine
 //
@@ -45,3 +47,5 @@ typedef fix_int<int64_t> fix_int64;
 }  // namespace veigar_msgpack
 
 #endif // MSGPACK_V1_TYPE_FIXINT_DECL_HPP
+
+#endif // !__VEIGAR_MSGPACK_V1_ADAPTOR_FIXINT_DECL_HPP

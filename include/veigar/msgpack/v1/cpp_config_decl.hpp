@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V1_CPP_CONFIG_DECL_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V1_CPP_CONFIG_DECL_HPP
 //
 // MessagePack for C++ C++03/C++11 Adaptation
 //
@@ -125,3 +127,5 @@ MSGPACK_API_VERSION_NAMESPACE(v1) {
 #endif // defined(__has_include)
 
 #endif // MSGPACK_V1_CPP_CONFIG_DECL_HPP
+
+#endif // !__VEIGAR_MSGPACK_V1_CPP_CONFIG_DECL_HPP

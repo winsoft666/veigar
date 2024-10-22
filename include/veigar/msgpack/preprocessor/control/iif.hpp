@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_PREPROCESSOR_CONTROL_IIF_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_PREPROCESSOR_CONTROL_IIF_HPP
 # /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002.
@@ -32,3 +34,5 @@
 # define MSGPACK_PP_IIF_1(t, f) t
 #
 # endif
+
+#endif // !__VEIGAR_MSGPACK_PREPROCESSOR_CONTROL_IIF_HPP

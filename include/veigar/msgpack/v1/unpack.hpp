@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V1_UNPACK_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V1_UNPACK_HPP
 //
 // MessagePack for C++ deserializing routine
 //
@@ -1603,3 +1605,5 @@ inline bool unpacker::default_reference_func(veigar_msgpack::type::object_type /
 
 
 #endif // MSGPACK_V1_UNPACK_HPP
+
+#endif // !__VEIGAR_MSGPACK_V1_UNPACK_HPP

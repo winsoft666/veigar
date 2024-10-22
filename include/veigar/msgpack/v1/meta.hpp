@@ -1,3 +1,5 @@
+#ifndef __VEIGAR_MSGPACK_V1_META_HPP // Add by msgpack.py
+#define __VEIGAR_MSGPACK_V1_META_HPP
 //
 // MessagePack for C++ static resolution routine
 //
@@ -51,3 +53,5 @@ struct gen_seq<0, Is...> : seq<Is...> {};
 #endif // !defined(MSGPACK_USE_CPP03)
 
 #endif // MSGPACK_V1_META_HPP
+
+#endif // !__VEIGAR_MSGPACK_V1_META_HPP
