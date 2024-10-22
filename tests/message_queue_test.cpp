@@ -104,7 +104,7 @@ TEST_CASE("mq-push-pop-discard") {
 
     char buf10[10] = {0};
     int64_t written = 0L;
-    REQUIRE(!mq1.popFront(buf10, 10, written)); // buffer size wrong
+    REQUIRE(!mq1.popFront(buf10, 10, written));  // buffer size wrong
     REQUIRE(written == 12);
 
     char buf20[20] = {0};
@@ -146,36 +146,39 @@ TEST_CASE("mq-multi-thread-push-pop") {
     REQUIRE(mq.create(mqPath));
 
     int pushFailed = 0;
+    int pushRWLockFailed = 0;
     int popFailed = 0;
+    int popRWLockFailed = 0;
     ThreadGroup tg;
-    tg.createThreads(2, [&mq, &pushFailed, &popFailed](std::size_t tid) {
+    tg.createThreads(2, [&mq, &pushFailed, &popFailed, &pushRWLockFailed, &popRWLockFailed](std::size_t tid) {
         std::string data = "hello-123456";  // size = 12
         char buf20[20] = {0};
         for (int i = 0; i < 9999; i++) {
-            if (tid % 2 == 0) {
+            if (tid == 0) {
                 if (mq.rwLock(200)) {
                     if (!mq.pushBack(data.c_str(), data.size()))
                         pushFailed++;
+                    mq.rwUnlock();
                 }
                 else {
-                    pushFailed++;
+                    pushRWLockFailed++;
                 }
-                mq.rwUnlock();
             }
             else {
                 if (i == 0) {
                     std::this_thread::sleep_for(std::chrono::milliseconds(500));
                 }
+
                 int64_t written = 0;
                 memset(&buf20[0], 0, 20);
                 if (mq.rwLock(200)) {
                     if (!mq.popFront(buf20, 20, written))
                         popFailed++;
+                    mq.rwUnlock();
                 }
                 else {
-                    popFailed++;
+                    popRWLockFailed++;
                 }
-                mq.rwUnlock();
             }
         }
     });
@@ -185,4 +188,6 @@ TEST_CASE("mq-multi-thread-push-pop") {
 
     REQUIRE(pushFailed == 0);
     REQUIRE(popFailed == 0);
+    REQUIRE(popRWLockFailed == 0);
+    REQUIRE(pushRWLockFailed == 0);
 }
