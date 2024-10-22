@@ -16,7 +16,6 @@
 #include "veigar/config.h"
 #include "veigar/call_result.h"
 #include "veigar/call_dispatcher.h"
-#include "veigar/detail/meter.h"
 
 namespace veigar {
 
@@ -96,7 +95,7 @@ class Veigar {
     // This timeout is different from the timeout in 'syncCall' or 'asyncCall' functions.
     // This value should greater than the timeout of syncCall / asyncCall.
     //
-    // Default is 260ms.
+    // Default is 100ms.
     void setTimeoutOfRWLock(uint32_t ms);
     uint32_t timeoutOfRWLock() const;
 

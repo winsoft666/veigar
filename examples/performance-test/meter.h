@@ -11,8 +11,6 @@
 
 #include <chrono>
 
-namespace veigar {
-namespace detail {
 class TimeMeter {
    public:
     inline TimeMeter() {
@@ -33,7 +31,5 @@ class TimeMeter {
    private:
     std::chrono::high_resolution_clock::time_point lStartTime_;
 };
-}  // namespace detail
-}  // namespace veigar
 
 #endif  //!VEIGAR_DETAIL_METER_H_

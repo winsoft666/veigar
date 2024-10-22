@@ -13,6 +13,7 @@
 #include <cstdlib>  //std::system
 #include <inttypes.h>
 #include "thread_group.h"
+#include "meter.h"
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 #define IS_WINDOWS 1
@@ -186,7 +187,7 @@ int main(int argc, char** argv) {
             failed.store(0);
 
             auto tg = std::make_shared<ThreadGroup>();
-            veigar::detail::TimeMeter tm;
+            TimeMeter tm;
             tg->createThreads(threadNum, targetChannel, CallThreadProc);
             tg->joinAll();
 

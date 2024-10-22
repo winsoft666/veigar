@@ -129,14 +129,14 @@ TEST_CASE("call-async-1") {
 
     veigar::Veigar vg2;
     CHECK(vg2.init(baseName + "-2"));
-    std::shared_ptr<veigar::AsyncCallResult> acr1 = vg2.asyncCall(baseName + "-1", 100, "func1", "s1", "s2");
+    std::shared_ptr<veigar::AsyncCallResult> acr1 = vg2.asyncCall(baseName + "-1", 120, "func1", "s1", "s2");
     CHECK(acr1);
     CHECK(acr1->second.valid());
     CHECK(acr1->second.wait_for(std::chrono::milliseconds(300)) != std::future_status::timeout);
     CHECK(acr1->second.get().obj.get().as<int>() == 4);
     vg2.releaseCall(acr1->first);
 
-    std::shared_ptr<veigar::AsyncCallResult> acr2 = vg2.asyncCall(baseName + "-not-exist", 100, "func1", "s1", "s2");
+    std::shared_ptr<veigar::AsyncCallResult> acr2 = vg2.asyncCall(baseName + "-not-exist", 120, "func1", "s1", "s2");
     CHECK(acr2);
     CHECK(acr2->second.valid());
     CHECK(acr2->second.wait_for(std::chrono::milliseconds(100)) != std::future_status::timeout);
@@ -160,7 +160,7 @@ TEST_CASE("call-async-2") {
     veigar::Veigar vg2;
     CHECK(vg2.init(baseName + "-4"));
 
-    std::shared_ptr<veigar::AsyncCallResult> acr = vg2.asyncCall(baseName + "-3", 100, "func1", "s1", "s2");
+    std::shared_ptr<veigar::AsyncCallResult> acr = vg2.asyncCall(baseName + "-3", 120, "func1", "s1", "s2");
     CHECK(acr);
     CHECK(acr->second.valid());
     CHECK(acr->second.wait_for(std::chrono::milliseconds(2000)) != std::future_status::timeout);
@@ -191,7 +191,7 @@ TEST_CASE("call-async-3") {
     veigar::Veigar vg2;
     CHECK(vg2.init(baseName + "-6"));
 
-    std::shared_ptr<veigar::AsyncCallResult> acr = vg2.asyncCall(baseName + "-5", 100, "func1", "s1", "s2");
+    std::shared_ptr<veigar::AsyncCallResult> acr = vg2.asyncCall(baseName + "-5", 120, "func1", "s1", "s2");
     CHECK(acr);
     CHECK(acr->second.valid());
     CHECK(acr->second.wait_for(std::chrono::milliseconds(500)) == std::future_status::timeout);
