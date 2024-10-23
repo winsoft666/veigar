@@ -249,7 +249,7 @@ bool Veigar::sendCall(const std::string& channelName,
                       const ResultMeta& retMeta,
                       std::string& exceptionMsg) {
     assert(impl_);
-    assert(timeoutMS > impl_->processRWTimeout_);
+    assert(timeoutMS > impl_->processRWTimeout_ && "The call timeout should be greater than the timeout for acquiring the inter-process read-write lock.");
 
     if (!impl_->sender_) {
         return false;

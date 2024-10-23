@@ -62,7 +62,7 @@ class Veigar {
 
     std::vector<std::string> bindNames() const;
 
-    // timeoutMS: This value should greater than the timeout that set by setTimeoutOfRWLock.
+    // timeoutMS: This value should greater than the timeout for setTimeoutOfRWLock.
     //
     template <typename... Args>
     std::shared_ptr<AsyncCallResult> asyncCall(
@@ -91,7 +91,7 @@ class Veigar {
         const std::string& funcName,
         Args... args);
 
-    // Set the timeout for obtaining queue's read/write locks with multi processes.
+    // Set the timeout for acquiring the inter-process read-write lock.
     // This timeout is different from the timeout in 'syncCall' or 'asyncCall' functions.
     // This value should greater than the timeout of syncCall / asyncCall.
     //
