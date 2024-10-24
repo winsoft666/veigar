@@ -17,8 +17,6 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 option(VEIGAR_BUILD_EXAMPLES "Build examples project" ON)
 option(VEIGAR_BUILD_TESTS "Build test project" ON)
 option(VEIGAR_USE_STATIC_CRT "Set to ON to build with static CRT on Windows (/MT)." OFF)
-option(VEIGAR_ENABLE_RUN_TIME_RECORD "Set to ON to record run time." OFF)
-mark_as_advanced(VEIGAR_ENABLE_RUN_TIME_RECORD)
 
 set(VEIGAR_CXX_STANDARD 11 CACHE STRING "C++ version used to build veigar (Currently: Only 11+ supported)")
 
