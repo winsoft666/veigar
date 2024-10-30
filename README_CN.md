@@ -29,8 +29,6 @@ Veigar 具有如下特性：
 
 虽然在 Veigar 公共头文件引用了 msgpack 头文件，但这不会污染您的全局msgpack命名空间，因为 Veigar 中的 msgpack 命令空间为`veigar_msgpack`。
 
-Veigar 仅支持编译为静态库。
-
 可以使用 [CMake](https://cmake.org/) 进行编译构建，也可以使用 [vcpkg](https://github.com/microsoft/vcpkg) 进行安装，如：
 
 ```bash

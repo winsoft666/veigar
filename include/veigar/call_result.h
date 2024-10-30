@@ -24,7 +24,7 @@ enum class ErrorCode {
     FAILED = 2,
 };
 
-class CallResult {
+class VEIGAR_API CallResult {
    public:
     CallResult() = default;
     CallResult(CallResult&& other) noexcept {

@@ -10,6 +10,24 @@
 #define VEIGAR_CONFIG_H_
 #pragma once
 
+#ifdef VEIGAR_STATIC
+#define VEIGAR_API
+#else
+#if defined(VEIGAR_EXPORTS)
+#if defined(_MSC_VER)
+#define VEIGAR_API __declspec(dllexport)
+#else
+#define VEIGAR_API
+#endif
+#else
+#if defined(_MSC_VER)
+#define VEIGAR_API __declspec(dllimport)
+#else
+#define VEIGAR_API
+#endif
+#endif
+#endif
+
 namespace veigar {
 
 static constexpr unsigned VERSION_MAJOR = 1;

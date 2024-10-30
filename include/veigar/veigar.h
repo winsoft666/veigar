@@ -18,8 +18,7 @@
 #include "veigar/call_dispatcher.h"
 
 namespace veigar {
-
-class Veigar {
+class VEIGAR_API Veigar {
    public:
     Veigar() noexcept;
 

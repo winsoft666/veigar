@@ -29,7 +29,7 @@ namespace detail {
 
 // This class maintains a registry of functors associated with their names,
 // and callable using a msgpack-rpc call pack.
-class CallDispatcher {
+class VEIGAR_API CallDispatcher {
    public:
     // This functor type unifies the interfaces of functions that are called remotely
     using AdaptorType =

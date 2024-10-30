@@ -32,8 +32,6 @@ Although Veigar based on msgpack, we have included this library in the project a
 
 Although the header file of msgpack is referenced in the public header files of Veigar, it will not contaminate your global msgpack namespace, as the namespace of msgpack in Veigar is `vegar_msgpack`.
 
-Veigar only supports compiling to static libraries now.
-
 CMake can be used for compilation and build, or using [vcpkg](https://github.com/microsoft/vcpkg) to install:
 
 ```bash

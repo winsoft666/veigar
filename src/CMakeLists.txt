@@ -18,18 +18,34 @@ source_group("Header Files/detail" FILES ${DETAIL_HEADER_FILES})
 source_group("Source Files" FILES ${SOURCE_FILES})
 source_group("MsgPack" FILES ${MSGPACK_FILES})
 
-add_library(
-	veigar
-	STATIC
-	${HEADER_FILES}
-	${SOURCE_FILES}
-	${DETAIL_HEADER_FILES}
-	${MSGPACK_FILES}
-)
+if(VEIGAR_BUILD_SHARED_LIBS)
+	add_library(
+		veigar
+		SHARED
+		${HEADER_FILES}
+		${SOURCE_FILES}
+		${DETAIL_HEADER_FILES}
+		${MSGPACK_FILES}
+	)
+
+	target_compile_definitions(veigar PRIVATE VEIGAR_EXPORTS)
+else()
+	add_library(
+		veigar
+		STATIC
+		${HEADER_FILES}
+		${SOURCE_FILES}
+		${DETAIL_HEADER_FILES}
+		${MSGPACK_FILES}
+	)
+
+	target_compile_definitions(veigar PUBLIC VEIGAR_STATIC)
+endif()
 
 set_target_properties(veigar PROPERTIES 
-  OUTPUT_NAME veigar-static
-  DEBUG_OUTPUT_NAME veigar-static-d)
+	OUTPUT_NAME $<IF:$<BOOL:${VEIGAR_BUILD_SHARED_LIBS}>,veigar,veigar-static>
+	DEBUG_OUTPUT_NAME $<IF:$<BOOL:${VEIGAR_BUILD_SHARED_LIBS}>,veigar-d,veigar-static-d>
+)
 
 target_include_directories(veigar
 	PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>

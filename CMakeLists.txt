@@ -16,6 +16,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 option(VEIGAR_BUILD_EXAMPLES "Build examples project" ON)
 option(VEIGAR_BUILD_TESTS "Build test project" ON)
+option(VEIGAR_BUILD_SHARED_LIBS "Build shared libraries" OFF)
 option(VEIGAR_USE_STATIC_CRT "Set to ON to build with static CRT on Windows (/MT)." OFF)
 
 set(VEIGAR_CXX_STANDARD 11 CACHE STRING "C++ version used to build veigar (Currently: Only 11+ supported)")
