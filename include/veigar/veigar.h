@@ -92,9 +92,9 @@ class VEIGAR_API Veigar {
 
     // Set the timeout for acquiring the inter-process read-write lock.
     // This timeout is different from the timeout in 'syncCall' or 'asyncCall' functions.
-    // This value should greater than the timeout of syncCall / asyncCall.
+    // This value should be less than the timeout of syncCall / asyncCall.
     //
-    // Default is 100ms.
+    // Default is 30ms.
     void setTimeoutOfRWLock(uint32_t ms);
     uint32_t timeoutOfRWLock() const;
 
