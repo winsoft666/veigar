@@ -43,11 +43,13 @@ vcpkg install veigar
 
 下面是一个同步调用的示例：
 
-> 本示例为了使代码更加简洁，没有对函数返回值进行校验，请在实际使用中不要这样做！
+> 本示例为了使代码更加简洁，没有对函数返回值进行校验，在实际项目中不要这样做！
 
 ```cpp
 #include <iostream>
 #include "veigar/veigar.h"
+
+using namespace veigar;
 
 int main(int argc, char** argv) {
     if (argc != 3) {
@@ -57,7 +59,7 @@ int main(int argc, char** argv) {
     std::string channelName = argv[1];
     std::string targetChannelName = argv[2];
 
-    veigar::Veigar vg;
+    Veigar vg;
 
     vg.bind("echo", [](const std::string& msg, int i, double d, std::vector<uint8_t> buf) {
         std::string result;
@@ -68,7 +70,7 @@ int main(int argc, char** argv) {
     vg.init(channelName);
 
     std::vector<uint8_t> buf;
-    veigar::CallResult ret = vg.syncCall(targetChannelName, 100, "echo", "hello", 12, 3.14, buf);
+    CallResult ret = vg.syncCall(targetChannelName, 100, "echo", "hello", 12, 3.14, buf);
     if (ret.isSuccess()) {
         std::cout << ret.obj.get().as<std::string>() << std::endl;
     }
@@ -82,7 +84,7 @@ int main(int argc, char** argv) {
 }
 ```
 
-每个 Veigar 实例有一个在本机范围内唯一的通道名称（Channel），在调用`init`函数时需要为 Veigar 指定通道名称，Veigar 不会检测通道的唯一性，需要由调用者来保证通道名称的唯一性。
+每个 Veigar 实例有一个在本机范围内唯一的通道名称（Channel），在调用 `init` 函数时需要为 Veigar 指定通道名称，Veigar 不会检测通道的唯一性，需要由调用者来保证通道名称的唯一性。
 
 在上述示例中，需要通过命令行参数指定当前实例的通道名称和目标实例的通道名称，如：
 
@@ -102,14 +104,14 @@ sample.exe myself other
 
 ```cpp
 std::vector<uint8_t> buf;
-std::shared_ptr<veigar::AsyncCallResult> acr = vg.asyncCall(targetChannelName, "echo", "hello", 12, 3.14, buf);
+std::shared_ptr<AsyncCallResult> acr = vg.asyncCall(targetChannelName, "echo", "hello", 12, 3.14, buf);
 if (acr->second.valid()) {
     auto waitResult = acr->second.wait_for(std::chrono::milliseconds(100));
     if (waitResult == std::future_status::timeout) {
         // timeout
     }
     else {
-        veigar::CallResult ret = std::move(acr->second.get());
+        CallResult ret = std::move(acr->second.get());
         if(ret.isSuccess()) {
             std::cout << ret.obj.get().as<std::string>() << std::endl;
         }
@@ -122,7 +124,7 @@ if (acr->second.valid()) {
 vg.releaseCall(acr->first);
 ```
 
-与同步调用不同，`asyncCall`函数返回的是`std::shared_ptr<veigar::AsyncCallResult>`，而且调用者在获取到`CallResult`或不再关系调用结果时，需要调用`releaseCall`函数释放资源。
+与同步调用不同，`asyncCall`函数返回的是`std::shared_ptr<AsyncCallResult>`，而且调用者在获取到`CallResult`或不再关系调用结果时，需要调用`releaseCall`函数释放资源。
 
 ## 基于回调函数的异步调用
 
@@ -132,7 +134,7 @@ vg.releaseCall(acr->first);
 
 ```cpp
 std::vector<uint8_t> buf;
-vg.asyncCall([](const veigar::CallResult& cr) {
+vg.asyncCall([](const CallResult& cr) {
     if(cr.isSuccess()) {
         std::cout << cr.obj.get().as<std::string>() << std::endl;
     }
@@ -156,7 +158,7 @@ vg.asyncCall([](const veigar::CallResult& cr) {
 - float, double
 
 ```cpp
- veigar::Veigar vg;
+ Veigar vg;
  vg.bind("func", [](char c, wchar_t w, int i, int8_t j, int64_t k) {
      // ......
  });
@@ -172,7 +174,7 @@ vg.asyncCall([](const veigar::CallResult& cr) {
 - 不支持 std::wstring，但是我们可以使用 std::vector<uint8_t> 来代替 std::wstring
 
 ```cpp
- veigar::Veigar vg;
+ Veigar vg;
  vg.bind("func", [](std::string s, std::vector<std::string>, std::string_view v, std::map<int, bool> m) {
      // ......
  });
@@ -188,7 +190,7 @@ struct MyPoint {
     MSGPACK_DEFINE(x, y);
 };
 
-veigar::Veigar vg;
+Veigar vg;
 vg1.bind("func", [](MyPoint m) {
     // ......
 });

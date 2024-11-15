@@ -46,11 +46,13 @@ When using Veigar, simply include the `include` directory in the project and lin
 
 Here is an example of synchronous call:
 
-> In order to make the code more concise, this example did not verify the return value of the function. Please do not do this in practical use!
+> In order to make the code more concise, this example did not verify the return value of the function. Please do not do this in practical project!
 
 ```cpp
 #include <iostream>
 #include "veigar/veigar.h"
+
+using namespace veigar;
 
 int main(int argc, char** argv) {
     if (argc != 3) {
@@ -60,7 +62,7 @@ int main(int argc, char** argv) {
     std::string channelName = argv[1];
     std::string targetChannelName = argv[2];
 
-    veigar::Veigar vg;
+    Veigar vg;
 
     vg.bind("echo", [](const std::string& msg, int i, double d, std::vector<uint8_t> buf) {
         std::string result;
@@ -71,7 +73,7 @@ int main(int argc, char** argv) {
     vg.init(channelName);
 
     std::vector<uint8_t> buf;
-    veigar::CallResult ret = vg.syncCall(targetChannelName, 100, "echo", "hello", 12, 3.14, buf);
+    CallResult ret = vg.syncCall(targetChannelName, 100, "echo", "hello", 12, 3.14, buf);
     if (ret.isSuccess()) {
         std::cout << ret.obj.get().as<std::string>() << std::endl;
     }
@@ -105,14 +107,14 @@ The following is an example of asynchronous call with promise:
 
 ```cpp
 std::vector<uint8_t> buf;
-std::shared_ptr<veigar::AsyncCallResult> acr = vg.asyncCall(targetChannelName, "echo", "hello", 12, 3.14, buf);
+std::shared_ptr<AsyncCallResult> acr = vg.asyncCall(targetChannelName, "echo", "hello", 12, 3.14, buf);
 if (acr->second.valid()) {
     auto waitResult = acr->second.wait_for(std::chrono::milliseconds(100));
     if (waitResult == std::future_status::timeout) {
         // timeout
     }
     else {
-        veigar::CallResult ret = std::move(acr->second.get());
+        CallResult ret = std::move(acr->second.get());
         if(ret.isSuccess()) {
             std::cout << ret.obj.get().as<std::string>() << std::endl;
         }
@@ -125,7 +127,7 @@ if (acr->second.valid()) {
 vg.releaseCall(acr->first);
 ```
 
-Unlike synchronous calls, the `asyncCall` function return `std::shared_ptr<veigar::AsyncCallResult>`, and the caller needs to call the `releaseCall` function to release resources when obtaining the `CallResult` or when the call result is no longer related.
+Unlike synchronous calls, the `asyncCall` function return `std::shared_ptr<AsyncCallResult>`, and the caller needs to call the `releaseCall` function to release resources when obtaining the `CallResult` or when the call result is no longer related.
 
 ## Asynchronous Call with Callback
 
@@ -135,7 +137,7 @@ The following is an example of asynchronous call with callback:
 
 ```cpp
 std::vector<uint8_t> buf;
-vg.asyncCall([](const veigar::CallResult& cr) {
+vg.asyncCall([](const CallResult& cr) {
     if(cr.isSuccess()) {
         std::cout << cr.obj.get().as<std::string>() << std::endl;
     }
@@ -159,7 +161,7 @@ Supports regular C++ data types, such as:
 - float, double
 
 ```cpp
- veigar::Veigar vg;
+ Veigar vg;
  vg.bind("func", [](char c, wchar_t w, int i, int8_t j, int64_t k) {
      // ......
  });
@@ -176,7 +178,7 @@ Also support STL data types, such as:
 - Not support std::wstring，but we can use std::vector<uint8_t> to instead of std::wstring
 
 ```cpp
- veigar::Veigar vg;
+ Veigar vg;
  vg.bind("func", [](std::string s, std::vector<std::string>, std::string_view v, std::map<int, bool> m) {
      // ......
  });
@@ -193,7 +195,7 @@ struct MyPoint {
     MSGPACK_DEFINE(x, y);
 };
 
-veigar::Veigar vg;
+Veigar vg;
 vg1.bind("func", [](MyPoint m) {
     // ......
 });
