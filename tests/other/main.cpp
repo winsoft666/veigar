@@ -12,6 +12,7 @@
 #include <atomic>
 #include <cstdlib>  //std::system
 #include <inttypes.h>
+#include <thread>
 
 using namespace veigar;
 
