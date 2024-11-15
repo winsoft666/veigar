@@ -6,6 +6,8 @@
 # LICENSE file in the root directory of this source tree.
 ############################################################################
 
+add_subdirectory(other)
+
 file(GLOB TEST_SOURCE_FILES ./*.cpp ./*.h)
 file(GLOB VEIGAR_SOURCE_FILES ../src/*.h ../src/*.cpp)
 

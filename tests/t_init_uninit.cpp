@@ -11,12 +11,10 @@
 #include <time.h>
 #include <iostream>
 #include <map>
-#define CATCH_CONFIG_MAIN
-#include "catch.hpp"
-
 #include "veigar/veigar.h"
 #include <vector>
 #include "thread_group.h"
+#include "catch.hpp"
 
 std::string genRandomString(const uint32_t len) {
     srand(Catch::rngSeed());

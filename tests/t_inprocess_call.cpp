@@ -15,7 +15,7 @@
 #include "catch.hpp"
 #include "veigar/veigar.h"
 
-TEST_CASE("call-sync-1") {
+TEST_CASE("inprocess-call-sync-1") {
     std::string baseName = "call-sync-1-" + std::to_string(time(nullptr));
 
     veigar::Veigar vg1;
@@ -37,7 +37,7 @@ TEST_CASE("call-sync-1") {
     vg2.uninit();
 }
 
-TEST_CASE("call-sync-2") {
+TEST_CASE("inprocess-call-sync-2") {
     std::string baseName = "call-sync-2-" + std::to_string(time(nullptr));
 
     veigar::Veigar vg1;
@@ -58,7 +58,7 @@ TEST_CASE("call-sync-2") {
     vg2.uninit();
 }
 
-TEST_CASE("call-sync-3") {
+TEST_CASE("inprocess-call-sync-3") {
     std::string baseName = "call-sync-3-" + std::to_string(time(nullptr));
 
     veigar::Veigar vg1;
@@ -78,7 +78,7 @@ TEST_CASE("call-sync-3") {
     vg2.uninit();
 }
 
-TEST_CASE("call-sync-recursion") {
+TEST_CASE("inprocess-call-sync-recursion") {
     std::string baseName = "call-sync-recursion-" + std::to_string(time(nullptr));
 
     veigar::Veigar vg1;
@@ -118,7 +118,7 @@ TEST_CASE("call-sync-recursion") {
     vg2.uninit();
 }
 
-TEST_CASE("call-async-1") {
+TEST_CASE("inprocess-call-async-1") {
     std::string baseName = "call-async-1-" + std::to_string(time(nullptr));
 
     veigar::Veigar vg1;
@@ -147,7 +147,7 @@ TEST_CASE("call-async-1") {
     vg2.uninit();
 }
 
-TEST_CASE("call-async-2") {
+TEST_CASE("inprocess-call-async-2") {
     std::string baseName = "call-async-2-" + std::to_string(time(nullptr));
 
     veigar::Veigar vg1;
@@ -178,7 +178,7 @@ TEST_CASE("call-async-2") {
     vg2.uninit();
 }
 
-TEST_CASE("call-async-3") {
+TEST_CASE("inprocess-call-async-3") {
     std::string baseName = "call-async-3-" + std::to_string(time(nullptr));
 
     veigar::Veigar vg1;
@@ -201,7 +201,7 @@ TEST_CASE("call-async-3") {
     vg2.uninit();
 }
 
-TEST_CASE("call-async-recursion") {
+TEST_CASE("inprocess-call-async-recursion") {
     std::string baseName = "call-async-recursion-" + std::to_string(time(nullptr));
 
     veigar::Veigar vg1;
