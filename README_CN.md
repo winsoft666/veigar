@@ -191,12 +191,12 @@ struct MyPoint {
 };
 
 Veigar vg;
-vg1.bind("func", [](MyPoint m) {
+vg.bind("func", [](MyPoint m) {
     // ......
 });
 ```
 
-详细的参数绑定方法见 [tests/type_test.cpp](./tests/type_test.cpp)。
+详细的参数绑定方法见 [tests/t_type.cpp](./tests/t_type.cpp)。
 
 # 拒绝异常
 
