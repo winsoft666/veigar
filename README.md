@@ -220,3 +220,10 @@ Used: 1s240ms721μs, Total: 100000 Success: 100000, Timeout: 0, Failed: 0, Avera
 ```
 
 Although there is still a great possibility of performance improvement for Veigar at present, but based on test results, it has far surpassed other RPC frameworks.
+
+# List of Sponsors
+Thank you for using this project. It would be a great pleasure for me if this project can be of help to you.
+
+Special thanks go to the following sponsors:
+
+- sxzxs (https://github.com/sxzxs)
