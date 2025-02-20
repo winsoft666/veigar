@@ -227,3 +227,5 @@ Thank you for using this project. It would be a great pleasure for me if this pr
 Special thanks go to the following sponsors:
 
 - sxzxs (https://github.com/sxzxs)
+
+**You can go to my Github [homepage](https://github.com/winsoft666) to make a donation.**
