@@ -18,7 +18,7 @@ namespace veigar {
 class MessageQueue {
    public:
     MessageQueue(int32_t msgMaxNumber, int32_t msgExpectedMaxSize) noexcept;
-    ~MessageQueue() noexcept = default;
+    ~MessageQueue() = default;
 
     bool create(const std::string& path);
     bool open(const std::string& path);

@@ -30,21 +30,20 @@ struct SemaphoreHandle {
 #ifdef VEIGAR_OS_WINDOWS
     HANDLE h_ = NULL;
 #else
-    sem_t* named_ = SEM_FAILED;  // Named
+    sem_t* h_ = SEM_FAILED;  // Named
 #endif
 };
 
 class Semaphore {
    public:
-    Semaphore() noexcept = default;
-    ~Semaphore() noexcept = default;
-
-    static bool IsExist(const std::string& name);
+    Semaphore() = default;
+    ~Semaphore() = default;
 
     // The semaphore will be created if it does not already exist.
     // 
     // named semaphore used in synchronization among processes.
-    bool open(const std::string& name, int value = 0, int maxValue = 2147483647);
+    bool open(const std::string& name, int value = 0);
+    bool create(const std::string& name, int value = 0, int maxValue = 2147483647);
     void close();
 
     bool valid() const;
@@ -54,7 +53,9 @@ class Semaphore {
     void release();                // semaphore + 1
 
    private:
+    bool creator_ = false;
     SemaphoreHandle* sh_ = nullptr;
+    std::string name_;
 };
 }  // namespace veigar
 #endif

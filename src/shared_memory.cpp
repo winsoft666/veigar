@@ -44,6 +44,7 @@ bool SharedMemory::open() {
         return false;
     }
 
+    creator_ = false;
     handle_ = OpenFileMappingA(FILE_MAP_READ | FILE_MAP_WRITE,
                                FALSE,
                                path_.c_str());
@@ -87,6 +88,8 @@ bool SharedMemory::create() {
         return false;
     }
 
+    creator_ = true;
+
     DWORD sizeLowOrder = static_cast<DWORD>(size_);
     handle_ = CreateFileMappingA(INVALID_HANDLE_VALUE,
                                  NULL,
@@ -128,7 +131,9 @@ bool SharedMemory::create() {
         return false;
     }
 
-    fd_ = shm_open(path_.c_str(), O_CREAT | O_RDWR, 0666);
+    creator_ = true;
+
+    fd_ = shm_open(path_.c_str(), O_CREAT | O_EXCL | O_RDWR, 0666);
     if (fd_ < 0) {
         int err = errno;
         veigar::log("Veigar: Error: shm_open failed, err: %d.\n", err);
@@ -173,7 +178,6 @@ bool SharedMemory::create() {
         return false;
     }
 
-    shmCreator_ = true;
     // veigar::log("Veigar: Create shared memory success, fd: %d.\n", fd_);
     return true;
 }
@@ -182,6 +186,8 @@ bool SharedMemory::open() {
     if (path_.empty()) {
         return false;
     }
+
+    creator_ = false;
 
     fd_ = shm_open(path_.c_str(), O_RDWR, 0666);
     if (fd_ < 0) {
@@ -236,7 +242,7 @@ void SharedMemory::close() {
             fd_ = -1;
         }
 
-        if (shmCreator_) {
+        if (creator_) {
             if (!path_.empty()) {
                 shm_unlink(path_.c_str());
             }

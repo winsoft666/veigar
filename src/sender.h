@@ -39,7 +39,7 @@ class Sender {
         int64_t timeout = 0;         // the timeout for waiting response queue availability, microseconds
     };
     Sender(Veigar* v) noexcept;
-    ~Sender() noexcept = default;
+    ~Sender() = default;
 
     bool init(std::shared_ptr<RespDispatcher> respDisp,
               std::shared_ptr<MessageQueue> selfCallMQ,

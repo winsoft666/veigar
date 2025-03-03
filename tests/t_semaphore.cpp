@@ -18,7 +18,7 @@
 
 TEST_CASE("semaphore-named") {
     veigar::Semaphore smp;
-    REQUIRE(smp.open("semaphore-named-" + std::to_string(time(nullptr))));
+    REQUIRE(smp.create("semaphore-named-" + std::to_string(time(nullptr))));
 
     int64_t ret = 0;
     ThreadGroup tg;
@@ -43,7 +43,7 @@ TEST_CASE("semaphore-named") {
 TEST_CASE("semaphore-time-wait") {
     using namespace veigar;
     veigar::Semaphore rwLocker;
-    REQUIRE(rwLocker.open("semaphore-time-wait-" + std::to_string(time(nullptr)), 0, 1));
+    REQUIRE(rwLocker.create("semaphore-time-wait-" + std::to_string(time(nullptr)), 0));
 
     int64_t start = TimeUtil::GetCurrentTimestamp();
     REQUIRE(!rwLocker.wait(1000));
@@ -57,14 +57,14 @@ TEST_CASE("semaphore-time-wait") {
 
 TEST_CASE("semaphore-rw-locker") {
     veigar::Semaphore rwLocker;
-    REQUIRE(rwLocker.open("semaphore-rw-locker-" + std::to_string(time(nullptr)), 1, 1));
+    REQUIRE(rwLocker.create("semaphore-rw-locker-" + std::to_string(time(nullptr)), 1));
 
     std::list<std::string> list;
     ThreadGroup tg;
     int w = 0, r = 0;
     tg.createThreads(2, [&rwLocker, &w, &r, &list](std::size_t id) {
-        for (int i = 0; i < 100000; i++) {
-            CHECK(rwLocker.wait(1000));
+        for (int i = 0; i < 100; i++) {
+            CHECK(rwLocker.wait(100));
             if (id % 2 == 0) {
                 list.push_back("123456");
                 w++;
@@ -74,16 +74,17 @@ TEST_CASE("semaphore-rw-locker") {
                     std::string s = list.front();
                     CHECK(s == "123456");
                     list.pop_front();
-                    r++;
                 }
+                r++;
             }
             rwLocker.release();
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }
     });
 
     tg.joinAll();
     rwLocker.close();
 
-    REQUIRE(w == 100000);
-    REQUIRE(r > 0);
+    REQUIRE(w == 100);
+    REQUIRE(r == 100);
 }

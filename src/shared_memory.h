@@ -45,6 +45,7 @@ class SharedMemory {
 
     ~SharedMemory() noexcept = default;
    private:
+    bool creator_ = false;
     std::string path_;
     uint8_t* data_ = nullptr;
     int64_t size_ = 0;
@@ -52,7 +53,6 @@ class SharedMemory {
     HANDLE handle_ = NULL;
 #else
     int fd_ = -1;
-    bool shmCreator_ = false;
 #endif
 };
 }  // namespace veigar

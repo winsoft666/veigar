@@ -29,26 +29,26 @@ bool MessageQueue::create(const std::string& path) {
 
         int64_t shmSize = sizeof(int64_t) * (msgMaxNumber_ + 3) + msgMaxNumber_ * msgExpectedMaxSize_;
 
-        std::string shmName = path + "_shm";
+        const std::string shmName = path + "_shm";
         shm_ = std::make_shared<SharedMemory>(shmName, shmSize);
         if (!shm_->create()) {
             break;
         }
 
-        std::string rwLockName = path + "_rwlock";
+        const std::string rwLockName = path + "_rwlock";
         rwLock_ = std::make_shared<Semaphore>();
-        if (!rwLock_->open(rwLockName.c_str(), 1, 1)) {
+        if (!rwLock_->create(rwLockName.c_str(), 1, 1)) {
             break;
         }
 
-        std::string readSmpName = path + "_readsmp";
+        const std::string readSmpName = path + "_readsmp";
         readSmp_ = std::make_shared<Semaphore>();
-        if (!readSmp_->open(readSmpName, 0)) {
+        if (!readSmp_->create(readSmpName, 0)) {
             break;
         }
 
         uint8_t* data = shm_->data();
-        memset(data, 0, (size_t)shmSize);
+        memset(data, 0, (size_t)shmSize); // clear shared memory
         int64_t* pDataSize = (int64_t*)data;
         *pDataSize = shmSize;
 
@@ -84,7 +84,7 @@ bool MessageQueue::open(const std::string& path) {
         assert(!shm_ && !rwLock_ && !readSmp_);
         close();
 
-        std::string shmName = path + "_shm";
+        const std::string shmName = path + "_shm";
         int64_t shmSize = sizeof(int64_t) * (msgMaxNumber_ + 3) + msgMaxNumber_ * msgExpectedMaxSize_;
 
         shm_ = std::make_shared<SharedMemory>(shmName, shmSize);
@@ -92,21 +92,13 @@ bool MessageQueue::open(const std::string& path) {
             break;
         }
 
-        std::string rwLockName = path + "_rwlock";
-        if (!Semaphore::IsExist(rwLockName)) {
-            break;
-        }
-
+        const std::string rwLockName = path + "_rwlock";
         rwLock_ = std::make_shared<Semaphore>();
         if (!rwLock_->open(rwLockName.c_str())) {
             break;
         }
 
-        std::string readSmpName = path + "_readsmp";
-        if (!Semaphore::IsExist(readSmpName)) {
-            break;
-        }
-
+        const std::string readSmpName = path + "_readsmp";
         readSmp_ = std::make_shared<Semaphore>();
         if (!readSmp_->open(readSmpName)) {
             break;

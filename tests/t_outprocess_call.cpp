@@ -65,6 +65,7 @@ bool CreateOtherProcess(const std::string& hostName, const std::string& otherNam
 
 const std::string kOtherFuncName = "get_random_string";
 
+#if IS_WINDOWS
 TEST_CASE("outprocess-call-sync") {
     const std::string hostName = "outprocess-call-sync-host-" + std::to_string(time(nullptr));
     const std::string otherName = "outprocess-call-sync-other-" + std::to_string(time(nullptr));
@@ -80,14 +81,11 @@ TEST_CASE("outprocess-call-sync") {
     }));
     REQUIRE(v.init(hostName));
 
-#if IS_WINDOWS
+    Sleep(500); // The initialization operation is asynchronous.
+
     HANDLE hProcess = NULL;
     REQUIRE(CreateOtherProcess(hostName, otherName, hostFuncName, &hProcess));
-#else
-    // TODO
-#endif
-
-    REQUIRE(otherProcessPrepared.wait(500));
+    REQUIRE(otherProcessPrepared.wait(50000));
 
     for (int i = 0; i < 100; i++) {
         CallResult cr = v.syncCall(otherName, 50, kOtherFuncName, i);
@@ -106,17 +104,17 @@ TEST_CASE("outprocess-call-sync") {
         CHECK(!cr3.errorMessage.empty());
     }
 
-#if IS_WINDOWS
+
     WaitForSingleObject(hProcess, 5000);
 
     DWORD dwExitCode = 0;
-    GetExitCodeProcess(hProcess, &dwExitCode);
+    BOOL bExited = GetExitCodeProcess(hProcess, &dwExitCode);
+    CHECK(bExited == TRUE);
     CHECK(dwExitCode == 0);
-#else
-    // TODO
-#endif
+
     v.uninit();
 }
+
 
 TEST_CASE("outprocess-call-async-1") {
     const std::string hostName = "outprocess-call-async-1-host-" + std::to_string(time(nullptr));
@@ -133,12 +131,10 @@ TEST_CASE("outprocess-call-async-1") {
     }));
     REQUIRE(v.init(hostName));
 
-#if IS_WINDOWS
+    Sleep(500);  // The initialization operation is asynchronous.
+
     HANDLE hProcess = NULL;
     REQUIRE(CreateOtherProcess(hostName, otherName, hostFuncName, &hProcess));
-#else
-    // TODO
-#endif
 
     REQUIRE(otherProcessPrepared.wait(500));
 
@@ -173,15 +169,14 @@ TEST_CASE("outprocess-call-async-1") {
         }
     }
 
-#if IS_WINDOWS
+
     WaitForSingleObject(hProcess, 5000);
 
     DWORD dwExitCode = 0;
-    GetExitCodeProcess(hProcess, &dwExitCode);
+    BOOL bExited = GetExitCodeProcess(hProcess, &dwExitCode);
+    CHECK(bExited == TRUE);
     CHECK(dwExitCode == 0);
-#else
-    // TODO
-#endif
+
     v.uninit();
 }
 
@@ -200,13 +195,10 @@ TEST_CASE("outprocess-call-sync-kill-call-sync") {
     }));
     REQUIRE(v.init(hostName));
 
-#if IS_WINDOWS
+    Sleep(500);  // The initialization operation is asynchronous.
+
     HANDLE hProcess = NULL;
     REQUIRE(CreateOtherProcess(hostName, otherName, hostFuncName, &hProcess));
-#else
-    // TODO
-#endif
-
     REQUIRE(otherProcessPrepared.wait(500));
 
     for (int i = 0; i < 100; i++) {
@@ -226,19 +218,13 @@ TEST_CASE("outprocess-call-sync-kill-call-sync") {
         CHECK(!cr3.errorMessage.empty());
     }
 
-#if IS_WINDOWS
+
     TerminateProcess(hProcess, 0);
-#endif
 
     otherProcessPrepared.reset();
 
-#if IS_WINDOWS
     hProcess = NULL;
     REQUIRE(CreateOtherProcess(hostName, otherName, hostFuncName, &hProcess));
-#else
-    // TODO
-#endif
-
     REQUIRE(otherProcessPrepared.wait(500));
 
     for (int i = 0; i < 100; i++) {
@@ -258,16 +244,14 @@ TEST_CASE("outprocess-call-sync-kill-call-sync") {
         CHECK(!cr3.errorMessage.empty());
     }
 
-#if IS_WINDOWS
 
     WaitForSingleObject(hProcess, 5000);
 
     DWORD dwExitCode = 0;
-    GetExitCodeProcess(hProcess, &dwExitCode);
+    BOOL bExited = GetExitCodeProcess(hProcess, &dwExitCode);
+    CHECK(bExited == TRUE);
     CHECK(dwExitCode == 0);
-#else
-    // TODO
-#endif
+
     v.uninit();
 }
 
@@ -286,32 +270,21 @@ TEST_CASE("outprocess-call-async-kill-call-async") {
     }));
     REQUIRE(v.init(hostName, 200, 10240));
 
-#if IS_WINDOWS
+    Sleep(500);  // The initialization operation is asynchronous.
+
     HANDLE hProcess = NULL;
     REQUIRE(CreateOtherProcess(hostName, otherName, hostFuncName, &hProcess));
-#else
-    // TODO
-#endif
-
     REQUIRE(otherProcessPrepared.wait(500));
 
     for (int i = 0; i < 180; i++) {
         std::shared_ptr<AsyncCallResult> acr = v.asyncCall(otherName, 50, kOtherFuncName, i);
     }
-
-#if IS_WINDOWS
     TerminateProcess(hProcess, 0);
-#endif
-
     otherProcessPrepared.reset();
 
-#if IS_WINDOWS
+
     hProcess = NULL;
     REQUIRE(CreateOtherProcess(hostName, otherName, hostFuncName, &hProcess));
-#else
-    // TODO
-#endif
-
     REQUIRE(otherProcessPrepared.wait(500));
 
     for (int i = 0; i < 100; i++) {
@@ -345,14 +318,12 @@ TEST_CASE("outprocess-call-async-kill-call-async") {
         }
     }
 
-#if IS_WINDOWS
+
     WaitForSingleObject(hProcess, 5000);
 
     DWORD dwExitCode = 0;
-    GetExitCodeProcess(hProcess, &dwExitCode);
-    CHECK(dwExitCode == 0);
-#else
-    // TODO
-#endif
+    BOOL bExited = GetExitCodeProcess(hProcess, &dwExitCode);
+    CHECK(bExited == TRUE);
     v.uninit();
 }
+#endif

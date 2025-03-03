@@ -29,7 +29,7 @@ class MessageQueue;
 class RespDispatcher {
    public:
     RespDispatcher(Veigar* veigar) noexcept;
-    ~RespDispatcher() noexcept = default;
+    ~RespDispatcher() = default;
 
     bool init();
     bool isInit() const;

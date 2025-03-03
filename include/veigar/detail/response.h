@@ -22,7 +22,7 @@ class Response {
     using ResponseMsg = std::tuple<int8_t, std::string, veigar_msgpack::object, veigar_msgpack::object>;
 
     // Default constructor for responses.
-    Response() noexcept = default;
+    Response() = default;
 
     // Creates a response that represents a normal return value.
     // param id The sequence id (as per protocol).

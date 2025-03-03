@@ -58,7 +58,7 @@ if(MSVC)
 endif()
 
 if(NOT MSVC)
-	target_link_libraries(veigar PUBLIC pthread)
+	target_link_libraries(veigar PUBLIC pthread rt)
 endif()
 
 if(VEIGAR_ENABLE_RUN_TIME_RECORD)
