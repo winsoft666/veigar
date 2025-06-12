@@ -27,7 +27,7 @@ class Veigar::Impl {
 
     bool init(const std::string& channelName, uint32_t msgQueueCapacity, uint32_t expectedMsgMaxSize) {
         if (isInit_) {
-            veigar::log("Veigar: Warning: Already init.\n");
+            veigar::log("Veigar: [WARNING] Instance already initialized.\n");
             if (channelName_ == channelName) {
                 return true;
             }
@@ -36,7 +36,7 @@ class Veigar::Impl {
 
         do {
             if (channelName.empty()) {
-                veigar::log("Veigar: Error: Channel name is empty.\n");
+                veigar::log("Veigar: [ERROR] Channel name cannot be empty.\n");
                 break;
             }
 
@@ -46,7 +46,7 @@ class Veigar::Impl {
 
             uuid_ = UUID::Create();
             if (uuid_.empty()) {
-                veigar::log("Veigar: Error: Generate uuid failed.\n");
+                veigar::log("Veigar: [ERROR] Failed to generate unique identifier.\n");
                 break;
             }
 
@@ -55,19 +55,19 @@ class Veigar::Impl {
 
             assert(veigar_->callDisp_);
             if (!veigar_->callDisp_->init()) {
-                veigar::log("Veigar: Error: Init call dispatcher failed.\n");
+                veigar::log("Veigar: [ERROR] Failed to initialize call dispatcher.\n");
                 break;
             }
 
             assert(respDispatcher_);
             if (!respDispatcher_->init()) {
-                veigar::log("Veigar: Error: Init response dispatcher failed.\n");
+                veigar::log("Veigar: [ERROR] Failed to initialize response dispatcher.\n");
                 break;
             }
 
             assert(sender_);
             if (!sender_->init(respDispatcher_, veigar_->callDisp_->messageQueue(), respDispatcher_->messageQueue())) {
-                veigar::log("Veigar: Error: Init sender failed.\n");
+                veigar::log("Veigar: [ERROR] Failed to initialize message sender.\n");
                 break;
             }
 
@@ -94,7 +94,7 @@ class Veigar::Impl {
             respDispatcher_.reset();
         }
         else {
-            veigar::log("Veigar: Init success, channel: %s, uuid: %s.\n", channelName_.c_str(), uuid_.c_str());
+            veigar::log("Veigar: [INFO] Successfully initialized instance - Channel: %s, UUID: %s.\n", channelName_.c_str(), uuid_.c_str());
         }
 
         return isInit_;

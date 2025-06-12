@@ -157,12 +157,12 @@ bool MessageQueue::pushBack(const void* data, int64_t dataSize) {
 
     assert(msgMaxNumber_ > 0);
     if (msgMaxNumber_ * msgExpectedMaxSize_ < dataSize) {
-        veigar::log("Veigar: Error: The data size has exceeded the total size of the message queue. Please adjust the parameters of the message queue.\n");
+        veigar::log("Veigar: [ERROR] Message size exceeds total queue capacity. Please adjust queue parameters.\n");
         return false;
     }
 
     if (dataSize > msgExpectedMaxSize_) {
-        veigar::log("Veigar: Warning: Message size(%" PRId64 ") greater than expected(%d). It's best to adjust the parameters of the message queue.\n", dataSize, msgExpectedMaxSize_);
+        veigar::log("Veigar: [WARNING] Message size (%" PRId64 " bytes) exceeds expected size (%d bytes). Consider adjusting queue parameters.\n", dataSize, msgExpectedMaxSize_);
     }
 
     do {

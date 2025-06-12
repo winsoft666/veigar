@@ -26,7 +26,7 @@ bool RespDispatcher::init() {
 
     respMsgQueue_ = std::make_shared<MessageQueue>(veigar_->msgQueueCapacity(), veigar_->expectedMsgMaxSize());
     if (!respMsgQueue_->create(veigar_->channelName() + VEIGAR_RESPONSE_QUEUE_NAME_SUFFIX)) {
-        veigar::log("Veigar: Error: Create response message queue(%s) failed.\n", veigar_->channelName().c_str());
+        veigar::log("Veigar: [ERROR] Failed to create response message queue for channel: %s.\n", veigar_->channelName().c_str());
         return false;
     }
 
@@ -82,7 +82,7 @@ void RespDispatcher::dispatchRespThreadProc() {
     try {
         respPac.reserve_buffer(veigar_->expectedMsgMaxSize());
     } catch (std::bad_alloc& e) {
-        veigar::log("Veigar: Error: Pre-alloc response memory(%d bytes) failed: %s.\n", veigar_->expectedMsgMaxSize(), e.what());
+        veigar::log("Veigar: [ERROR] Failed to allocate memory for response buffer (%d bytes): %s.\n", veigar_->expectedMsgMaxSize(), e.what());
         return;
     }
 
@@ -98,17 +98,17 @@ void RespDispatcher::dispatchRespThreadProc() {
         }
 
         if (!respMsgQueue_->processRWLock(veigar_->timeoutOfRWLock())) {
-            veigar::log("Veigar: Warning: Get rw-lock timeout when pop front from response message queue.\n");
+            veigar::log("Veigar: [WARNING] Timeout while acquiring read-write lock for response queue.\n");
             continue;
         }
 
         const int64_t msgNum = respMsgQueue_->msgNumber();
         if (msgNum <= 0) {
             if (msgNum < 0) {
-                veigar::log("Veigar: Error: Query message number from response message queue failed.\n");
+                veigar::log("Veigar: [ERROR] Failed to query message count from response queue.\n");
             }
             else {
-                veigar::log("Veigar: Warning: Disordered read signal for response message queue.\n");
+                veigar::log("Veigar: [WARNING] Received read signal for empty response queue.\n");
             }
             respMsgQueue_->processRWUnlock();
             continue;
@@ -116,7 +116,7 @@ void RespDispatcher::dispatchRespThreadProc() {
 
         if (!respMsgQueue_->popFront(respPac.buffer(), respPac.buffer_capacity(), written)) {
             if (written <= 0) {
-                veigar::log("Veigar: Error: Pop front from response message queue failed.\n");
+                veigar::log("Veigar: [ERROR] Failed to retrieve message from response queue.\n");
                 respMsgQueue_->processRWUnlock();
                 continue;
             }
@@ -124,13 +124,13 @@ void RespDispatcher::dispatchRespThreadProc() {
             try {
                 respPac.reserve_buffer((size_t)written);
             } catch (std::bad_alloc& e) {
-                veigar::log("Veigar: Error: Pre-alloc response memory(%d bytes) failed: %s.\n", written, e.what());
+                veigar::log("Veigar: [ERROR] Failed to allocate memory for response buffer (%d bytes): %s.\n", written, e.what());
                 respMsgQueue_->processRWUnlock();
                 continue;
             }
 
             if (!respMsgQueue_->popFront(respPac.buffer(), respPac.buffer_capacity(), written)) {
-                veigar::log("Veigar: Error: Pop front from response message queue failed.\n");
+                veigar::log("Veigar: [ERROR] Failed to retrieve message from response queue.\n");
                 respMsgQueue_->processRWUnlock();
                 continue;
             }
@@ -146,12 +146,11 @@ void RespDispatcher::dispatchRespThreadProc() {
             try {
                 nextRet = respPac.next(obj);
             } catch (std::exception& e) {
-                veigar::log("Veigar: Error: An exception occurred during parsing received data: %s.\n", e.what());
+                veigar::log("Veigar: [ERROR] Exception occurred while parsing response data: %s.\n", e.what());
                 nextRet = false;
             } catch (...) {
                 veigar::log(
-                    "Veigar: Error: An exception occurred during parsing received data. The exception is not derived from std::exception. "
-                    "No further information available.\n");
+                    "Veigar: [ERROR] Unknown exception occurred while parsing response data. Exception type not derived from std::exception.\n");
                 nextRet = false;
             }
 
@@ -169,13 +168,13 @@ void RespDispatcher::dispatchRespThreadProc() {
                 // Check protocol
                 uint32_t msgFlag = std::get<0>(r);
                 if (msgFlag != 1) {
-                    veigar::log("Veigar: Error: Invalid response message flag: %d.\n", msgFlag);
+                    veigar::log("Veigar: [ERROR] Invalid response message flag: %d.\n", msgFlag);
                     continue;
                 }
 
                 callId = std::get<1>(r);
                 if (callId.empty()) {
-                    veigar::log("Veigar: Warning: Call id is empty.\n");
+                    veigar::log("Veigar: [WARNING] Call ID is empty.\n");
                     continue;
                 }
 
@@ -184,14 +183,14 @@ void RespDispatcher::dispatchRespThreadProc() {
                     retMeta = ongoingCalls_[callId];
                 }
                 else {
-                    veigar::log("Veigar: Warning: Unable to find call: %s, Going-Call number: %d.\n", callId.c_str(), ongoingCalls_.size());
+                    veigar::log("Veigar: [WARNING] Call not found: %s (Active calls: %d).\n", callId.c_str(), ongoingCalls_.size());
                     ongoingCallsMutex_.unlock();
                     continue;
                 }
                 ongoingCallsMutex_.unlock();
 
                 if (retMeta.metaType != 0 && retMeta.metaType != 1) {
-                    veigar::log("Veigar: Warning: Invalid result meta type: %d.\n", retMeta.metaType);
+                    veigar::log("Veigar: [WARNING] Invalid result meta type: %d.\n", retMeta.metaType);
                     continue;
                 }
 

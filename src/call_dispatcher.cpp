@@ -168,7 +168,7 @@ void CallDispatcher::dispatchThreadProc() {
     try {
         callPac.reserve_buffer(veigar_->expectedMsgMaxSize());
     } catch (std::bad_alloc& e) {
-        veigar::log("Veigar: Error: Pre-alloc call memory(%u bytes) failed: %s.\n", veigar_->expectedMsgMaxSize(), e.what());
+        veigar::log("Veigar: [ERROR] Failed to allocate memory for call buffer (%u bytes): %s.\n", veigar_->expectedMsgMaxSize(), e.what());
         return;
     }
 
@@ -182,17 +182,17 @@ void CallDispatcher::dispatchThreadProc() {
             break;
 
         if (!impl_->callMsgQueue_->processRWLock(veigar_->timeoutOfRWLock())) {
-            veigar::log("Veigar: Warning: Get rw-lock timeout when pop front from call message queue.\n");
+            veigar::log("Veigar: [WARNING] Timeout while acquiring read-write lock for call queue.\n");
             continue;
         }
 
         const int64_t msgNum = impl_->callMsgQueue_->msgNumber();
         if (msgNum <= 0) {
             if (msgNum < 0) {
-                veigar::log("Veigar: Error: Query message number from call message queue failed.\n");
+                veigar::log("Veigar: [ERROR] Failed to query message count from call queue.\n");
             }
             else {
-                veigar::log("Veigar: Warning: Disordered read signal for call message queue.\n");
+                veigar::log("Veigar: [WARNING] Received read signal for empty call queue.\n");
             }
             impl_->callMsgQueue_->processRWUnlock();
             continue;
@@ -200,7 +200,7 @@ void CallDispatcher::dispatchThreadProc() {
 
         if (!impl_->callMsgQueue_->popFront(callPac.buffer(), callPac.buffer_capacity(), written)) {
             if (written <= 0) {
-                veigar::log("Veigar: Error: Pop front from call message queue failed.\n");
+                veigar::log("Veigar: [ERROR] Failed to retrieve message from call queue.\n");
                 impl_->callMsgQueue_->processRWUnlock();
                 continue;
             }
@@ -208,13 +208,13 @@ void CallDispatcher::dispatchThreadProc() {
             try {
                 callPac.reserve_buffer((size_t)written);
             } catch (std::bad_alloc& e) {
-                veigar::log("Veigar: Error: Pre-alloc call memory(%u bytes) failed: %s.\n", written, e.what());
+                veigar::log("Veigar: [ERROR] Failed to allocate memory for call buffer (%u bytes): %s.\n", written, e.what());
                 impl_->callMsgQueue_->processRWUnlock();
                 continue;
             }
 
             if (!impl_->callMsgQueue_->popFront(callPac.buffer(), callPac.buffer_capacity(), written)) {
-                veigar::log("Veigar: Error: Pop front from call message queue failed.\n");
+                veigar::log("Veigar: [ERROR] Failed to retrieve message from call queue.\n");
                 impl_->callMsgQueue_->processRWUnlock();
                 continue;
             }
@@ -230,12 +230,11 @@ void CallDispatcher::dispatchThreadProc() {
             try {
                 nextRet = callPac.next(obj);
             } catch (std::exception& e) {
-                veigar::log("Veigar: Error: An exception occurred during parsing received call data: %s.\n", e.what());
+                veigar::log("Veigar: [ERROR] Exception occurred while parsing call data: %s.\n", e.what());
                 nextRet = false;
             } catch (...) {
                 veigar::log(
-                    "Veigar: Error: An exception occurred during parsing received call data. The exception is not derived from std::exception. "
-                    "No further information available.\n");
+                    "Veigar: [ERROR] Unknown exception occurred while parsing call data. Exception type not derived from std::exception.\n");
                 nextRet = false;
             }
 
@@ -249,23 +248,23 @@ void CallDispatcher::dispatchThreadProc() {
                 std::string callerChannelName;
                 Response resp = dispatch(msg, callerChannelName);
                 if (callerChannelName.empty()) {
-                    veigar::log("Veigar: Warning: Unable to parse caller's channel name.\n");
+                    veigar::log("Veigar: [WARNING] Failed to parse caller's channel name.\n");
                     continue;
                 }
 
                 veigar_msgpack::sbuffer respBuf = resp.getData();
                 if (respBuf.size() == 0) {
-                    veigar::log("Veigar: Warning: The size of response data is zero.\n");
+                    veigar::log("Veigar: [WARNING] Response data is empty.\n");
                     continue;
                 }
 
                 std::string errMsg;
                 if (!veigar_->sendResponse(callerChannelName, (const uint8_t*)respBuf.data(), respBuf.size(), errMsg)) {
-                    veigar::log("Veigar: Error: Send response to caller failed, caller: %s, error: %s.\n",
+                    veigar::log("Veigar: [ERROR] Failed to send response to caller (%s): %s.\n",
                                 callerChannelName.c_str(), errMsg.c_str());
                 }
             } catch (std::exception& e) {
-                veigar::log("Veigar: Error: An exception occurred during handling dispatch call: %s.\n", e.what());
+                veigar::log("Veigar: [ERROR] Exception occurred while processing call: %s.\n", e.what());
             }
 
         } while (true);
